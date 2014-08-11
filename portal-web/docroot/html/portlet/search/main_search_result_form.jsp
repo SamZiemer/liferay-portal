@@ -221,8 +221,8 @@ if (summary != null) {
 							long assetVocabularyId = assetCategory.getVocabularyId();
 
 							if (assetVocabularyIdsToCategoryIdsMap.containsKey(assetVocabularyId)) {
-								List<AssetCategory> assetCategoryIds1 = assetVocabularyIdsToCategoryIdsMap.get(assetVocabularyId);
-								assetCategoryIds1.add(assetCategory);
+								List<AssetCategory> assetCategories = assetVocabularyIdsToCategoryIdsMap.get(assetVocabularyId);
+								assetCategories.add(assetCategory);
 							}
 							else {
 								ArrayList assetCategoryList = new ArrayList<AssetCategory>();
