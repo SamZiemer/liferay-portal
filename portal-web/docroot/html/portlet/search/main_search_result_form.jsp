@@ -210,22 +210,23 @@ if (summary != null) {
 						for (int i = 0; i < assetCategoryIds.length; i++) {
 							long assetCategoryId = GetterUtil.getLong(assetCategoryIds[i]);
 
-							AssetCategory assetcategory = null;
+							AssetCategory assetCategory = null;
 
 							try {
-								assetcategory = AssetCategoryLocalServiceUtil.getCategory(assetCategoryId);
-							} catch (NoSuchCategoryException nsce) {
+								assetCategory = AssetCategoryLocalServiceUtil.getCategory(assetCategoryId);
+							}
+							catch (NoSuchCategoryException nsce) {
 							}
 
-							long assetVocabularyId = assetcategory.getVocabularyId();
+							long assetVocabularyId = assetCategory.getVocabularyId();
 
 							if (assetVocabularyIdsToCategoryIdsMap.containsKey(assetVocabularyId)) {
 								List<AssetCategory> assetCategoryIds1 = assetVocabularyIdsToCategoryIdsMap.get(assetVocabularyId);
-								assetCategoryIds1.add(assetcategory);
+								assetCategoryIds1.add(assetCategory);
 							}
 							else {
 								ArrayList assetCategoryList = new ArrayList<AssetCategory>();
-								assetCategoryList.add(assetcategory);
+								assetCategoryList.add(assetCategory);
 								assetVocabularyIdsToCategoryIdsMap.put(assetVocabularyId, assetCategoryList);
 							}
 						}
