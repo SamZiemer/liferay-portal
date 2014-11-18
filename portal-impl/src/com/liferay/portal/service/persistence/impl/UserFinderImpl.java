@@ -36,6 +36,7 @@ import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.UserImpl;
 import com.liferay.portal.service.GroupLocalServiceUtil;
+import com.liferay.portal.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.service.persistence.GroupUtil;
 import com.liferay.portal.service.persistence.RoleUtil;
 import com.liferay.portal.service.persistence.UserFinder;
@@ -587,6 +588,23 @@ public class UserFinderImpl
 				for (Group group : groups) {
 					if (group.isOrganization()) {
 						organizationIds.add(group.getOrganizationId());
+
+						List<Organization> organizationDescendants;
+
+						long organizationId = group.getOrganizationId();
+
+						Organization organization =
+							OrganizationLocalServiceUtil.fetchOrganization(
+								organizationId);
+
+						organizationDescendants = organization.getDescendants();
+
+						for(Organization organizationDescendant :
+								organizationDescendants) {
+
+							organizationIds.add(
+								organizationDescendant.getOrganizationId());
+						}
 					}
 					else if (group.isUserGroup()) {
 						userGroupIds.add(group.getClassPK());
