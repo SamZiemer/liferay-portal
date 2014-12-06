@@ -24,7 +24,7 @@ import com.liferay.portal.kernel.lar.MissingReferences;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.PortletDataContextFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.test.AggregateTestRule;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -47,11 +47,11 @@ import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.test.DeleteAfterTestRun;
+import com.liferay.portal.test.LiferayIntegrationTestRule;
+import com.liferay.portal.test.MainServletTestRule;
 import com.liferay.portal.test.Sync;
-import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
+import com.liferay.portal.test.SynchronousDestinationTestRule;
 import com.liferay.portal.test.TransactionalTestRule;
-import com.liferay.portal.test.listeners.MainServletExecutionTestListener;
-import com.liferay.portal.test.runners.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.util.PortalImpl;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
@@ -84,8 +84,8 @@ import java.util.regex.Pattern;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.powermock.api.mockito.PowerMockito;
 
@@ -93,18 +93,16 @@ import org.powermock.api.mockito.PowerMockito;
  * @author Zsolt Berentey
  * @author Peter Borkuti
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		SynchronousDestinationExecutionTestListener.class
-	})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
 @Sync
 public class ExportImportHelperUtilTest extends PowerMockito {
 
 	@ClassRule
-	public static TransactionalTestRule transactionalTestRule =
-		new TransactionalTestRule();
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(), MainServletTestRule.INSTANCE,
+			SynchronousDestinationTestRule.INSTANCE,
+			TransactionalTestRule.INSTANCE);
 
 	@Before
 	public void setUp() throws Exception {
@@ -146,10 +144,8 @@ public class ExportImportHelperUtilTest extends PowerMockito {
 
 		_portletDataContextExport.setExportDataRootElement(rootElement);
 
-		_stagingPrivateLayout = LayoutTestUtil.addLayout(
-			_stagingGroup.getGroupId(), RandomTestUtil.randomString(), true);
-		_stagingPublicLayout = LayoutTestUtil.addLayout(
-			_stagingGroup.getGroupId(), RandomTestUtil.randomString(), false);
+		_stagingPrivateLayout = LayoutTestUtil.addLayout(_stagingGroup, true);
+		_stagingPublicLayout = LayoutTestUtil.addLayout(_stagingGroup, false);
 
 		_portletDataContextExport.setPlid(_stagingPublicLayout.getPlid());
 
@@ -162,8 +158,7 @@ public class ExportImportHelperUtilTest extends PowerMockito {
 
 		_portletDataContextImport.setImportDataRootElement(rootElement);
 
-		_livePublicLayout = LayoutTestUtil.addLayout(
-			_liveGroup.getGroupId(), RandomTestUtil.randomString(), false);
+		_livePublicLayout = LayoutTestUtil.addLayout(_liveGroup, false);
 
 		_portletDataContextImport.setPlid(_livePublicLayout.getPlid());
 
@@ -384,10 +379,8 @@ public class ExportImportHelperUtilTest extends PowerMockito {
 
 		Group group = user.getGroup();
 
-		Layout privateLayout = LayoutTestUtil.addLayout(
-			group.getGroupId(), RandomTestUtil.randomString(), true);
-		Layout publicLayout = LayoutTestUtil.addLayout(
-			group.getGroupId(), RandomTestUtil.randomString(), false);
+		Layout privateLayout = LayoutTestUtil.addLayout(group, true);
+		Layout publicLayout = LayoutTestUtil.addLayout(group, false);
 
 		PortletDataContext portletDataContextExport =
 			PortletDataContextFactoryUtil.createExportPortletDataContext(
@@ -420,12 +413,10 @@ public class ExportImportHelperUtilTest extends PowerMockito {
 
 	@Test
 	public void testGetSelectedLayoutsJSONSelectAllLayouts() throws Exception {
-		Layout layout = LayoutTestUtil.addLayout(
-			_stagingGroup.getGroupId(), RandomTestUtil.randomString());
+		Layout layout = LayoutTestUtil.addLayout(_stagingGroup);
 
 		Layout childLayout = LayoutTestUtil.addLayout(
-			_stagingGroup.getGroupId(), RandomTestUtil.randomString(),
-			layout.getPlid());
+			_stagingGroup, layout.getPlid());
 
 		long[] selectedLayoutIds = new long[] {
 			layout.getLayoutId(), childLayout.getLayoutId()};
@@ -448,12 +439,10 @@ public class ExportImportHelperUtilTest extends PowerMockito {
 
 	@Test
 	public void testGetSelectedLayoutsJSONSelectChildLayout() throws Exception {
-		Layout layout = LayoutTestUtil.addLayout(
-			_stagingGroup.getGroupId(), RandomTestUtil.randomString());
+		Layout layout = LayoutTestUtil.addLayout(_stagingGroup);
 
 		Layout childLayout = LayoutTestUtil.addLayout(
-			_stagingGroup.getGroupId(), RandomTestUtil.randomString(),
-			layout.getPlid());
+			_stagingGroup, layout.getPlid());
 
 		long[] selectedLayoutIds = new long[] {childLayout.getLayoutId()};
 
@@ -476,12 +465,9 @@ public class ExportImportHelperUtilTest extends PowerMockito {
 
 	@Test
 	public void testGetSelectedLayoutsJSONSelectNoLayouts() throws Exception {
-		Layout layout = LayoutTestUtil.addLayout(
-			_stagingGroup.getGroupId(), RandomTestUtil.randomString());
+		Layout layout = LayoutTestUtil.addLayout(_stagingGroup);
 
-		LayoutTestUtil.addLayout(
-			_stagingGroup.getGroupId(), RandomTestUtil.randomString(),
-			layout.getPlid());
+		LayoutTestUtil.addLayout(_stagingGroup, layout.getPlid());
 
 		String selectedLayoutsJSON =
 			ExportImportHelperUtil.getSelectedLayoutsJSON(
@@ -498,8 +484,7 @@ public class ExportImportHelperUtilTest extends PowerMockito {
 	public void testGetSelectedLayoutsJSONSelectParentLayout()
 		throws Exception {
 
-		Layout layout = LayoutTestUtil.addLayout(
-			_stagingGroup.getGroupId(), "Layout");
+		Layout layout = LayoutTestUtil.addLayout(_stagingGroup);
 
 		LayoutTestUtil.addLayout(
 			_stagingGroup.getGroupId(), "Child Layout", layout.getPlid());
@@ -589,10 +574,8 @@ public class ExportImportHelperUtilTest extends PowerMockito {
 
 	@Test
 	public void testImportLinksToLayoutsIdsReplacement() throws Exception {
-		LayoutTestUtil.addLayout(
-			_liveGroup.getGroupId(), RandomTestUtil.randomString(), true);
-		LayoutTestUtil.addLayout(
-			_liveGroup.getGroupId(), RandomTestUtil.randomString(), false);
+		LayoutTestUtil.addLayout(_liveGroup, true);
+		LayoutTestUtil.addLayout(_liveGroup, false);
 
 		exportImportLayouts(true);
 		exportImportLayouts(false);
@@ -696,8 +679,12 @@ public class ExportImportHelperUtilTest extends PowerMockito {
 	}
 
 	protected void exportImportLayouts(boolean privateLayout) throws Exception {
+		List<Layout> layouts = LayoutLocalServiceUtil.getLayouts(
+			_stagingGroup.getGroupId(), privateLayout);
+
 		File larFile = LayoutLocalServiceUtil.exportLayoutsAsFile(
-			_stagingGroup.getGroupId(), privateLayout, null,
+			_stagingGroup.getGroupId(), privateLayout,
+			ExportImportHelperUtil.getLayoutIds(layouts),
 			new HashMap<String, String[]>(), null, null);
 
 		LayoutLocalServiceUtil.importLayouts(

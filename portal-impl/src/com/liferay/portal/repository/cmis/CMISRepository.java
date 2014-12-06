@@ -133,9 +133,9 @@ public class CMISRepository extends BaseCmisRepository {
 
 	@Override
 	public FileEntry addFileEntry(
-			long folderId, String sourceFileName, String mimeType, String title,
-			String description, String changeLog, InputStream is, long size,
-			ServiceContext serviceContext)
+			long userId, long folderId, String sourceFileName, String mimeType,
+			String title, String description, String changeLog, InputStream is,
+			long size, ServiceContext serviceContext)
 		throws PortalException {
 
 		if (Validator.isNull(title)) {
@@ -272,7 +272,7 @@ public class CMISRepository extends BaseCmisRepository {
 
 	@Override
 	public void checkInFileEntry(
-		long fileEntryId, boolean major, String changeLog,
+		long userId, long fileEntryId, boolean major, String changeLog,
 		ServiceContext serviceContext) {
 
 		try {
@@ -314,9 +314,11 @@ public class CMISRepository extends BaseCmisRepository {
 
 	@Override
 	public void checkInFileEntry(
-		long fileEntryId, String lockUuid, ServiceContext serviceContext) {
+		long userId, long fileEntryId, String lockUuid,
+		ServiceContext serviceContext) {
 
-		checkInFileEntry(fileEntryId, false, StringPool.BLANK, serviceContext);
+		checkInFileEntry(
+			userId, fileEntryId, false, StringPool.BLANK, serviceContext);
 	}
 
 	@Override
@@ -361,7 +363,7 @@ public class CMISRepository extends BaseCmisRepository {
 
 	@Override
 	public FileEntry copyFileEntry(
-			long groupId, long fileEntryId, long destFolderId,
+			long userId, long groupId, long fileEntryId, long destFolderId,
 			ServiceContext serviceContext)
 		throws PortalException {
 
@@ -1133,7 +1135,8 @@ public class CMISRepository extends BaseCmisRepository {
 
 	@Override
 	public void revertFileEntry(
-			long fileEntryId, String version, ServiceContext serviceContext)
+			long userId, long fileEntryId, String version,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		try {
@@ -1166,9 +1169,10 @@ public class CMISRepository extends BaseCmisRepository {
 			ContentStream contentStream = oldVersion.getContentStream();
 
 			updateFileEntry(
-				fileEntryId, contentStream.getFileName(), mimeType, title,
-				StringPool.BLANK, changeLog, true, contentStream.getStream(),
-				contentStream.getLength(), serviceContext);
+				userId, fileEntryId, contentStream.getFileName(), mimeType,
+				title, StringPool.BLANK, changeLog, true,
+				contentStream.getStream(), contentStream.getLength(),
+				serviceContext);
 		}
 		catch (PortalException pe) {
 			throw pe;
@@ -1274,8 +1278,8 @@ public class CMISRepository extends BaseCmisRepository {
 
 	@Override
 	public FileEntry updateFileEntry(
-			long fileEntryId, String sourceFileName, String mimeType,
-			String title, String description, String changeLog,
+			long userId, long fileEntryId, String sourceFileName,
+			String mimeType, String title, String description, String changeLog,
 			boolean majorVersion, InputStream is, long size,
 			ServiceContext serviceContext)
 		throws PortalException {

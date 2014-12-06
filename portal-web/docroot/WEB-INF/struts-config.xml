@@ -37,8 +37,6 @@
 
 		<action path="/portal/flash" forward="/portal/flash.jsp" />
 
-		<action path="/portal/image_selector" type="com.liferay.portal.action.ImageSelectorAction" />
-
 		<action path="/portal/j_login" forward="/portal/j_login.jsp" />
 
 		<action path="/portal/j_login_error" forward="portal.j_login_error" />
@@ -320,6 +318,8 @@
 
 		<action path="/blogs/find_entry" type="com.liferay.portlet.blogs.action.FindEntryAction" />
 
+		<action path="/blogs/image_selector" type="com.liferay.portlet.blogs.action.ImageSelectorAction" />
+
 		<action path="/blogs/rss" type="com.liferay.portlet.blogs.action.RSSAction" />
 
 		<action path="/blogs/search" forward="portlet.blogs.search" />
@@ -343,6 +343,8 @@
 		<action path="/blogs_admin/edit_entry_discussion" type="com.liferay.portlet.messageboards.action.EditDiscussionAction">
 			<forward name="portlet.message_boards.error" path="portlet.blogs.error" />
 		</action>
+
+		<action path="/blogs_admin/image_selector" type="com.liferay.portlet.blogs.action.ImageSelectorAction" />
 
 		<action path="/blogs_admin/search" forward="portlet.blogs.search" />
 
@@ -675,6 +677,10 @@
 
 		<!-- Group Pages -->
 
+		<action path="/group_pages/add_group" forward="portlet.layouts_admin.add_group" />
+
+		<action path="/group_pages/add_layout" forward="portlet.layouts_admin.add_layout" />
+
 		<action path="/group_pages/confirmation" type="com.liferay.portlet.layoutsadmin.action.ConfirmationExportImportConfigurationAction">
 			<forward name="portlet.layouts_admin.confirmation" path="portlet.layouts_admin.confirmation" />
 			<forward name="portlet.layouts_admin.error" path="portlet.layouts_admin.error" />
@@ -817,7 +823,6 @@
 		</action>
 
 		<action path="/journal/edit_article" type="com.liferay.portlet.journal.action.EditArticleAction">
-			<forward name="portlet.journal.asset.add_asset_redirect" path="portlet.journal.asset.add_asset_redirect" />
 			<forward name="portlet.journal.edit_article" path="portlet.journal.edit_article" />
 			<forward name="portlet.journal.error" path="portlet.journal.error" />
 		</action>
@@ -827,7 +832,6 @@
 		</action>
 
 		<action path="/journal/edit_entry" type="com.liferay.portlet.journal.action.EditEntryAction">
-			<forward name="portlet.journal.asset.add_asset_redirect" path="portlet.journal.asset.add_asset_redirect" />
 			<forward name="portlet.journal.error" path="portlet.journal.error" />
 		</action>
 
@@ -891,20 +895,6 @@
 		</action>
 
 		<action path="/journal/view_feeds" forward="portlet.journal.view_feeds" />
-
-		<!-- Journal Content -->
-
-		<action path="/journal_content/add_asset_redirect" forward="portlet.journal.asset.add_asset_redirect" />
-
-		<action path="/journal_content/edit_article_discussion" type="com.liferay.portlet.messageboards.action.EditDiscussionAction">
-			<forward name="portlet.message_boards.error" path="portlet.journal_content.error" />
-		</action>
-
-		<action path="/journal_content/export_article" type="com.liferay.portlet.journal.action.ExportArticleAction" />
-
-		<action path="/journal_content/view" type="com.liferay.portlet.journalcontent.action.ViewAction">
-			<forward name="portlet.journal_content.view" path="portlet.journal_content.view" />
-		</action>
 
 		<!-- Journal Content Search -->
 
@@ -985,6 +975,10 @@
 		<action path="/layout_set_prototypes/view" forward="portlet.layout_set_prototypes.view" />
 
 		<!-- Layouts Admin -->
+
+		<action path="/layouts_admin/add_group" forward="portlet.layouts_admin.add_group" />
+
+		<action path="/layouts_admin/add_layout" forward="portlet.layouts_admin.add_layout" />
 
 		<action path="/layouts_admin/confirmation" type="com.liferay.portlet.layoutsadmin.action.ConfirmationExportImportConfigurationAction">
 			<forward name="portlet.layouts_admin.confirmation" path="portlet.layouts_admin.confirmation" />
@@ -1621,8 +1615,6 @@
 		<action path="/roles_admin/view_users" forward="portlet.users_admin.view" />
 
 		<!-- RSS -->
-
-		<action path="/rss/article" forward="portlet.rss.article" />
 
 		<action path="/rss/view" forward="portlet.rss.view" />
 

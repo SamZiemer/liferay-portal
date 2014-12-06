@@ -25,11 +25,10 @@ import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-
-import org.testng.Assert;
 
 /**
  * @author Tina Tian
@@ -37,7 +36,7 @@ import org.testng.Assert;
 public class MemoryPortalCacheTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
+	public static final CodeCoverageAssertor codeCoverageAssertor =
 		new CodeCoverageAssertor() {
 
 			@Override

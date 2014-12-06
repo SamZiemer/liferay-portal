@@ -1069,6 +1069,23 @@
 				(Users_UserGroups.userId = ?)
 		]]>
 	</sql>
+	<sql id="com.liferay.portal.service.persistence.RoleFinder.countByUserGroupGroupRole">
+		<![CDATA[
+			SELECT
+				COUNT(Role_.roleId) AS COUNT_VALUE
+			FROM
+				Role_
+			INNER JOIN
+				UserGroupGroupRole ON
+					(UserGroupGroupRole.roleId = Role_.roleId)
+			INNER JOIN
+				Users_UserGroups ON
+					(Users_UserGroups.userGroupId = UserGroupGroupRole.userGroupId)
+			WHERE
+				(Users_UserGroups.userId = ?) AND
+				(UserGroupGroupRole.groupId = ?)
+		]]>
+	</sql>
 	<sql id="com.liferay.portal.service.persistence.RoleFinder.countByUserGroupSite">
 		<![CDATA[
 			SELECT
@@ -1374,16 +1391,13 @@
 				{User_.*}
 			FROM
 				User_
+			LEFT JOIN
+				AnnouncementsDelivery ON
+					(AnnouncementsDelivery.userId = User_.userId) AND
+					(AnnouncementsDelivery.type_ = ?) AND
+					(User_.defaultUser = [$FALSE$])
 			WHERE
-				(userId NOT IN (
-					SELECT
-						userId
-					FROM
-						AnnouncementsDelivery
-					WHERE
-						type_ = ?
-				)) AND
-				(defaultUser = [$FALSE$])
+				(AnnouncementsDelivery.userId IS NULL)
 		]]>
 	</sql>
 	<sql id="com.liferay.portal.service.persistence.UserFinder.findByNoContacts">
@@ -1459,6 +1473,45 @@
 					(Contact_.contactId = User_.contactId)
 			WHERE
 				(Contact_.twitterSn != '')
+		]]>
+	</sql>
+	<sql id="com.liferay.portal.service.persistence.UserFinder.joinByGroupsOrgs">
+		<![CDATA[
+			INNER JOIN
+				Users_Orgs ON
+					(Users_Orgs.userId = User_.userId)
+			INNER JOIN
+				Groups_Orgs ON
+					(Groups_Orgs.organizationId = Users_Orgs.organizationId)
+			WHERE
+				Groups_Orgs.groupId = ?
+		]]>
+	</sql>
+	<sql id="com.liferay.portal.service.persistence.UserFinder.joinByGroupsOrgsTree">
+		<![CDATA[
+			INNER JOIN
+				Users_Orgs ON
+					(Users_Orgs.userId = User_.userId)
+			INNER JOIN
+				Organization_ ON
+					(Users_Orgs.organizationId = Organization_.organizationId)
+			INNER JOIN
+				Groups_Orgs ON
+					(Organization_.treePath like ('%/' || Groups_Orgs.organizationId || '/%'))
+			WHERE
+				Groups_Orgs.groupId = ?
+		]]>
+	</sql>
+	<sql id="com.liferay.portal.service.persistence.UserFinder.joinByGroupsUserGroups">
+		<![CDATA[
+			INNER JOIN
+				Users_UserGroups ON
+					(Users_UserGroups.userId = User_.userId)
+			INNER JOIN
+				Groups_UserGroups ON
+					(Groups_UserGroups.userGroupId = Users_UserGroups.userGroupId)
+			WHERE
+				Groups_UserGroups.groupId = ?
 		]]>
 	</sql>
 	<sql id="com.liferay.portal.service.persistence.UserFinder.joinByNoOrganizations">

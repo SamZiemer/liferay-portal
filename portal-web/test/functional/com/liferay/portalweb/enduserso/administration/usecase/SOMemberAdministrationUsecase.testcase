@@ -30,8 +30,6 @@
 	</tear-down>
 
 	<command name="ConfirmMemberInviteSiteByEmailNonUserViaWorkflow" priority="5">
-		<property name="custom.properties" value="pop.server.notifications.enabled=true{line.separator}pop.server.subdomain={line.separator}captcha.check.portal.create_account=false" />
-
 		<var name="siteDescription" value="Workflow Site Description" />
 		<var name="siteName" value="Workflow Site Name" />
 		<var name="siteType" value="Open" />
@@ -80,7 +78,7 @@
 		<execute macro="SOMembersAdministration#createAccountViaSiteInviteEmail">
 			<var name="adminEmailAddress" value="${adminEmailAddress}" />
 			<var name="adminName" value="${adminName}" />
-			<var name="nonUser" value="true" />
+			<var name="nonUserInvite" value="true" />
 			<var name="singleApproverWorkflow" value="true" />
 			<var name="siteName" value="${siteName}" />
 			<var name="userEmailAddress" value="${userEmailAddress}" />
@@ -134,7 +132,7 @@
 		<execute macro="SOMembersAdministration#confirmMemberInviteByEmail">
 			<var name="adminEmailAddress" value="${adminEmailAddress}" />
 			<var name="adminName" value="${adminName}" />
-			<var name="nonUser" value="true" />
+			<var name="nonUserInvite" value="true" />
 			<var name="siteName" value="${siteName}" />
 			<var name="userEmailAddress" value="${userEmailAddress}" />
 			<var name="userName" value="${userName}" />

@@ -696,8 +696,9 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 	}
 
 	protected String formatJavaTerms(
-			String javaClassName, String fileName, String absolutePath,
-			String content, String javaClassContent, int javaClassLineCount,
+			String javaClassName, String packagePath, File file,
+			String fileName, String absolutePath, String content,
+			String javaClassContent, int javaClassLineCount,
 			List<String> checkJavaFieldTypesExclusions,
 			List<String> javaTermAccessLevelModifierExclusions,
 			List<String> javaTermSortExclusions,
@@ -705,8 +706,8 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 		throws Exception {
 
 		JavaClass javaClass = new JavaClass(
-			javaClassName, fileName, absolutePath, javaClassContent,
-			javaClassLineCount, StringPool.TAB, null,
+			javaClassName, packagePath, file, fileName, absolutePath,
+			javaClassContent, javaClassLineCount, StringPool.TAB, null,
 			javaTermAccessLevelModifierExclusions);
 
 		String newJavaClassContent = javaClass.formatJavaTerms(
@@ -722,6 +723,13 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 		return content;
 	}
 
+	protected String formatTagAttributeType(
+			String line, String tag, String attributeAndValue)
+		throws Exception {
+
+		return line;
+	}
+
 	protected String getAbsolutePath(File file) {
 		String absolutePath = fileUtil.getAbsolutePath(file);
 
@@ -734,7 +742,10 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 		}
 
 		_annotationsExclusions = SetUtil.fromArray(
-			new String[] {"BeanReference", "Mock", "SuppressWarnings"});
+			new String[] {
+				"ArquillianResource", "BeanReference", "Inject", "Mock",
+				"SuppressWarnings"
+			});
 
 		return _annotationsExclusions;
 	}
@@ -1190,18 +1201,22 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 	}
 
 	protected String sortAttributes(
-		String fileName, String line, int lineCount,
-		boolean allowApostropheDelimeter) {
+			String fileName, String line, int lineCount,
+			boolean allowApostropheDelimeter)
+		throws Exception {
 
 		String s = line;
 
-		int x = s.indexOf(StringPool.SPACE);
+		int x = s.indexOf(StringPool.LESS_THAN);
+		int y = s.indexOf(StringPool.SPACE);
 
-		if (x == -1) {
+		if ((x == -1) || (x >= y)) {
 			return line;
 		}
 
-		s = s.substring(x + 1);
+		String tag = s.substring(x + 1, y);
+
+		s = s.substring(y + 1);
 
 		String previousAttribute = null;
 		String previousAttributeAndValue = null;
@@ -1246,7 +1261,7 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 
 			String value = null;
 
-			int y = -1;
+			y = -1;
 
 			while (true) {
 				y = s.indexOf(delimeter, y + 1);
@@ -1310,6 +1325,14 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 			sb.append(delimeter);
 
 			String currentAttributeAndValue = sb.toString();
+
+			String newLine = formatTagAttributeType(
+				line, tag, currentAttributeAndValue);
+
+			if (!newLine.equals(line)) {
+				return sortAttributes(
+					fileName, newLine, lineCount, allowApostropheDelimeter);
+			}
 
 			if (wrongOrder) {
 				if ((StringUtil.count(line, currentAttributeAndValue) == 1) &&

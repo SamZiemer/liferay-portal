@@ -2178,8 +2178,6 @@
 	</command>
 
 	<command name="SubscribeToSOBlogsEntryAndViewEntryInGmail" priority="5">
-		<property name="custom.properties" value="pop.server.notifications.enabled=true{line.separator}pop.server.subdomain=" />
-
 		<var name="entryContent" value="Blogs Entry Content" />
 		<var name="entryTitle" value="Blogs Entry Title" />
 		<var name="userEmailAddress" property-value="email.address.2" />
@@ -2280,7 +2278,7 @@
 
 		<var name="key_gmailAssetType" value="Blogs" />
 
-		<var locator-key="GMAIL_HTML_MODE_MESSAGE_BODY_LINK" name="blogEntryURL" path="Gmail" />
+		<var locator-key="GMAIL_HTML_MODE_MESSAGE_BODY_LINK_1" name="blogEntryURL" path="Gmail" />
 
 		<execute macro="Gmail#tearDown">
 			<var name="userEmailAddress" property-value="email.address.2" />
@@ -2296,8 +2294,6 @@
 	</command>
 
 	<command name="UserFlagsEntryAndAdminViewsNotificationInGmail" priority="4">
-		<property name="custom.properties" value="pop.server.notifications.enabled=true{line.separator}pop.server.subdomain=" />
-
 		<var name="entryContent" value="Blogs Entry Content" />
 		<var name="entryTitle" value="Blogs Entry Title" />
 		<var name="flagReason" value="Spam" />

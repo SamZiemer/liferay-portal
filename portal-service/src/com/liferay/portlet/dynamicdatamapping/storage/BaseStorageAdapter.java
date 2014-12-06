@@ -31,6 +31,7 @@ import com.liferay.portlet.dynamicdatamapping.util.DDMFormValuesTransformer;
 import com.liferay.portlet.dynamicdatamapping.util.DocumentLibraryDDMFormFieldValueTransformer;
 import com.liferay.portlet.dynamicdatamapping.util.FieldsToDDMFormValuesConverterUtil;
 import com.liferay.portlet.dynamicdatamapping.util.HTMLSanitizerDDMFormFieldValueTransformer;
+import com.liferay.portlet.dynamicdatamapping.validator.DDMFormValuesValidatorUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -114,7 +115,7 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 	}
 
 	@Override
-	public DDMFormValues getDDMFormValues(long classPK) 
+	public DDMFormValues getDDMFormValues(long classPK)
 		throws StorageException {
 
 		try {
@@ -127,7 +128,7 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 			throw new StorageException(e);
 		}
 	}
-	
+
 	@Override
 	public Fields getFields(long classPK) throws StorageException {
 		return getFields(classPK, null);
@@ -343,6 +344,17 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 	protected abstract void doDeleteByDDMStructure(long ddmStructureId)
 		throws Exception;
 
+	protected DDMFormValues doGetDDMFormValues(long classPK) throws Exception {
+		DDMStorageLink ddmStorageLink =
+			DDMStorageLinkLocalServiceUtil.getClassStorageLink(classPK);
+
+		DDMStructure ddmStructure = ddmStorageLink.getStructure();
+
+		Fields fields = getFields(classPK);
+
+		return FieldsToDDMFormValuesConverterUtil.convert(ddmStructure, fields);
+	}
+
 	protected abstract List<Fields> doGetFieldsListByClasses(
 			long ddmStructureId, long[] classPKs, List<String> fieldNames,
 			OrderByComparator<Fields> orderByComparator)
@@ -380,19 +392,6 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 			ddmStructure, ddmFormValues);
 
 		doUpdate(classPK, fields, false, serviceContext);
-	}
-	
-	protected DDMFormValues doGetDDMFormValues(long classPK) 
-		throws Exception {
-
-		DDMStorageLink ddmStorageLink =
-			DDMStorageLinkLocalServiceUtil.getClassStorageLink(classPK);
-
-		DDMStructure ddmStructure = ddmStorageLink.getStructure();
-			
-		Fields fields = getFields(classPK);
-		
-		return FieldsToDDMFormValuesConverterUtil.convert(ddmStructure, fields);
 	}
 
 	protected abstract void doUpdate(

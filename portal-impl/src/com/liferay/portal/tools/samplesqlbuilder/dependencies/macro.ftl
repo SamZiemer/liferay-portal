@@ -60,7 +60,7 @@
 		<#local dlFolderModels = dataFactory.newDLFolderModels(_groupId, _parentDLFolderId)>
 
 		<#list dlFolderModels as dlFolderModel>
-			insert into DLFolder values ('${dlFolderModel.uuid}', ${dlFolderModel.folderId}, ${dlFolderModel.groupId}, ${dlFolderModel.companyId}, ${dlFolderModel.userId}, '${dlFolderModel.userName}', '${dataFactory.getDateString(dlFolderModel.createDate)}', '${dataFactory.getDateString(dlFolderModel.modifiedDate)}', ${dlFolderModel.repositoryId}, ${dlFolderModel.mountPoint?string}, ${dlFolderModel.parentFolderId}, '', '${dlFolderModel.name}', '${dlFolderModel.description}', '${dataFactory.getDateString(dlFolderModel.lastPostDate)}', ${dlFolderModel.defaultFileEntryTypeId}, ${dlFolderModel.hidden?string}, ${dlFolderModel.overrideFileEntryTypes?string}, ${dlFolderModel.status}, ${dlFolderModel.statusByUserId}, '${dlFolderModel.statusByUserName}', '${dataFactory.getDateString(dlFolderModel.statusDate)}');
+			insert into DLFolder values ('${dlFolderModel.uuid}', ${dlFolderModel.folderId}, ${dlFolderModel.groupId}, ${dlFolderModel.companyId}, ${dlFolderModel.userId}, '${dlFolderModel.userName}', '${dataFactory.getDateString(dlFolderModel.createDate)}', '${dataFactory.getDateString(dlFolderModel.modifiedDate)}', ${dlFolderModel.repositoryId}, ${dlFolderModel.mountPoint?string}, ${dlFolderModel.parentFolderId}, '', '${dlFolderModel.name}', '${dlFolderModel.description}', '${dataFactory.getDateString(dlFolderModel.lastPostDate)}', ${dlFolderModel.defaultFileEntryTypeId}, ${dlFolderModel.hidden?string}, ${dlFolderModel.restrictionType}, ${dlFolderModel.status}, ${dlFolderModel.statusByUserId}, '${dlFolderModel.statusByUserName}', '${dataFactory.getDateString(dlFolderModel.statusDate)}');
 
 			<@insertResourcePermissions
 				_entry = dlFolderModel
@@ -133,7 +133,7 @@
 	_groupModel
 	_publicPageCount
 >
-	insert into Group_ values (${_groupModel.mvccVersion}, '${_groupModel.uuid}', ${_groupModel.groupId}, ${_groupModel.companyId}, ${_groupModel.creatorUserId}, ${_groupModel.classNameId}, ${_groupModel.classPK}, ${_groupModel.parentGroupId}, ${_groupModel.liveGroupId}, '${_groupModel.treePath}', '${_groupModel.name}', '${_groupModel.description}', ${_groupModel.type}, '${_groupModel.typeSettings}', ${_groupModel.manualMembership?string}, ${_groupModel.membershipRestriction}, '${_groupModel.friendlyURL}', ${_groupModel.site?string}, ${_groupModel.remoteStagingGroupCount}, ${_groupModel.active?string});
+	insert into Group_ values (${_groupModel.mvccVersion}, '${_groupModel.uuid}', ${_groupModel.groupId}, ${_groupModel.companyId}, ${_groupModel.creatorUserId}, ${_groupModel.classNameId}, ${_groupModel.classPK}, ${_groupModel.parentGroupId}, ${_groupModel.liveGroupId}, '${_groupModel.treePath}', '${_groupModel.name}', '${_groupModel.description}', ${_groupModel.type}, '${_groupModel.typeSettings}', ${_groupModel.manualMembership?string}, ${_groupModel.membershipRestriction}, '${_groupModel.friendlyURL}', ${_groupModel.site?string}, ${_groupModel.remoteStagingGroupCount}, ${_groupModel.inheritContent?string}, ${_groupModel.active?string});
 
 	<#local layoutSetModels = dataFactory.newLayoutSetModels(_groupModel.groupId, _publicPageCount)>
 

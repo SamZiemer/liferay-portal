@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
  * @author Brian Wing Shun Chan
+ * @generated
  */
 @ProviderType
 public class RoleFinderUtil {
@@ -61,6 +62,10 @@ public class RoleFinderUtil {
 		return getFinder().countByKeywords(companyId, keywords, types, params);
 	}
 
+	public static int countByUserGroupGroupRole(long userId, long groupId) {
+		return getFinder().countByUserGroupGroupRole(userId, groupId);
+	}
+
 	public static java.util.List<com.liferay.portal.model.Role> findBySystem(
 		long companyId) {
 		return getFinder().findBySystem(companyId);
@@ -69,6 +74,11 @@ public class RoleFinderUtil {
 	public static java.util.List<com.liferay.portal.model.Role> findByUserGroupGroupRole(
 		long userId, long groupId) {
 		return getFinder().findByUserGroupGroupRole(userId, groupId);
+	}
+
+	public static java.util.List<com.liferay.portal.model.Role> findByUserGroupGroupRole(
+		long userId, long groupId, int start, int end) {
+		return getFinder().findByUserGroupGroupRole(userId, groupId, start, end);
 	}
 
 	public static java.util.List<com.liferay.portal.model.Role> findByUserGroupRole(

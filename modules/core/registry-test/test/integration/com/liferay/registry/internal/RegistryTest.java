@@ -713,10 +713,10 @@ public class RegistryTest {
 	}
 
 	@ArquillianResource
-	private final Bundle _bundle;
+	private Bundle _bundle;
 
 	@ArquillianResource
-	private final BundleContext _bundleContext;
+	private BundleContext _bundleContext;
 
 	private Registry _registry;
 
@@ -854,6 +854,7 @@ public class RegistryTest {
 
 			serviceTracker.close();
 		}
+
 	}
 
 	private abstract class TestTrackServicesByServiceTrackerCustomizer {

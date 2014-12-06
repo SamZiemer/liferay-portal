@@ -19,22 +19,24 @@ import com.dumbster.smtp.MailMessage;
 import com.liferay.portal.kernel.settings.ModifiableSettings;
 import com.liferay.portal.kernel.settings.Settings;
 import com.liferay.portal.kernel.settings.SettingsFactoryUtil;
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.test.AggregateTestRule;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.RoleConstants;
+import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.test.DeleteAfterTestRun;
+import com.liferay.portal.test.LiferayIntegrationTestRule;
+import com.liferay.portal.test.MainServletTestRule;
 import com.liferay.portal.test.Sync;
-import com.liferay.portal.test.SynchronousMailExecutionTestListener;
-import com.liferay.portal.test.listeners.MainServletExecutionTestListener;
-import com.liferay.portal.test.runners.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.SynchronousMailTestRule;
 import com.liferay.portal.util.test.GroupTestUtil;
 import com.liferay.portal.util.test.MailServiceTestUtil;
 import com.liferay.portal.util.test.ServiceContextTestUtil;
-import com.liferay.portal.util.test.TestPropsValues;
+import com.liferay.portal.util.test.UserTestUtil;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
 import com.liferay.portlet.blogs.util.BlogsConstants;
@@ -42,32 +44,36 @@ import com.liferay.portlet.blogs.util.test.BlogsTestUtil;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Sergio González
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		SynchronousMailExecutionTestListener.class
-	})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
 @Sync
 public class BlogsSubscriptionEmailEntryUpdatedCommentTest {
 
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(), MainServletTestRule.INSTANCE,
+			SynchronousMailTestRule.INSTANCE);
+
 	@Before
 	public void setUp() throws Exception {
-		group = GroupTestUtil.addGroup();
+		_group = GroupTestUtil.addGroup();
+
+		_user = UserTestUtil.addGroupUser(_group, RoleConstants.SITE_MEMBER);
 	}
 
 	@Test
 	public void testEmailEntryUpdatedNotSentIfNotSpecified() throws Exception {
-		BlogsEntry entry = BlogsTestUtil.addEntry(group, true);
+		BlogsEntry entry = BlogsTestUtil.addEntry(_group, true);
 
 		BlogsEntryLocalServiceUtil.subscribe(
-			TestPropsValues.getUserId(), group.getGroupId());
+			_user.getUserId(), _group.getGroupId());
 
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(entry.getGroupId());
@@ -87,10 +93,10 @@ public class BlogsSubscriptionEmailEntryUpdatedCommentTest {
 
 		setUpBlogsSettings();
 
-		BlogsEntry entry = BlogsTestUtil.addEntry(group, true);
+		BlogsEntry entry = BlogsTestUtil.addEntry(_group, true);
 
 		BlogsEntryLocalServiceUtil.subscribe(
-			TestPropsValues.getUserId(), group.getGroupId());
+			_user.getUserId(), _group.getGroupId());
 
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(entry.getGroupId());
@@ -114,10 +120,10 @@ public class BlogsSubscriptionEmailEntryUpdatedCommentTest {
 
 		setUpBlogsSettings();
 
-		BlogsEntry entry = BlogsTestUtil.addEntry(group, true);
+		BlogsEntry entry = BlogsTestUtil.addEntry(_group, true);
 
 		BlogsEntryLocalServiceUtil.subscribe(
-			TestPropsValues.getUserId(), group.getGroupId());
+			_user.getUserId(), _group.getGroupId());
 
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(entry.getGroupId());
@@ -135,15 +141,15 @@ public class BlogsSubscriptionEmailEntryUpdatedCommentTest {
 
 	protected void setUpBlogsSettings() throws Exception {
 		Settings settings = SettingsFactoryUtil.getGroupServiceSettings(
-			group.getGroupId(), BlogsConstants.SERVICE_NAME);
+			_group.getGroupId(), BlogsConstants.SERVICE_NAME);
 
 		ModifiableSettings modifiableSettings =
 			settings.getModifiableSettings();
 
 		String subscriptionBodyPreferencesKey =
-			LocalizationUtil.getPreferencesKey(
+			LocalizationUtil.getLocalizedName(
 				"emailEntryUpdatedBody",
-				LocaleUtil.toLanguageId(LocaleUtil.US));
+				LocaleUtil.toLanguageId(LocaleUtil.getDefault()));
 
 		modifiableSettings.setValue(
 			subscriptionBodyPreferencesKey, "[$BLOGS_ENTRY_UPDATE_COMMENT$]");
@@ -152,6 +158,9 @@ public class BlogsSubscriptionEmailEntryUpdatedCommentTest {
 	}
 
 	@DeleteAfterTestRun
-	protected Group group;
+	private Group _group;
+
+	@DeleteAfterTestRun
+	private User _user;
 
 }

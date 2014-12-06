@@ -656,10 +656,6 @@
 
 	<definition name="portlet.journal" extends="portlet" />
 
-	<definition name="portlet.journal.asset.add_asset_redirect" extends="portlet.journal">
-		<put name="portlet_content" value="/portlet/journal/asset/add_asset_redirect.jsp" />
-	</definition>
-
 	<definition name="portlet.journal.compare_versions" extends="portlet.journal">
 		<put name="portlet_content" value="/portlet/journal/compare_versions.jsp" />
 	</definition>
@@ -724,18 +720,6 @@
 		<put name="portlet_content" value="/portlet/journal/view_feeds.jsp" />
 	</definition>
 
-	<!-- Journal Content -->
-
-	<definition name="portlet.journal_content" extends="portlet" />
-
-	<definition name="portlet.journal_content.error" extends="portlet.journal_content">
-		<put name="portlet_content" value="/portlet/journal_content/error.jsp" />
-	</definition>
-
-	<definition name="portlet.journal_content.view" extends="portlet.journal_content">
-		<put name="portlet_content" value="/portlet/journal_content/view.jsp" />
-	</definition>
-
 	<!-- Journal Content Search -->
 
 	<definition name="portlet.journal_content_search" extends="portlet" />
@@ -791,6 +775,10 @@
 	<!-- Layouts Admin -->
 
 	<definition name="portlet.layouts_admin" extends="portlet" />
+
+	<definition name="portlet.layouts_admin.add_group" extends="portlet.layouts_admin">
+		<put name="portlet_content" value="/portlet/layouts_admin/add_group.jsp" />
+	</definition>
 
 	<definition name="portlet.layouts_admin.add_layout" extends="portlet.layouts_admin">
 		<put name="portlet_content" value="/portlet/layouts_admin/add_layout.jsp" />
@@ -1237,10 +1225,6 @@
 	<!-- RSS -->
 
 	<definition name="portlet.rss" extends="portlet" />
-
-	<definition name="portlet.rss.article" extends="portlet.rss">
-		<put name="portlet_content" value="/portlet/rss/article.jsp" />
-	</definition>
 
 	<definition name="portlet.rss.view" extends="portlet.rss">
 		<put name="portlet_content" value="/portlet/rss/view.jsp" />

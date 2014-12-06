@@ -65,7 +65,7 @@ import org.junit.Test;
 public class TableMapperTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
+	public static final CodeCoverageAssertor codeCoverageAssertor =
 		new CodeCoverageAssertor() {
 
 			@Override
@@ -1760,6 +1760,7 @@ public class TableMapperTest {
 		}
 
 		private int _counter;
+
 	}
 
 	private class MockMultiVMPool implements MultiVMPool {

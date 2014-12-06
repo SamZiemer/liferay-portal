@@ -17,26 +17,22 @@ package com.liferay.portlet.documentlibrary.service.permission;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
 import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
-import com.liferay.portal.model.Group;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.ResourcePermissionChecker;
-import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ResourceLocalServiceUtil;
 import com.liferay.portal.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 
 /**
  * @author Jorge Ferrer
  */
 @OSGiBeanProperties(
 	property = {
-		"model.class.name=com.liferay.portal.kernel.repository.model.Folder"
+		"resource.name=com.liferay.portlet.documentlibrary"
 	}
 )
 public class DLPermission implements ResourcePermissionChecker {
@@ -54,17 +50,7 @@ public class DLPermission implements ResourcePermissionChecker {
 	}
 
 	public static boolean contains(
-			PermissionChecker permissionChecker, long classPK, String actionId)
-		throws PortalException {
-
-		Group group = GroupLocalServiceUtil.fetchGroup(classPK);
-
-		if (group == null) {
-			Folder folder = DLAppLocalServiceUtil.getFolder(classPK);
-
-			return DLFolderPermission.contains(
-				permissionChecker, folder, actionId);
-		}
+		PermissionChecker permissionChecker, long classPK, String actionId) {
 
 		Boolean hasPermission = StagingPermissionUtil.hasPermission(
 			permissionChecker, classPK, RESOURCE_NAME, classPK,
@@ -99,8 +85,7 @@ public class DLPermission implements ResourcePermissionChecker {
 
 	@Override
 	public Boolean checkResource(
-			PermissionChecker permissionChecker, long classPK, String actionId)
-		throws PortalException {
+		PermissionChecker permissionChecker, long classPK, String actionId) {
 
 		return contains(permissionChecker, classPK, actionId);
 	}

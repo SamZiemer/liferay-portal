@@ -25,10 +25,9 @@ import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
 
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
-
-import org.testng.Assert;
 
 /**
  * @author Shuyang Zhou
@@ -36,8 +35,8 @@ import org.testng.Assert;
 public class LocalFabricAgentTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
-		new CodeCoverageAssertor();
+	public static final CodeCoverageAssertor codeCoverageAssertor =
+		CodeCoverageAssertor.INSTANCE;
 
 	@Test
 	public void testConstructor() {

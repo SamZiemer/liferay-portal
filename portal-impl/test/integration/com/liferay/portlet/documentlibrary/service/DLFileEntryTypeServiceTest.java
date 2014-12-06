@@ -16,13 +16,13 @@ package com.liferay.portlet.documentlibrary.service;
 
 import com.liferay.portal.events.AddDefaultDocumentLibraryStructuresAction;
 import com.liferay.portal.kernel.events.SimpleAction;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.test.AggregateTestRule;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -30,8 +30,8 @@ import com.liferay.portal.model.Group;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.test.DeleteAfterTestRun;
-import com.liferay.portal.test.listeners.MainServletExecutionTestListener;
-import com.liferay.portal.test.runners.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayIntegrationTestRule;
+import com.liferay.portal.test.MainServletTestRule;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.test.GroupTestUtil;
 import com.liferay.portal.util.test.RandomTestUtil;
@@ -49,15 +49,20 @@ import java.util.Locale;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Alexander Chow
  */
-@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class DLFileEntryTypeServiceTest {
+
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(), MainServletTestRule.INSTANCE);
 
 	@Before
 	public void setUp() throws Exception {
@@ -168,17 +173,11 @@ public class DLFileEntryTypeServiceTest {
 
 		// Configure folder
 
-		DLFolderLocalServiceUtil.updateFolder(
+		DLAppLocalServiceUtil.updateFolder(
 			_folder.getFolderId(), _folder.getParentFolderId(),
 			_folder.getName(), _folder.getDescription(),
-			_contractDLFileEntryType.getPrimaryKey(),
-			ListUtil.toList(
-				new long[] {
-					_contractDLFileEntryType.getPrimaryKey(),
-					_marketingBannerDLFileEntryType.getPrimaryKey()
-				}),
-			true,
-			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+			_getFolderServiceContext(
+				_contractDLFileEntryType, _marketingBannerDLFileEntryType));
 
 		// Add file to folder
 
@@ -203,14 +202,10 @@ public class DLFileEntryTypeServiceTest {
 
 		// Configure subfolder
 
-		DLFolderLocalServiceUtil.updateFolder(
+		DLAppLocalServiceUtil.updateFolder(
 			_subfolder.getFolderId(), _subfolder.getParentFolderId(),
 			_subfolder.getName(), _subfolder.getDescription(),
-			_basicDocumentDLFileEntryType.getPrimaryKey(),
-			ListUtil.toList(
-				new long[] {_basicDocumentDLFileEntryType.getPrimaryKey()}),
-			true,
-			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+			_getFolderServiceContext(_basicDocumentDLFileEntryType));
 
 		fileEntry = DLAppServiceUtil.getFileEntry(fileEntry.getFileEntryId());
 
@@ -307,6 +302,25 @@ public class DLFileEntryTypeServiceTest {
 			"File should be of file entry type " +
 				dlFileEntryType.getFileEntryTypeId(),
 			dlFileEntryType.getPrimaryKey(), dlFileEntry.getFileEntryTypeId());
+	}
+
+	private ServiceContext _getFolderServiceContext(
+			DLFileEntryType... dlFileEntryTypes)
+		throws PortalException {
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
+
+		serviceContext.setAttribute(
+			"defaultFileEntryTypeId", dlFileEntryTypes[0].getPrimaryKey());
+		serviceContext.setAttribute(
+			"dlFileEntryTypesSearchContainerPrimaryKeys",
+			ArrayUtil.toString(dlFileEntryTypes, "primaryKey"));
+		serviceContext.setAttribute(
+			"restrictionType",
+			DLFolderConstants.RESTRICTION_TYPE_FILE_ENTRY_TYPES_AND_WORKFLOW);
+
+		return serviceContext;
 	}
 
 	private static final String _CONTENT =

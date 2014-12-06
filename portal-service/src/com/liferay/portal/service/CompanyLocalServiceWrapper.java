@@ -238,10 +238,10 @@ public class CompanyLocalServiceWrapper implements CompanyLocalService,
 	}
 
 	/**
-	* Returns the number of rows that match the dynamic query.
+	* Returns the number of rows matching the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
-	* @return the number of rows that match the dynamic query
+	* @return the number of rows matching the dynamic query
 	*/
 	@Override
 	public long dynamicQueryCount(
@@ -250,11 +250,11 @@ public class CompanyLocalServiceWrapper implements CompanyLocalService,
 	}
 
 	/**
-	* Returns the number of rows that match the dynamic query.
+	* Returns the number of rows matching the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
-	* @return the number of rows that match the dynamic query
+	* @return the number of rows matching the dynamic query
 	*/
 	@Override
 	public long dynamicQueryCount(
@@ -770,8 +770,8 @@ public class CompanyLocalServiceWrapper implements CompanyLocalService,
 	their password
 	* @param strangers whether to allow strangers to create accounts register
 	themselves in the company
-	* @param strangersWithMx whether to allow strangers to create accounts
-	with email addresses that match the company mail suffix
+	* @param strangersWithMx whether to allow strangers to create accounts with
+	email addresses that match the company mail suffix
 	* @param strangersVerify whether to require strangers who create accounts
 	to be verified via email
 	* @param siteLogo whether to allow site administrators to use their own

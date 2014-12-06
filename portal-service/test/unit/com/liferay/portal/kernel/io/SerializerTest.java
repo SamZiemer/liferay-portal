@@ -18,8 +18,10 @@ import com.liferay.portal.kernel.io.Serializer.BufferNode;
 import com.liferay.portal.kernel.io.Serializer.BufferQueue;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
+import com.liferay.portal.kernel.test.AggregateTestRule;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
-import com.liferay.portal.kernel.test.NewClassLoaderJUnitTestRunner;
+import com.liferay.portal.kernel.test.NewEnv;
+import com.liferay.portal.kernel.test.NewEnvTestRule;
 import com.liferay.portal.kernel.util.StringPool;
 
 import java.io.IOException;
@@ -44,26 +46,28 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Shuyang Zhou
  */
-@RunWith(NewClassLoaderJUnitTestRunner.class)
 public class SerializerTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
-		new CodeCoverageAssertor() {
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			new CodeCoverageAssertor() {
 
-			@Override
-			public void appendAssertClasses(List<Class<?>> assertClasses) {
-				assertClasses.add(AnnotatedObjectInputStream.class);
-				assertClasses.add(AnnotatedObjectOutputStream.class);
-			}
+				@Override
+				public void appendAssertClasses(List<Class<?>> assertClasses) {
+					assertClasses.add(AnnotatedObjectInputStream.class);
+					assertClasses.add(AnnotatedObjectOutputStream.class);
+				}
 
-		};
+			},
+			NewEnvTestRule.INSTANCE);
 
 	@Before
 	public void setUp() {
@@ -266,6 +270,7 @@ public class SerializerTest {
 		Assert.assertNull(bufferNode8.next);
 	}
 
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testCustomizedClassInitialization() {
 		System.setProperty(
@@ -293,6 +298,7 @@ public class SerializerTest {
 			Serializer.THREADLOCAL_BUFFER_SIZE_LIMIT);
 	}
 
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testDefendedClassInitialization() {
 		System.setProperty(

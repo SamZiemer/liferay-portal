@@ -21,10 +21,7 @@ import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.template.TemplateException;
-import com.liferay.portal.kernel.template.TemplateManagerUtil;
+import com.liferay.portal.kernel.test.AggregateTestRule;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -34,19 +31,16 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.impl.GroupModelImpl;
 import com.liferay.portal.service.GroupLocalServiceUtil;
+import com.liferay.portal.test.LiferayIntegrationTestRule;
+import com.liferay.portal.test.PersistenceTestRule;
 import com.liferay.portal.test.TransactionalTestRule;
-import com.liferay.portal.test.runners.PersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.tools.DBUpgrader;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.test.RandomTestUtil;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-
-import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
@@ -60,22 +54,11 @@ import java.util.Set;
 /**
  * @generated
  */
-@RunWith(PersistenceIntegrationJUnitTestRunner.class)
 public class GroupPersistenceTest {
-	@ClassRule
-	public static TransactionalTestRule transactionalTestRule = new TransactionalTestRule(Propagation.REQUIRED);
-
-	@BeforeClass
-	public static void setupClass() throws TemplateException {
-		try {
-			DBUpgrader.upgrade();
-		}
-		catch (Exception e) {
-			_log.error(e, e);
-		}
-
-		TemplateManagerUtil.init();
-	}
+	@Rule
+	public final AggregateTestRule aggregateTestRule = new AggregateTestRule(new LiferayIntegrationTestRule(),
+			PersistenceTestRule.INSTANCE,
+			new TransactionalTestRule(Propagation.REQUIRED));
 
 	@After
 	public void tearDown() throws Exception {
@@ -157,6 +140,8 @@ public class GroupPersistenceTest {
 
 		newGroup.setRemoteStagingGroupCount(RandomTestUtil.nextInt());
 
+		newGroup.setInheritContent(RandomTestUtil.randomBoolean());
+
 		newGroup.setActive(RandomTestUtil.randomBoolean());
 
 		_groups.add(_persistence.update(newGroup));
@@ -194,6 +179,8 @@ public class GroupPersistenceTest {
 		Assert.assertEquals(existingGroup.getSite(), newGroup.getSite());
 		Assert.assertEquals(existingGroup.getRemoteStagingGroupCount(),
 			newGroup.getRemoteStagingGroupCount());
+		Assert.assertEquals(existingGroup.getInheritContent(),
+			newGroup.getInheritContent());
 		Assert.assertEquals(existingGroup.getActive(), newGroup.getActive());
 	}
 
@@ -429,6 +416,21 @@ public class GroupPersistenceTest {
 	}
 
 	@Test
+	public void testCountByC_P_S_I() {
+		try {
+			_persistence.countByC_P_S_I(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean(),
+				RandomTestUtil.randomBoolean());
+
+			_persistence.countByC_P_S_I(0L, 0L, RandomTestUtil.randomBoolean(),
+				RandomTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		Group newGroup = addGroup();
 
@@ -469,7 +471,7 @@ public class GroupPersistenceTest {
 			"name", true, "description", true, "type", true, "typeSettings",
 			true, "manualMembership", true, "membershipRestriction", true,
 			"friendlyURL", true, "site", true, "remoteStagingGroupCount", true,
-			"active", true);
+			"inheritContent", true, "active", true);
 	}
 
 	@Test
@@ -758,6 +760,8 @@ public class GroupPersistenceTest {
 
 		group.setRemoteStagingGroupCount(RandomTestUtil.nextInt());
 
+		group.setInheritContent(RandomTestUtil.randomBoolean());
+
 		group.setActive(RandomTestUtil.randomBoolean());
 
 		_groups.add(_persistence.update(group));
@@ -765,7 +769,6 @@ public class GroupPersistenceTest {
 		return group;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(GroupPersistenceTest.class);
 	private List<Group> _groups = new ArrayList<Group>();
 	private GroupPersistence _persistence = GroupUtil.getPersistence();
 }

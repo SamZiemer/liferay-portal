@@ -36,8 +36,8 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.model.RepositoryEntry;
-import com.liferay.portal.repository.liferayrepository.LiferayRepository;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFolder;
+import com.liferay.portal.repository.portletrepository.PortletRepository;
 import com.liferay.portal.service.RepositoryLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
@@ -127,10 +127,10 @@ public class FolderStagedModelDataHandler
 			portletDataContext.addClassedModel(
 				folderElement, folderPath, folder);
 
-			long liferayRepositoryClassNameId = PortalUtil.getClassNameId(
-				LiferayRepository.class.getName());
+			long portletRepositoryClassNameId = PortalUtil.getClassNameId(
+				PortletRepository.class.getName());
 
-			if (repository.getClassNameId() != liferayRepositoryClassNameId) {
+			if (repository.getClassNameId() != portletRepositoryClassNameId) {
 				return;
 			}
 		}
@@ -420,7 +420,9 @@ public class FolderStagedModelDataHandler
 			DLFolder dlFolder = (DLFolder)importedFolder.getModel();
 
 			dlFolder.setDefaultFileEntryTypeId(defaultFileEntryTypeId);
-			dlFolder.setOverrideFileEntryTypes(true);
+			dlFolder.setRestrictionType(
+				DLFolderConstants.
+					RESTRICTION_TYPE_FILE_ENTRY_TYPES_AND_WORKFLOW);
 
 			DLFolderLocalServiceUtil.updateDLFolder(dlFolder);
 

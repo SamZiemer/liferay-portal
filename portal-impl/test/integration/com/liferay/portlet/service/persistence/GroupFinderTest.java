@@ -16,7 +16,7 @@ package com.liferay.portlet.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.test.AggregateTestRule;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.GroupConstants;
@@ -30,9 +30,9 @@ import com.liferay.portal.service.ResourceActionLocalServiceUtil;
 import com.liferay.portal.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.service.ResourceTypePermissionLocalServiceUtil;
 import com.liferay.portal.service.persistence.GroupFinderUtil;
+import com.liferay.portal.test.LiferayIntegrationTestRule;
+import com.liferay.portal.test.MainServletTestRule;
 import com.liferay.portal.test.TransactionalTestRule;
-import com.liferay.portal.test.listeners.MainServletExecutionTestListener;
-import com.liferay.portal.test.runners.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.comparator.GroupNameComparator;
 import com.liferay.portal.util.test.GroupTestUtil;
@@ -50,20 +50,21 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Alberto Chaparro
  * @author László Csontos
  */
-@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class GroupFinderTest {
 
 	@ClassRule
-	public static TransactionalTestRule transactionalTestRule =
-		new TransactionalTestRule();
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(), MainServletTestRule.INSTANCE,
+			TransactionalTestRule.INSTANCE);
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
@@ -172,20 +173,17 @@ public class GroupFinderTest {
 		Group parentGroup = GroupTestUtil.addGroup(
 			RandomTestUtil.randomString());
 
-		LayoutTestUtil.addLayout(
-			parentGroup.getGroupId(), RandomTestUtil.randomString(), false);
+		LayoutTestUtil.addLayout(parentGroup, false);
 
 		Group childGroup1 = GroupTestUtil.addGroup(
 			parentGroup.getGroupId(), RandomTestUtil.randomString());
 
-		LayoutTestUtil.addLayout(
-			childGroup1.getGroupId(), RandomTestUtil.randomString(), false);
+		LayoutTestUtil.addLayout(childGroup1, false);
 
 		Group childGroup2 = GroupTestUtil.addGroup(
 			parentGroup.getGroupId(), RandomTestUtil.randomString());
 
-		LayoutTestUtil.addLayout(
-			childGroup2.getGroupId(), RandomTestUtil.randomString(), true);
+		LayoutTestUtil.addLayout(childGroup2, true);
 
 		groups = findByLayouts(GroupConstants.DEFAULT_PARENT_GROUP_ID);
 
@@ -218,9 +216,9 @@ public class GroupFinderTest {
 	}
 
 	protected void addLayout(long groupId) throws Exception {
-		LayoutTestUtil.addLayout(groupId, RandomTestUtil.randomString(), false);
+		LayoutTestUtil.addLayout(groupId, false);
 
-		LayoutTestUtil.addLayout(groupId, RandomTestUtil.randomString(), true);
+		LayoutTestUtil.addLayout(groupId, true);
 	}
 
 	protected List<Group> findByC_C_N_D(

@@ -47,7 +47,7 @@ import org.junit.Test;
 public class IntrabandRPCUtilTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
+	public static final CodeCoverageAssertor codeCoverageAssertor =
 		new CodeCoverageAssertor() {
 
 			@Override
@@ -230,6 +230,7 @@ public class IntrabandRPCUtilTest {
 		}
 
 		private static final long serialVersionUID = 1L;
+
 	}
 
 }

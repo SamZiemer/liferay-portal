@@ -60,9 +60,6 @@ import java.util.Map;
  */
 public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 
-	public DLFileEntryImpl() {
-	}
-
 	@Override
 	public String buildTreePath() throws PortalException {
 		if (getFolderId() == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
@@ -158,13 +155,15 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 
 		for (DDMStructure ddmStructure : ddmStructures) {
 			DLFileEntryMetadata dlFileEntryMetadata =
-				DLFileEntryMetadataLocalServiceUtil.getFileEntryMetadata(
+				DLFileEntryMetadataLocalServiceUtil.fetchFileEntryMetadata(
 					ddmStructure.getStructureId(), fileVersionId);
 
-			Fields fields = StorageEngineUtil.getFields(
-				dlFileEntryMetadata.getDDMStorageId());
+			if (dlFileEntryMetadata != null) {
+				Fields fields = StorageEngineUtil.getFields(
+					dlFileEntryMetadata.getDDMStorageId());
 
-			fieldsMap.put(ddmStructure.getStructureKey(), fields);
+				fieldsMap.put(ddmStructure.getStructureKey(), fields);
+			}
 		}
 
 		return fieldsMap;

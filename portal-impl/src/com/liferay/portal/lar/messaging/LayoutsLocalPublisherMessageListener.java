@@ -37,9 +37,6 @@ import java.util.Map;
 public class LayoutsLocalPublisherMessageListener
 	extends BasePublisherMessageListener {
 
-	public LayoutsLocalPublisherMessageListener() {
-	}
-
 	@Override
 	protected void doReceive(Message message, MessageStatus messageStatus)
 		throws PortalException {
@@ -72,18 +69,9 @@ public class LayoutsLocalPublisherMessageListener
 		initThreadLocals(userId, parameterMap);
 
 		try {
-			if (layoutIds == null) {
-				StagingUtil.publishLayouts(
-					userId, sourceGroupId, targetGroupId, privateLayout,
-					parameterMap, dateRange.getStartDate(),
-					dateRange.getEndDate());
-			}
-			else {
-				StagingUtil.publishLayouts(
-					userId, sourceGroupId, targetGroupId, privateLayout,
-					layoutIds, parameterMap, dateRange.getStartDate(),
-					dateRange.getEndDate());
-			}
+			StagingUtil.publishLayouts(
+				userId, sourceGroupId, targetGroupId, privateLayout, layoutIds,
+				parameterMap, dateRange.getStartDate(), dateRange.getEndDate());
 		}
 		finally {
 			resetThreadLocals();

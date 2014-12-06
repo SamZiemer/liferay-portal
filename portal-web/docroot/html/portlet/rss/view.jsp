@@ -17,34 +17,22 @@
 <%@ include file="/html/portlet/rss/init.jsp" %>
 
 <%
-String url = ParamUtil.getString(request, "url");
-String title = StringPool.BLANK;
+List<RSSFeed> rssFeeds = rssDisplayContext.getRSSFeeds();
 %>
 
-<c:if test="<%= Validator.isNotNull(headerArticleId) %>">
-	<p>
-		<liferay-ui:journal-article articleId="<%= headerArticleId %>" groupId="<%= headerArticleGroupId %>" />
-	</p>
-</c:if>
-
-<div id="<portlet:namespace />feedsContainer">
+<liferay-ui:ddm-template-renderer displayStyle="<%= rssDisplayContext.getDisplayStyle() %>" displayStyleGroupId="<%= rssDisplayContext.getDisplayStyleGroupId() %>" entries="<%= rssFeeds %>">
 
 	<%
-	for (int i = 0; i < urls.length; i++) {
-		url = urls[i];
-
-		if (i < titles.length) {
-			title = titles[i];
-		}
-		else {
-			title = StringPool.BLANK;
-		}
+	for (int i = 0; i < rssFeeds.size(); i++) {
+		RSSFeed rssFeed = rssFeeds.get(i);
 
 		boolean last = false;
 
-		if (i == (urls.length - 1)) {
+		if (i == (rssFeeds.size() - 1)) {
 			last = true;
 		}
+
+		SyndFeed syndFeed = rssFeed.getSyndFeed();
 	%>
 
 		<%@ include file="/html/portlet/rss/feed.jspf" %>
@@ -53,36 +41,4 @@ String title = StringPool.BLANK;
 	}
 	%>
 
-</div>
-
-<c:if test="<%= Validator.isNotNull(footerArticleId) %>">
-	<p>
-		<liferay-ui:journal-article articleId="<%= footerArticleId %>" groupId="<%= footerArticleGroupId %>" />
-	</p>
-</c:if>
-
-<aui:script use="aui-base">
-	var feedsContainer = A.one('#<portlet:namespace />feedsContainer');
-
-	feedsContainer.delegate(
-		'click',
-		function(event) {
-			var expander = event.currentTarget;
-			var feedContent = expander.get('parentNode').one('.feed-entry-content');
-
-			if (feedContent) {
-				if (expander.hasClass('icon-collapse-alt')) {
-					expander.addClass('icon-expand-alt');
-					expander.removeClass('icon-collapse-alt');
-				}
-				else {
-					expander.addClass('icon-collapse-alt');
-					expander.removeClass('icon-expand-alt');
-				}
-
-				feedContent.toggle();
-			}
-		},
-		'.entry-expander'
-	);
-</aui:script>
+</liferay-ui:ddm-template-renderer>

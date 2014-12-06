@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
+ * @author Brian Wing Shun Chan
  * @generated
  */
 @ProviderType
@@ -295,6 +296,14 @@ public class JournalArticleFinderUtil {
 				   .findByKeywords(companyId, groupId, folderIds, classNameId,
 			keywords, version, ddmStructureKey, ddmTemplateKey, displayDateGT,
 			displayDateLT, status, reviewDate, start, end, orderByComparator);
+	}
+
+	public static java.util.List<com.liferay.portlet.journal.model.JournalArticle> findByNoAssets() {
+		return getFinder().findByNoAssets();
+	}
+
+	public static java.util.List<com.liferay.portlet.journal.model.JournalArticle> findByNoPermissions() {
+		return getFinder().findByNoPermissions();
 	}
 
 	public static java.util.List<com.liferay.portlet.journal.model.JournalArticle> findByReviewDate(

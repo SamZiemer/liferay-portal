@@ -83,6 +83,38 @@ public class LocalRepositoryProxyBean
 	}
 
 	@Override
+	public void checkInFileEntry(
+			long userId, long fileEntryId, boolean major, String changeLog,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		_localRepository.checkInFileEntry(
+			userId, fileEntryId, major, changeLog, serviceContext);
+	}
+
+	@Override
+	public void checkInFileEntry(
+			long userId, long fileEntryId, String lockUuid,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		_localRepository.checkInFileEntry(
+			userId, fileEntryId, lockUuid, serviceContext);
+	}
+
+	@Override
+	public FileEntry copyFileEntry(
+			long userId, long groupId, long fileEntryId, long destFolderId,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		FileEntry fileEntry = _localRepository.copyFileEntry(
+			userId, groupId, fileEntryId, destFolderId, serviceContext);
+
+		return newFileEntryProxyBean(fileEntry);
+	}
+
+	@Override
 	public void deleteAll() throws PortalException {
 		_localRepository.deleteAll();
 	}
@@ -195,6 +227,20 @@ public class LocalRepositoryProxyBean
 		return newFolderProxyBean(folder);
 	}
 
+	@Override
+	public void revertFileEntry(
+			long userId, long fileEntryId, String version,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		_localRepository.revertFileEntry(
+			userId, fileEntryId, version, serviceContext);
+	}
+
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public void updateAsset(
 			long userId, FileEntry fileEntry, FileVersion fileVersion,

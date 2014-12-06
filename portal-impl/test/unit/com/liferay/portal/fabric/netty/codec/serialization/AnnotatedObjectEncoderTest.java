@@ -30,10 +30,9 @@ import java.lang.reflect.Modifier;
 
 import java.util.Date;
 
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
-
-import org.testng.Assert;
 
 /**
  * @author Shuyang Zhou
@@ -41,8 +40,8 @@ import org.testng.Assert;
 public class AnnotatedObjectEncoderTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
-		new CodeCoverageAssertor();
+	public static final CodeCoverageAssertor codeCoverageAssertor =
+		CodeCoverageAssertor.INSTANCE;
 
 	@Test
 	public void testEncode() throws Exception {

@@ -14,32 +14,37 @@
 
 package com.liferay.portlet.messageboards.subscriptions;
 
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.test.AggregateTestRule;
+import com.liferay.portal.model.ResourceConstants;
+import com.liferay.portal.model.RoleConstants;
+import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.test.LiferayIntegrationTestRule;
+import com.liferay.portal.test.MainServletTestRule;
 import com.liferay.portal.test.Sync;
-import com.liferay.portal.test.SynchronousMailExecutionTestListener;
-import com.liferay.portal.test.listeners.MainServletExecutionTestListener;
-import com.liferay.portal.test.runners.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.SynchronousMailTestRule;
 import com.liferay.portal.util.subscriptions.BaseSubscriptionBaseModelTestCase;
-import com.liferay.portal.util.test.TestPropsValues;
+import com.liferay.portal.util.test.RoleTestUtil;
 import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
 import com.liferay.portlet.messageboards.util.test.MBTestUtil;
 
-import org.junit.runner.RunWith;
+import org.junit.ClassRule;
+import org.junit.Rule;
 
 /**
  * @author Roberto Díaz
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		SynchronousMailExecutionTestListener.class
-	})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
 @Sync
 public class MBSubscriptionBaseModelTest
 	extends BaseSubscriptionBaseModelTestCase {
+
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(), MainServletTestRule.INSTANCE,
+			SynchronousMailTestRule.INSTANCE);
 
 	@Override
 	protected long addBaseModel(long containerModelId) throws Exception {
@@ -51,16 +56,31 @@ public class MBSubscriptionBaseModelTest
 
 	@Override
 	protected long addContainerModel(long containerModelId) throws Exception {
-		MBCategory category = MBTestUtil.addCategory(
+		_category = MBTestUtil.addCategory(
 			group.getGroupId(), containerModelId);
 
-		return category.getCategoryId();
+		return _category.getCategoryId();
 	}
 
 	@Override
 	protected void addSubscriptionBaseModel(long baseModelId) throws Exception {
 		MBMessageLocalServiceUtil.subscribeMessage(
-			TestPropsValues.getUserId(), baseModelId);
+			user.getUserId(), baseModelId);
+	}
+
+	@Override
+	protected void removeContainerModelResourceViewPermission()
+		throws Exception {
+
+		RoleTestUtil.removeResourcePermission(
+			RoleConstants.GUEST, MBCategory.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(_category.getCategoryId()), ActionKeys.VIEW);
+
+		RoleTestUtil.removeResourcePermission(
+			RoleConstants.SITE_MEMBER, MBCategory.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(_category.getCategoryId()), ActionKeys.VIEW);
 	}
 
 	@Override
@@ -69,5 +89,7 @@ public class MBSubscriptionBaseModelTest
 
 		MBTestUtil.updateMessage(message, true);
 	}
+
+	private MBCategory _category;
 
 }

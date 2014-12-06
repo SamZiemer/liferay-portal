@@ -14,26 +14,19 @@
 
 package com.liferay.portal.kernel.repository;
 
-import com.liferay.portal.model.ClassName;
-
 /**
  * @author Ivan Zaera
  */
 public class UndeployedExternalRepositoryException extends RepositoryException {
 
-	public UndeployedExternalRepositoryException(ClassName className) {
+	public UndeployedExternalRepositoryException(String className) {
 		super(
-			"Unable to load external repository class " +
-				className.getClassName() + " because its plugin is not " +
-					"deployed");
+			"Unable to load external repository class " + className +
+				" because its plugin is not deployed");
 
-		_className = className;
+		this.className = className;
 	}
 
-	public ClassName getClassName() {
-		return _className;
-	}
-
-	private final ClassName _className;
+	public final String className;
 
 }

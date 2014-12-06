@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
@@ -29,9 +30,6 @@ import java.io.InputStream;
  */
 public class ImageImpl extends ImageBaseImpl {
 
-	public ImageImpl() {
-	}
-
 	@Override
 	public byte[] getTextObj() {
 		if (_textObj != null) {
@@ -41,8 +39,13 @@ public class ImageImpl extends ImageBaseImpl {
 		long imageId = getImageId();
 
 		try {
-			DLFileEntry dlFileEntry =
-				DLFileEntryLocalServiceUtil.fetchFileEntryByAnyImageId(imageId);
+			DLFileEntry dlFileEntry = null;
+
+			if (PropsValues.WEB_SERVER_SERVLET_CHECK_IMAGE_GALLERY) {
+				dlFileEntry =
+					DLFileEntryLocalServiceUtil.fetchFileEntryByAnyImageId(
+						imageId);
+			}
 
 			InputStream is = null;
 
