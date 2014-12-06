@@ -85,6 +85,9 @@ public class UserFinderImpl
 	public static final String JOIN_BY_GROUPS_ORGS =
 		UserFinder.class.getName() + ".joinByGroupsOrgs";
 
+	public static final String JOIN_BY_GROUPS_ORGS_TREE =
+		UserFinder.class.getName() + ".joinByGroupsOrgsTree";
+
 	public static final String JOIN_BY_GROUPS_USER_GROUPS =
 		UserFinder.class.getName() + ".joinByGroupsUserGroups";
 
@@ -592,7 +595,12 @@ public class UserFinderImpl
 
 				params3.remove("usersGroups");
 
-				params3.put("groupsOrgs", siteGroupIdsArray);
+				if (PropsValues.ORGANIZATIONS_MEMBERSHIP_STRICT) {
+					params3.put("groupsOrgs", siteGroupIdsArray);
+				}
+				else {
+					params3.put("groupsOrgsTree", siteGroupIdsArray);
+				}
 
 				params4 = new LinkedHashMap<String, Object>(params1);
 
@@ -675,7 +683,12 @@ public class UserFinderImpl
 
 				params4.remove("usersRoles");
 
-				params4.put("groupsOrgs", siteGroupIdsArray);
+				if (PropsValues.ORGANIZATIONS_MEMBERSHIP_STRICT) {
+					params4.put("groupsOrgs", siteGroupIdsArray);
+				}
+				else {
+					params4.put("groupsOrgsTree", siteGroupIdsArray);
+				}
 
 				params5 = new LinkedHashMap<String, Object>(params1);
 
@@ -923,6 +936,9 @@ public class UserFinderImpl
 		else if (key.equals("groupsOrgs")) {
 			join = CustomSQLUtil.get(JOIN_BY_GROUPS_ORGS);
 		}
+		else if (key.equals("groupsOrgsTree")) {
+			join = CustomSQLUtil.get(JOIN_BY_GROUPS_ORGS_TREE);
+		}
 		else if (key.equals("groupsUserGroups")) {
 			join = CustomSQLUtil.get(JOIN_BY_GROUPS_USER_GROUPS);
 		}
@@ -1016,10 +1032,15 @@ public class UserFinderImpl
 		if (key.equals("contactTwitterSn")) {
 			join = CustomSQLUtil.get(JOIN_BY_CONTACT_TWITTER_SN);
 		}
-		else if (key.equals("groupsOrgs")) {
+		else if (key.equals("groupsOrgs") || key.equals("groupsOrgsTree")) {
 			Long[] groupIds = (Long[])value;
 
-			join = CustomSQLUtil.get(JOIN_BY_GROUPS_ORGS);
+			if (key.equals("groupsOrgs")) {
+				join = CustomSQLUtil.get(JOIN_BY_GROUPS_ORGS);
+			}
+			else {
+				join = CustomSQLUtil.get(JOIN_BY_GROUPS_ORGS_TREE);
+			}
 
 			if (groupIds.length > 1) {
 				StringBundler sb = new StringBundler(groupIds.length * 2 + 1);
@@ -1308,6 +1329,7 @@ public class UserFinderImpl
 			}
 			else if (value instanceof Long[]) {
 				if (key.equals("groupsOrgs") ||
+					key.equals("groupsOrgsTree") ||
 					key.equals("groupsUserGroups") ||
 					key.equals("usersGroups") || key.equals("usersOrgs") ||
 					key.equals("usersUserGroups")) {
