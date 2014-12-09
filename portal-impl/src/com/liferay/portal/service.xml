@@ -544,6 +544,7 @@
 		<column name="friendlyURL" type="String" />
 		<column name="site" type="boolean" />
 		<column name="remoteStagingGroupCount" type="int" />
+		<column name="inheritContent" type="boolean" />
 		<column name="active" type="boolean" />
 
 		<!-- Relationships -->
@@ -621,6 +622,12 @@
 			<finder-column name="classNameId" />
 			<finder-column name="liveGroupId" />
 			<finder-column name="name" />
+		</finder>
+		<finder name="C_P_S_I" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="parentGroupId" />
+			<finder-column name="site" />
+			<finder-column name="inheritContent" />
 		</finder>
 
 		<!-- References -->
@@ -1203,6 +1210,7 @@
 		<!-- References -->
 
 		<reference package-path="com.liferay.portal" entity="Image" />
+		<reference package-path="com.liferay.portal" entity="Layout" />
 		<reference package-path="com.liferay.portal" entity="LayoutBranch" />
 		<reference package-path="com.liferay.portal" entity="LayoutRevision" />
 		<reference package-path="com.liferay.portal" entity="LayoutSet" />
@@ -3139,6 +3147,7 @@
 		<!-- References -->
 
 		<reference package-path="com.liferay.portal" entity="Company" />
+		<reference package-path="com.liferay.portal" entity="Group" />
 		<reference package-path="com.liferay.portal" entity="LayoutSet" />
 	</entity>
 	<entity name="WebDAVProps" local-service="true" remote-service="false">

@@ -200,7 +200,6 @@ public class LayoutSetWrapper implements LayoutSet, ModelWrapper<LayoutSet> {
 	* </p>
 	*
 	* @return the layout set's color scheme
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portal.model.ColorScheme getColorScheme() {
@@ -215,6 +214,11 @@ public class LayoutSetWrapper implements LayoutSet, ModelWrapper<LayoutSet> {
 	@Override
 	public java.lang.String getColorSchemeId() {
 		return _layoutSet.getColorSchemeId();
+	}
+
+	@Override
+	public java.lang.String getCompanyFallbackVirtualHostname() {
+		return _layoutSet.getCompanyFallbackVirtualHostname();
 	}
 
 	/**
@@ -258,7 +262,6 @@ public class LayoutSetWrapper implements LayoutSet, ModelWrapper<LayoutSet> {
 	* @return the layout set's group
 	* @throws PortalException if a group with the primary key could not be
 	found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portal.model.Group getGroup()
@@ -287,18 +290,17 @@ public class LayoutSetWrapper implements LayoutSet, ModelWrapper<LayoutSet> {
 	}
 
 	/**
-	* Returns the layout set prototype's ID, or <code>0</code> if it has no layout
-	* set prototype.
+	* Returns the layout set prototype's ID, or <code>0</code> if it has no
+	* layout set prototype.
 	*
 	* <p>
 	* Prototype is Liferay's technical name for a site template.
 	* </p>
 	*
-	* @return the layout set prototype's ID, or <code>0</code> if it has no layout
-	set prototype
+	* @return the layout set prototype's ID, or <code>0</code> if it has no
+	layout set prototype
 	* @throws PortalException if a matching layout set prototype could not be
 	found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public long getLayoutSetPrototypeId()
@@ -450,8 +452,8 @@ public class LayoutSetWrapper implements LayoutSet, ModelWrapper<LayoutSet> {
 	* "/web/sitename" or "/group/sitename" can be omitted.
 	* </p>
 	*
-	* @return the layout set's virtual host name, or an empty string if the layout
-	set has no virtual host configured
+	* @return the layout set's virtual host name, or an empty string if the
+	layout set has no virtual host configured
 	*/
 	@Override
 	public java.lang.String getVirtualHostname() {
@@ -556,6 +558,12 @@ public class LayoutSetWrapper implements LayoutSet, ModelWrapper<LayoutSet> {
 	@Override
 	public void setColorSchemeId(java.lang.String colorSchemeId) {
 		_layoutSet.setColorSchemeId(colorSchemeId);
+	}
+
+	@Override
+	public void setCompanyFallbackVirtualHostname(
+		java.lang.String companyFallbackVirtualHostname) {
+		_layoutSet.setCompanyFallbackVirtualHostname(companyFallbackVirtualHostname);
 	}
 
 	/**

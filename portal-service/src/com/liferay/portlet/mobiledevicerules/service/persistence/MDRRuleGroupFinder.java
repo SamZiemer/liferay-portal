@@ -18,6 +18,7 @@ import aQute.bnd.annotation.ProviderType;
 
 /**
  * @author Edward C. Han
+ * @generated
  */
 @ProviderType
 public interface MDRRuleGroupFinder {

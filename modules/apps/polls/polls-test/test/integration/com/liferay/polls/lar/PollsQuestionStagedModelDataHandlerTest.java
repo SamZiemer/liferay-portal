@@ -17,18 +17,18 @@ package com.liferay.polls.lar;
 import com.liferay.polls.model.PollsQuestion;
 import com.liferay.polls.service.PollsQuestionLocalServiceUtil;
 import com.liferay.polls.util.test.PollsTestUtil;
+import com.liferay.portal.kernel.test.AggregateTestRule;
 import com.liferay.portal.lar.BaseStagedModelDataHandlerTestCase;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.test.TransactionalTestRule;
-import com.liferay.portal.test.rule.DeleteAfterTestRunRule;
+import com.liferay.portal.test.rule.DeleteAfterTestRunTestRule;
 
 import java.util.List;
 import java.util.Map;
 
 import org.jboss.arquillian.junit.Arquillian;
 
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 
@@ -39,13 +39,9 @@ import org.junit.runner.RunWith;
 public class PollsQuestionStagedModelDataHandlerTest
 	extends BaseStagedModelDataHandlerTestCase {
 
-	@ClassRule
-	public static TransactionalTestRule transactionalTestRule =
-		new TransactionalTestRule();
-
 	@Rule
-	public DeleteAfterTestRunRule deleteAfterTestRunRule =
-		new DeleteAfterTestRunRule(this);
+	public final AggregateTestRule aggregateTestRule = new AggregateTestRule(
+		new DeleteAfterTestRunTestRule(), TransactionalTestRule.INSTANCE);
 
 	@Override
 	protected StagedModel addStagedModel(

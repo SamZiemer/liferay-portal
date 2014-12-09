@@ -186,10 +186,10 @@ public class BookmarksEntryLocalServiceUtil {
 	}
 
 	/**
-	* Returns the number of rows that match the dynamic query.
+	* Returns the number of rows matching the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
-	* @return the number of rows that match the dynamic query
+	* @return the number of rows matching the dynamic query
 	*/
 	public static long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
@@ -197,11 +197,11 @@ public class BookmarksEntryLocalServiceUtil {
 	}
 
 	/**
-	* Returns the number of rows that match the dynamic query.
+	* Returns the number of rows matching the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
-	* @return the number of rows that match the dynamic query
+	* @return the number of rows matching the dynamic query
 	*/
 	public static long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
@@ -255,12 +255,29 @@ public class BookmarksEntryLocalServiceUtil {
 		return getService().getBookmarksEntries(start, end);
 	}
 
+	/**
+	* Returns all the bookmarks entries matching the UUID and company.
+	*
+	* @param uuid the UUID of the bookmarks entries
+	* @param companyId the primary key of the company
+	* @return the matching bookmarks entries, or an empty list if no matches were found
+	*/
 	public static java.util.List<com.liferay.bookmarks.model.BookmarksEntry> getBookmarksEntriesByUuidAndCompanyId(
 		java.lang.String uuid, long companyId) {
 		return getService()
 				   .getBookmarksEntriesByUuidAndCompanyId(uuid, companyId);
 	}
 
+	/**
+	* Returns a range of bookmarks entries matching the UUID and company.
+	*
+	* @param uuid the UUID of the bookmarks entries
+	* @param companyId the primary key of the company
+	* @param start the lower bound of the range of bookmarks entries
+	* @param end the upper bound of the range of bookmarks entries (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the range of matching bookmarks entries, or an empty list if no matches were found
+	*/
 	public static java.util.List<com.liferay.bookmarks.model.BookmarksEntry> getBookmarksEntriesByUuidAndCompanyId(
 		java.lang.String uuid, long companyId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.bookmarks.model.BookmarksEntry> orderByComparator) {

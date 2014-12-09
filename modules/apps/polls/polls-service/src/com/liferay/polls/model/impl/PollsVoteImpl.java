@@ -23,9 +23,6 @@ import com.liferay.portal.kernel.exception.PortalException;
  */
 public class PollsVoteImpl extends PollsVoteBaseImpl {
 
-	public PollsVoteImpl() {
-	}
-
 	@Override
 	public PollsChoice getChoice() throws PortalException {
 		return PollsChoiceLocalServiceUtil.getChoice(getChoiceId());

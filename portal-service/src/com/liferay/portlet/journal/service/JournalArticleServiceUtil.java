@@ -1681,14 +1681,13 @@ public class JournalArticleServiceUtil {
 	JournalArticleLocalServiceImpl}.
 	* @param serviceContext the service context to be applied. Can set the
 	modification date, expando bridge attributes, asset category IDs,
-	asset tag names, asset link entry IDs, workflow actions, the
-	"defaultLanguageId" and "urlTitle" attributes, and can set
-	whether to add the default command update for the web content
-	article. With respect to social activities, by setting the
-	service context's command to {@link
-	com.liferay.portal.kernel.util.Constants#UPDATE}, the invocation
-	is considered a web content update activity; otherwise it is
-	considered a web content add activity.
+	asset tag names, asset link entry IDs, workflow actions, the and
+	"urlTitle" attributes, and can set whether to add the default
+	command update for the web content article. With respect to
+	social activities, by setting the service context's command to
+	{@link com.liferay.portal.kernel.util.Constants#UPDATE}, the
+	invocation is considered a web content update activity; otherwise
+	it is considered a web content add activity.
 	* @return the updated web content article
 	* @throws PortalException if the user did not have permission to update the
 	web content article, if a user with the primary key or a matching
@@ -1771,14 +1770,13 @@ public class JournalArticleServiceUtil {
 	<code>null</code>)
 	* @param serviceContext the service context to be applied. Can set the
 	modification date, expando bridge attributes, asset category IDs,
-	asset tag names, asset link entry IDs, workflow actions, the
-	"defaultLanguageId" and "urlTitle" attributes, and can set
-	whether to add the default command update for the web content
-	article. With respect to social activities, by setting the
-	service context's command to {@link
-	com.liferay.portal.kernel.util.Constants#UPDATE}, the invocation
-	is considered a web content update activity; otherwise it is
-	considered a web content add activity.
+	asset tag names, asset link entry IDs, workflow actions, the and
+	"urlTitle" attributes, and can set whether to add the default
+	command update for the web content article. With respect to
+	social activities, by setting the service context's command to
+	{@link com.liferay.portal.kernel.util.Constants#UPDATE}, the
+	invocation is considered a web content update activity; otherwise
+	it is considered a web content add activity.
 	* @return the updated web content article
 	* @throws PortalException if the user did not have permission to update the
 	web content article, if a user with the primary key or a matching
@@ -1835,14 +1833,13 @@ public class JournalArticleServiceUtil {
 	article's display page
 	* @param serviceContext the service context to be applied. Can set the
 	modification date, expando bridge attributes, asset category IDs,
-	asset tag names, asset link entry IDs, workflow actions, the
-	"defaultLanguageId" and "urlTitle" attributes, and can set
-	whether to add the default command update for the web content
-	article. With respect to social activities, by setting the
-	service context's command to {@link
-	com.liferay.portal.kernel.util.Constants#UPDATE}, the invocation
-	is considered a web content update activity; otherwise it is
-	considered a web content add activity.
+	asset tag names, asset link entry IDs, workflow actions, the and
+	"urlTitle" attributes, and can set whether to add the default
+	command update for the web content article. With respect to
+	social activities, by setting the service context's command to
+	{@link com.liferay.portal.kernel.util.Constants#UPDATE}, the
+	invocation is considered a web content update activity; otherwise
+	it is considered a web content add activity.
 	* @return the updated web content article
 	* @throws PortalException if a user with the primary key or a matching web
 	content article could not be found, or if a portal exception

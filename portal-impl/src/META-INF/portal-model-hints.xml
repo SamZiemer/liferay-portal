@@ -87,7 +87,9 @@
 		<field name="userName" type="String" />
 		<field name="createDate" type="Date" />
 		<field name="modifiedDate" type="Date" />
-		<field name="name" type="String" />
+		<field name="name" type="String">
+			<hint name="max-length">255</hint>
+		</field>
 		<field name="servletContextNames" type="String">
 			<hint name="max-length">255</hint>
 		</field>
@@ -272,6 +274,7 @@
 		</field>
 		<field name="site" type="boolean" />
 		<field name="remoteStagingGroupCount" type="int" />
+		<field name="inheritContent" type="boolean" />
 		<field name="active" type="boolean" />
 	</model>
 	<model name="com.liferay.portal.model.Image">
@@ -1645,7 +1648,7 @@
 		<field name="lastPostDate" type="Date" />
 		<field name="defaultFileEntryTypeId" type="long" />
 		<field name="hidden" type="boolean" />
-		<field name="overrideFileEntryTypes" type="boolean" />
+		<field name="restrictionType" type="int" />
 		<field name="status" type="int" />
 		<field name="statusByUserId" type="long" />
 		<field name="statusByUserName" type="String" />

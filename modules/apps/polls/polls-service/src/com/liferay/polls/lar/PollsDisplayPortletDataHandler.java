@@ -14,7 +14,7 @@
 
 package com.liferay.polls.lar;
 
-import com.liferay.polls.configuration.PollsConfigurationValues;
+import com.liferay.polls.configuration.PollsServiceConfigurationValues;
 import com.liferay.polls.exception.NoSuchQuestionException;
 import com.liferay.polls.model.PollsChoice;
 import com.liferay.polls.model.PollsQuestion;
@@ -45,7 +45,7 @@ public class PollsDisplayPortletDataHandler extends PollsPortletDataHandler {
 		setDataPortletPreferences("questionId");
 		setExportControls(new PortletDataHandlerControl[0]);
 		setPublishToLiveByDefault(
-			PollsConfigurationValues.PUBLISH_TO_LIVE_BY_DEFAULT);
+			PollsServiceConfigurationValues.PUBLISH_TO_LIVE_BY_DEFAULT);
 	}
 
 	@Override

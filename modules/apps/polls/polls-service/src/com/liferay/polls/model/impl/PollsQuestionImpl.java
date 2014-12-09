@@ -29,9 +29,6 @@ import java.util.List;
  */
 public class PollsQuestionImpl extends PollsQuestionBaseImpl {
 
-	public PollsQuestionImpl() {
-	}
-
 	@Override
 	public List<PollsChoice> getChoices() {
 		return PollsChoiceLocalServiceUtil.getChoices(getQuestionId());

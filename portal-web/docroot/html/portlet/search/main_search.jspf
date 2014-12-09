@@ -76,7 +76,7 @@ boolean showMenu = advancedConfiguration || displayScopeFacet || displayAssetTyp
 
 <aui:row cssClass='<%= "search-layout" + (showMenu ? " menu-column" : StringPool.BLANK) %>'>
 	<c:if test="<%= showMenu %>">
-		<aui:col id="facetNavigation" span="2">
+		<aui:col id="facetNavigation" span="<%= 2 %>">
 
 			<%
 			Map<String, Facet> facets = searchContext.getFacets();
@@ -101,51 +101,43 @@ boolean showMenu = advancedConfiguration || displayScopeFacet || displayAssetTyp
 			}
 			%>
 
-			<aui:script use="aui-base">
-				var container = A.one('#<portlet:namespace />facetNavigation');
+			<aui:script sandbox="<%= true %>">
+				$('#<portlet:namespace />facetNavigation').on(
+					'click',
+					'.facet-value a',
+					function(event) {
+						event.preventDefault();
 
-				if (container) {
-					container.delegate(
-						'click',
-						function(event) {
-							var term = event.currentTarget;
+						var term = $(event.currentTarget);
 
-							var facetValue = term.ancestor('.facet-value');
+						var facetValue = term.parentsUntil('.search-facet', '.facet-value');
 
-							if (facetValue) {
-								var currentTerm = facetValue.hasClass('active');
+						if (!facetValue.hasClass('active')) {
+							facetValue.addClass('active');
 
-								facetValue.radioClass('active');
+							facetValue.siblings().removeClass('active');
 
-								if (!currentTerm) {
-									facetValue.radioClass('active');
+							var searchFacet = facetValue.parentsUntil('.search-layout', '.search-facet');
 
-									var searchFacet = facetValue.ancestor('.search-facet');
+							var form = $(document.<portlet:namespace />fm);
 
-									if (searchFacet) {
-										var field = document.<portlet:namespace />fm['<portlet:namespace />' + searchFacet.attr('data-facetFieldName')];
+							var field = form.fm(searchFacet.data('facetfieldname'));
 
-										if (field) {
-											field.value = term.attr('data-value');
+							if (field.length) {
+								field.val(term.data('value'));
 
-											document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value = 1;
+								form.fm('<%= SearchContainer.DEFAULT_CUR_PARAM %>').val(1);
 
-											submitForm(document.<portlet:namespace />fm);
-										}
-									}
-								}
-
-								event.preventDefault();
+								submitForm(form);
 							}
-						},
-						'.facet-value a'
-					);
-				}
+						}
+					}
+				);
 			</aui:script>
 		</aui:col>
 	</c:if>
 
-	<aui:col cssClass="result" first="<%= !showMenu %>" span="10">
+	<aui:col cssClass="result" first="<%= !showMenu %>" span="<%= 10 %>">
 		<%@ include file="/html/portlet/search/main_search_suggest.jspf" %>
 
 		<liferay-ui:search-container

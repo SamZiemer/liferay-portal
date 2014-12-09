@@ -36,12 +36,23 @@ import java.util.List;
  */
 public interface Repository extends DocumentRepository {
 
+	/**
+	 * @deprecated As of 7.0.0, see {@link #addFileEntry(long, long, String,
+	 *             String, String, String, String, File, ServiceContext)}
+	 */
+	@Deprecated
 	public FileEntry addFileEntry(
 			long folderId, String sourceFileName, String mimeType, String title,
 			String description, String changeLog, File file,
 			ServiceContext serviceContext)
 		throws PortalException;
 
+	/**
+	 * @deprecated As of 7.0.0, see {@link #addFileEntry(long, long, String,
+	 *             String, String, String, String, InputStream, long,
+	 *             ServiceContext)}
+	 */
+	@Deprecated
 	public FileEntry addFileEntry(
 			long folderId, String sourceFileName, String mimeType, String title,
 			String description, String changeLog, InputStream is, long size,
@@ -55,6 +66,11 @@ public interface Repository extends DocumentRepository {
 
 	public FileVersion cancelCheckOut(long fileEntryId) throws PortalException;
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #checkInFileEntry(long, long,
+	 *             boolean, String, ServiceContext)}
+	 */
+	@Deprecated
 	public void checkInFileEntry(
 			long fileEntryId, boolean major, String changeLog,
 			ServiceContext serviceContext)
@@ -68,6 +84,11 @@ public interface Repository extends DocumentRepository {
 	public void checkInFileEntry(long fileEntryId, String lockUuid)
 		throws PortalException;
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #checkInFileEntry(long, long,
+	 *             String, com.liferay.portal.service.ServiceContext)}
+	 */
+	@Deprecated
 	public void checkInFileEntry(
 			long fileEntryId, String lockUuid, ServiceContext serviceContext)
 		throws PortalException;
@@ -81,20 +102,21 @@ public interface Repository extends DocumentRepository {
 			ServiceContext serviceContext)
 		throws PortalException;
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #copyFileEntry(long, long,
+	 *             long, long, ServiceContext)}
+	 */
+	@Deprecated
 	public FileEntry copyFileEntry(
 			long groupId, long fileEntryId, long destFolderId,
 			ServiceContext serviceContext)
 		throws PortalException;
-
-	public void deleteFileEntry(long fileEntryId) throws PortalException;
 
 	public void deleteFileEntry(long folderId, String title)
 		throws PortalException;
 
 	public void deleteFileVersion(long fileEntryId, String version)
 		throws PortalException;
-
-	public void deleteFolder(long folderId) throws PortalException;
 
 	public void deleteFolder(long parentFolderId, String name)
 		throws PortalException;
@@ -130,21 +152,6 @@ public interface Repository extends DocumentRepository {
 		throws PortalException;
 
 	public int getFileEntriesCount(long folderId, String[] mimeTypes)
-		throws PortalException;
-
-	public FileEntry getFileEntry(long fileEntryId) throws PortalException;
-
-	public FileEntry getFileEntry(long folderId, String title)
-		throws PortalException;
-
-	public FileEntry getFileEntryByUuid(String uuid) throws PortalException;
-
-	public FileVersion getFileVersion(long fileVersionId)
-		throws PortalException;
-
-	public Folder getFolder(long folderId) throws PortalException;
-
-	public Folder getFolder(long parentFolderId, String name)
 		throws PortalException;
 
 	public List<Folder> getFolders(
@@ -257,6 +264,11 @@ public interface Repository extends DocumentRepository {
 			String lockUuid, long companyId, long expirationTime)
 		throws PortalException;
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #revertFileEntry(long, long,
+	 *             String, ServiceContext)}
+	 */
+	@Deprecated
 	public void revertFileEntry(
 			long fileEntryId, String version, ServiceContext serviceContext)
 		throws PortalException;
@@ -280,12 +292,24 @@ public interface Repository extends DocumentRepository {
 	public void unlockFolder(long parentFolderId, String name, String lockUuid)
 		throws PortalException;
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #updateFileEntry(long, long,
+	 *             String, String, String, String, String, boolean, File,
+	 *             ServiceContext)}
+	 */
+	@Deprecated
 	public FileEntry updateFileEntry(
 			long fileEntryId, String sourceFileName, String mimeType,
 			String title, String description, String changeLog,
 			boolean majorVersion, File file, ServiceContext serviceContext)
 		throws PortalException;
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #updateFileEntry(long, long,
+	 *             String, String, String, String, String, boolean, InputStream,
+	 *             long, ServiceContext)}
+	 */
+	@Deprecated
 	public FileEntry updateFileEntry(
 			long fileEntryId, String sourceFileName, String mimeType,
 			String title, String description, String changeLog,

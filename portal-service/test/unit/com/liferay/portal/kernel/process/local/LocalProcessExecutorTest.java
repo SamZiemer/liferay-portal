@@ -96,7 +96,7 @@ import org.junit.Test;
 public class LocalProcessExecutorTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
+	public static final CodeCoverageAssertor codeCoverageAssertor =
 		new CodeCoverageAssertor() {
 
 			@Override
@@ -732,8 +732,40 @@ public class LocalProcessExecutorTest {
 
 			Throwable throwable = ee.getCause();
 
+			Assert.assertSame(ProcessException.class, throwable.getClass());
 			Assert.assertEquals(
 				DummyExceptionProcessCallable.class.getName(),
+				throwable.getMessage());
+		}
+
+		RuntimeExceptionProcessCallable runtimeExceptionProcessCallable =
+			new RuntimeExceptionProcessCallable();
+
+		processChannel =
+			_localProcessExecutor.execute(
+				_createJPDAProcessConfig(_JPDA_OPTIONS1),
+				runtimeExceptionProcessCallable);
+
+		future = processChannel.getProcessNoticeableFuture();
+
+		try {
+			future.get();
+
+			Assert.fail();
+		}
+		catch (ExecutionException ee) {
+			Assert.assertFalse(future.isCancelled());
+			Assert.assertTrue(future.isDone());
+
+			Throwable throwable = ee.getCause();
+
+			Assert.assertSame(ProcessException.class, throwable.getClass());
+
+			throwable = throwable.getCause();
+
+			Assert.assertSame(RuntimeException.class, throwable.getClass());
+			Assert.assertEquals(
+				RuntimeExceptionProcessCallable.class.getName(),
 				throwable.getMessage());
 		}
 	}
@@ -1220,45 +1252,6 @@ public class LocalProcessExecutorTest {
 		finally {
 			captureHandler.close();
 		}
-	}
-
-	@Test
-	public void testSanitizePathSeparatorChar() {
-		Builder builder = new Builder();
-
-		ProcessConfig processConfig = builder.build();
-
-		char pathSeparatorChar = File.pathSeparatorChar;
-
-		if (pathSeparatorChar == CharPool.COLON) {
-			pathSeparatorChar = CharPool.SEMICOLON;
-		}
-		else {
-			pathSeparatorChar = CharPool.COLON;
-		}
-
-		ReflectionTestUtil.setFieldValue(
-			processConfig, "_pathSeparatorChar", pathSeparatorChar);
-
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("file1");
-		sb.append(pathSeparatorChar);
-		sb.append("file2");
-		sb.append(pathSeparatorChar);
-		sb.append("file3");
-
-		String path = sb.toString();
-
-		Assert.assertEquals(
-			path.replace(pathSeparatorChar, File.pathSeparatorChar),
-			ReflectionTestUtil.invoke(
-				processConfig, "sanitizePathSeparatorChar",
-				new Class<?>[] {String.class}, path));
-		Assert.assertNull(
-			ReflectionTestUtil.invoke(
-				processConfig, "sanitizePathSeparatorChar",
-				new Class<?>[] {String.class}, new Object[] {null}));
 	}
 
 	@Test
@@ -2225,6 +2218,26 @@ public class LocalProcessExecutorTest {
 		private static final long serialVersionUID = 1L;
 
 		private String _returnValue;
+
+	}
+
+	private static class RuntimeExceptionProcessCallable
+		implements ProcessCallable<Serializable> {
+
+		@Override
+		public Serializable call() {
+			throw new RuntimeException(
+				RuntimeExceptionProcessCallable.class.getName());
+		}
+
+		@Override
+		public String toString() {
+			Class<?> clazz = getClass();
+
+			return clazz.getSimpleName();
+		}
+
+		private static final long serialVersionUID = 1L;
 
 	}
 

@@ -41,8 +41,7 @@ public class InitializeLiferayTestEnvironment {
 
 		List<String> configLocations = getConfigLocations();
 
-		InitUtil.initWithSpringAndModuleFramework(
-			false, configLocations, false);
+		InitUtil.initWithSpring(configLocations, true);
 
 		if (System.getProperty("external-properties") == null) {
 			System.setProperty("external-properties", "portal-test.properties");
@@ -67,9 +66,9 @@ public class InitializeLiferayTestEnvironment {
 	}
 
 	@Inject
-	private final Event<LiferayContextCreatedEvent> _event;
+	private Event<LiferayContextCreatedEvent> _event;
 
 	@Inject
-	private final Instance<ServiceLoader> _instance;
+	private Instance<ServiceLoader> _instance;
 
 }

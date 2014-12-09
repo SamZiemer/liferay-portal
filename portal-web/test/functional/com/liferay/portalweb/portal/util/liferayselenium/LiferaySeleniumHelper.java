@@ -30,8 +30,8 @@ import com.liferay.portal.util.PropsValues;
 import com.liferay.portalweb.portal.BaseTestCase;
 import com.liferay.portalweb.portal.util.AntCommands;
 import com.liferay.portalweb.portal.util.EmailCommands;
-import com.liferay.portalweb.portal.util.RuntimeVariables;
-import com.liferay.portalweb.portal.util.TestPropsValues;
+import com.liferay.portalweb.util.RuntimeVariables;
+import com.liferay.portalweb.util.TestPropsValues;
 
 import java.awt.Rectangle;
 import java.awt.Robot;
@@ -45,7 +45,14 @@ import java.io.InputStreamReader;
 
 import java.net.URL;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,6 +69,14 @@ import org.sikuli.script.Screen;
  */
 public class LiferaySeleniumHelper {
 
+	public static void addToJavaScriptExceptions(Exception exception) {
+		_javaScriptExceptions.add(exception);
+	}
+
+	public static void addToLiferayExceptions(Exception exception) {
+		_liferayExceptions.add(exception);
+	}
+
 	public static void antCommand(
 			LiferaySelenium liferaySelenium, String fileName, String target)
 		throws Exception {
@@ -69,9 +84,18 @@ public class LiferaySeleniumHelper {
 		AntCommands antCommands = new AntCommands(
 			liferaySelenium, fileName, target);
 
-		antCommands.start();
+		ExecutorService executorService = Executors.newCachedThreadPool();
 
-		antCommands.join(120000);
+		Future<Void> future = executorService.submit(antCommands);
+
+		try {
+			future.get(150, TimeUnit.SECONDS);
+		}
+		catch (ExecutionException ee) {
+			throw ee;
+		}
+		catch (TimeoutException te) {
+		}
 	}
 
 	public static void assertAlert(
@@ -212,6 +236,13 @@ public class LiferaySeleniumHelper {
 			String level = eventElement.attributeValue("level");
 
 			if (level.equals("ERROR")) {
+				String fileContent = FileUtil.read(fileName);
+
+				fileContent = fileContent.replaceFirst(
+					"level=\"ERROR\"", "level=\"ERROR_FOUND\"");
+
+				FileUtil.write(fileName, fileContent);
+
 				Element messageElement = eventElement.element("message");
 
 				String messageText = messageElement.getText();
@@ -222,12 +253,22 @@ public class LiferaySeleniumHelper {
 
 				Element throwableElement = eventElement.element("throwable");
 
+				Exception exception;
+
 				if (throwableElement != null) {
-					throw new Exception(
+					exception = new Exception(
 						messageText + throwableElement.getText());
+
+					addToLiferayExceptions(exception);
+
+					throw exception;
 				}
 
-				throw new Exception(messageText);
+				exception = new Exception(messageText);
+
+				addToLiferayExceptions(exception);
+
+				throw exception;
 			}
 		}
 	}
@@ -236,6 +277,80 @@ public class LiferaySeleniumHelper {
 		LiferaySelenium liferaySelenium, String pattern) {
 
 		BaseTestCase.assertEquals(pattern, liferaySelenium.getLocation());
+	}
+
+	public static void assertNoJavaScriptExceptions() throws Exception {
+		if (!_javaScriptExceptions.isEmpty()) {
+			StringBundler sb = new StringBundler();
+
+			sb.append(_javaScriptExceptions.size());
+			sb.append(" Javascript Exception");
+
+			if (_javaScriptExceptions.size() > 1) {
+				sb.append("s were");
+			}
+			else {
+				sb.append(" was");
+			}
+
+			sb.append(" thrown");
+
+			System.out.println();
+			System.out.println("##");
+			System.out.println("## " + sb.toString());
+			System.out.println("##");
+
+			for (int i = 0; i < _javaScriptExceptions.size(); i++) {
+				Exception liferayException = _javaScriptExceptions.get(i);
+
+				System.out.println();
+				System.out.println("##");
+				System.out.println("## Javascript Exception #" + (i + 1));
+				System.out.println("##");
+				System.out.println();
+				System.out.println(liferayException.getMessage());
+				System.out.println();
+			}
+
+			throw new Exception(sb.toString());
+		}
+	}
+
+	public static void assertNoLiferayExceptions() throws Exception {
+		if (!_liferayExceptions.isEmpty()) {
+			StringBundler sb = new StringBundler();
+
+			sb.append(_liferayExceptions.size());
+			sb.append(" Liferay Exception");
+
+			if (_liferayExceptions.size() > 1) {
+				sb.append("s were");
+			}
+			else {
+				sb.append(" was");
+			}
+
+			sb.append(" thrown");
+
+			System.out.println();
+			System.out.println("##");
+			System.out.println("## " + sb.toString());
+			System.out.println("##");
+
+			for (int i = 0; i < _liferayExceptions.size(); i++) {
+				Exception liferayException = _liferayExceptions.get(i);
+
+				System.out.println();
+				System.out.println("##");
+				System.out.println("## Liferay Exception #" + (i + 1));
+				System.out.println("##");
+				System.out.println();
+				System.out.println(liferayException.getMessage());
+				System.out.println();
+			}
+
+			throw new Exception(sb.toString());
+		}
 	}
 
 	public static void assertNotAlert(
@@ -842,6 +957,19 @@ public class LiferaySeleniumHelper {
 			return true;
 		}
 
+		// LPS-51371
+
+		if (line.matches(
+				".*The web application \\[/jasperreports-web\\] created a " +
+					"ThreadLocal with key of type.*")) {
+
+			if (line.contains(
+					"[net.sf.jasperreports.engine.fonts.FontUtil$1]")) {
+
+				return true;
+			}
+		}
+
 		if (Validator.equals(
 				TestPropsValues.LIFERAY_PORTAL_BUNDLE, "6.2.10.1") ||
 			Validator.equals(
@@ -1236,7 +1364,7 @@ public class LiferaySeleniumHelper {
 
 		liferaySelenium.typeKeys(locator, line.trim());
 
-		liferaySelenium.keyPress(locator, "\\13");
+		liferaySelenium.keyPress(locator, "\\RETURN");
 
 		while (y != -1) {
 			x = value.indexOf("}", x) + 1;
@@ -1251,7 +1379,7 @@ public class LiferaySeleniumHelper {
 
 			liferaySelenium.typeKeys(locator, line.trim());
 
-			liferaySelenium.keyPress(locator, "\\13");
+			liferaySelenium.keyPress(locator, "\\RETURN");
 		}
 	}
 
@@ -1597,6 +1725,10 @@ public class LiferaySeleniumHelper {
 		}
 	}
 
+	private static List<Exception> _javaScriptExceptions =
+		new ArrayList<Exception>();
+	private static List<Exception> _liferayExceptions =
+		new ArrayList<Exception>();
 	private static Screen _screen = new Screen();
 	private static int _screenshotCount = 0;
 	private static int _screenshotErrorCount = 0;

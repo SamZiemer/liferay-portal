@@ -15,7 +15,7 @@
 package com.liferay.portalweb.portal.util.liferayselenium;
 
 import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portalweb.portal.util.TestPropsValues;
+import com.liferay.portalweb.util.TestPropsValues;
 
 import io.appium.java_client.MobileDriver;
 
@@ -125,6 +125,16 @@ public abstract class BaseMobileDriverImpl
 	}
 
 	@Override
+	public void assertNoJavaScriptExceptions() throws Exception {
+		LiferaySeleniumHelper.assertNoJavaScriptExceptions();
+	}
+
+	@Override
+	public void assertNoLiferayExceptions() throws Exception {
+		LiferaySeleniumHelper.assertNoLiferayExceptions();
+	}
+
+	@Override
 	public void assertNotAlert(String pattern) {
 		throw new UnsupportedOperationException();
 	}
@@ -142,8 +152,9 @@ public abstract class BaseMobileDriverImpl
 	@Override
 	public void assertNotPartialText(String locator, String pattern)
 		throws Exception {
-			throw new UnsupportedOperationException();
-		}
+
+		throw new UnsupportedOperationException();
+	}
 
 	@Override
 	public void assertNotSelectedLabel(String selectLocator, String pattern)

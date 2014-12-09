@@ -592,10 +592,10 @@ public class JournalArticleLocalServiceUtil {
 	}
 
 	/**
-	* Returns the number of rows that match the dynamic query.
+	* Returns the number of rows matching the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
-	* @return the number of rows that match the dynamic query
+	* @return the number of rows matching the dynamic query
 	*/
 	public static long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
@@ -603,11 +603,11 @@ public class JournalArticleLocalServiceUtil {
 	}
 
 	/**
-	* Returns the number of rows that match the dynamic query.
+	* Returns the number of rows matching the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
-	* @return the number of rows that match the dynamic query
+	* @return the number of rows matching the dynamic query
 	*/
 	public static long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
@@ -1781,11 +1781,28 @@ public class JournalArticleLocalServiceUtil {
 		return getService().getJournalArticles(start, end);
 	}
 
+	/**
+	* Returns all the journal articles matching the UUID and company.
+	*
+	* @param uuid the UUID of the journal articles
+	* @param companyId the primary key of the company
+	* @return the matching journal articles, or an empty list if no matches were found
+	*/
 	public static java.util.List<com.liferay.portlet.journal.model.JournalArticle> getJournalArticlesByUuidAndCompanyId(
 		java.lang.String uuid, long companyId) {
 		return getService().getJournalArticlesByUuidAndCompanyId(uuid, companyId);
 	}
 
+	/**
+	* Returns a range of journal articles matching the UUID and company.
+	*
+	* @param uuid the UUID of the journal articles
+	* @param companyId the primary key of the company
+	* @param start the lower bound of the range of journal articles
+	* @param end the upper bound of the range of journal articles (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the range of matching journal articles, or an empty list if no matches were found
+	*/
 	public static java.util.List<com.liferay.portlet.journal.model.JournalArticle> getJournalArticlesByUuidAndCompanyId(
 		java.lang.String uuid, long companyId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.journal.model.JournalArticle> orderByComparator) {
@@ -1974,6 +1991,14 @@ public class JournalArticleLocalServiceUtil {
 		java.lang.String articleId, int status)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getLatestVersion(groupId, articleId, status);
+	}
+
+	public static java.util.List<com.liferay.portlet.journal.model.JournalArticle> getNoAssetArticles() {
+		return getService().getNoAssetArticles();
+	}
+
+	public static java.util.List<com.liferay.portlet.journal.model.JournalArticle> getNoPermissionArticles() {
+		return getService().getNoPermissionArticles();
 	}
 
 	/**
@@ -3329,14 +3354,13 @@ public class JournalArticleLocalServiceUtil {
 	JournalArticleLocalServiceImpl}.
 	* @param serviceContext the service context to be applied. Can set the
 	modification date, expando bridge attributes, asset category IDs,
-	asset tag names, asset link entry IDs, workflow actions, the
-	"defaultLanguageId" and "urlTitle" attributes, and can set
-	whether to add the default command update for the web content
-	article. With respect to social activities, by setting the
-	service context's command to {@link
-	com.liferay.portal.kernel.util.Constants#UPDATE}, the invocation
-	is considered a web content update activity; otherwise it is
-	considered a web content add activity.
+	asset tag names, asset link entry IDs, workflow actions, the and
+	"urlTitle" attributes, and can set whether to add the default
+	command update for the web content article. With respect to
+	social activities, by setting the service context's command to
+	{@link com.liferay.portal.kernel.util.Constants#UPDATE}, the
+	invocation is considered a web content update activity; otherwise
+	it is considered a web content add activity.
 	* @return the updated web content article
 	* @throws PortalException if a user with the primary key or a matching web
 	content article could not be found, or if a portal exception
@@ -3420,14 +3444,13 @@ public class JournalArticleLocalServiceUtil {
 	<code>null</code>)
 	* @param serviceContext the service context to be applied. Can set the
 	modification date, expando bridge attributes, asset category IDs,
-	asset tag names, asset link entry IDs, workflow actions, the
-	"defaultLanguageId" and "urlTitle" attributes, and can set
-	whether to add the default command update for the web content
-	article. With respect to social activities, by setting the
-	service context's command to {@link
-	com.liferay.portal.kernel.util.Constants#UPDATE}, the invocation
-	is considered a web content update activity; otherwise it is
-	considered a web content add activity.
+	asset tag names, asset link entry IDs, workflow actions, the and
+	"urlTitle" attributes, and can set whether to add the default
+	command update for the web content article. With respect to
+	social activities, by setting the service context's command to
+	{@link com.liferay.portal.kernel.util.Constants#UPDATE}, the
+	invocation is considered a web content update activity; otherwise
+	it is considered a web content add activity.
 	* @return the updated web content article
 	* @throws PortalException if a user with the primary key or a matching web
 	content article could not be found, or if a portal exception
@@ -3484,14 +3507,13 @@ public class JournalArticleLocalServiceUtil {
 	article's display page
 	* @param serviceContext the service context to be applied. Can set the
 	modification date, expando bridge attributes, asset category IDs,
-	asset tag names, asset link entry IDs, workflow actions, the
-	"defaultLanguageId" and "urlTitle" attributes, and can set
-	whether to add the default command update for the web content
-	article. With respect to social activities, by setting the
-	service context's command to {@link
-	com.liferay.portal.kernel.util.Constants#UPDATE}, the invocation
-	is considered a web content update activity; otherwise it is
-	considered a web content add activity.
+	asset tag names, asset link entry IDs, workflow actions, the and
+	"urlTitle" attributes, and can set whether to add the default
+	command update for the web content article. With respect to
+	social activities, by setting the service context's command to
+	{@link com.liferay.portal.kernel.util.Constants#UPDATE}, the
+	invocation is considered a web content update activity; otherwise
+	it is considered a web content add activity.
 	* @return the updated web content article
 	* @throws PortalException if a user with the primary key or a matching web
 	content article could not be found, or if a portal exception

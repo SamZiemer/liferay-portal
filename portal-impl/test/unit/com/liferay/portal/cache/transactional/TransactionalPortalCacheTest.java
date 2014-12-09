@@ -20,9 +20,11 @@ import com.liferay.portal.cache.TestCacheReplicator;
 import com.liferay.portal.cache.memory.MemoryPortalCache;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cache.PortalCacheHelperUtil;
+import com.liferay.portal.kernel.test.AggregateTestRule;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
+import com.liferay.portal.kernel.test.NewEnv;
 import com.liferay.portal.test.AdviseWith;
-import com.liferay.portal.test.runners.AspectJMockingNewClassLoaderJUnitTestRunner;
+import com.liferay.portal.test.AspectJNewEnvTestRule;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,29 +36,33 @@ import org.aspectj.lang.annotation.Aspect;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Shuyang Zhou
  */
-@RunWith(AspectJMockingNewClassLoaderJUnitTestRunner.class)
+@NewEnv(type = NewEnv.Type.CLASSLOADER)
 public class TransactionalPortalCacheTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
-		new CodeCoverageAssertor() {
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			new CodeCoverageAssertor() {
 
-			@Override
-			public void appendAssertClasses(List<Class<?>> assertClasses) {
-				Class<TransactionalPortalCacheHelper> clazz =
-					TransactionalPortalCacheHelper.class;
+				@Override
+				public void appendAssertClasses(List<Class<?>> assertClasses) {
+					Class<TransactionalPortalCacheHelper> clazz =
+						TransactionalPortalCacheHelper.class;
 
-				assertClasses.add(clazz);
-				assertClasses.addAll(Arrays.asList(clazz.getDeclaredClasses()));
-			}
+					assertClasses.add(clazz);
+					assertClasses.addAll(
+						Arrays.asList(clazz.getDeclaredClasses()));
+				}
 
-		};
+			},
+			AspectJNewEnvTestRule.INSTANCE);
 
 	@Before
 	public void setUp() {
@@ -78,6 +84,7 @@ public class TransactionalPortalCacheTest {
 		_portalCache.registerCacheListener(_testCacheReplicator);
 	}
 
+	@NewEnv(type = NewEnv.Type.NONE)
 	@Test
 	public void testConstructor() {
 		new TransactionalPortalCacheHelper();

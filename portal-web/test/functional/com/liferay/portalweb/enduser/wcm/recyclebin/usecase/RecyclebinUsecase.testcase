@@ -169,6 +169,14 @@
 			<var name="bookmarkURL" value="http://www.liferay.com/" />
 		</execute>
 
+		<execute macro="BookmarksFolder#gotoSubfolderPG">
+			<var name="folderName" value="Folder Name" />
+			<var name="pageName" value="Test Page" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+			<var name="subfolderName" value="Subfolder Name" />
+		</execute>
+
 		<execute macro="Bookmark#moveToRecycleBinPG">
 			<var name="bookmarkName" value="Bookmark Name" />
 		</execute>
@@ -936,7 +944,7 @@
 		</execute>
 
 		<execute macro="WikiNode#gotoCP">
-			<var name="wikiNodeName" value="${wikiNodeName}" />
+			<var name="wikiNodeName" value="Wiki Node Name" />
 		</execute>
 
 		<execute macro="WikiPage#deleteCP">

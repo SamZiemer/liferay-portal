@@ -30,6 +30,7 @@ import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
+import com.liferay.portal.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
@@ -81,11 +82,6 @@ public class JournalArticleAssetRenderer
 
 	public JournalArticleAssetRenderer(JournalArticle article) {
 		_article = article;
-	}
-
-	@Override
-	public String getAddToPagePortletId() throws Exception {
-		return PortletKeys.JOURNAL_CONTENT;
 	}
 
 	public JournalArticle getArticle() {
@@ -309,7 +305,9 @@ public class JournalArticleAssetRenderer
 			}
 
 			String groupFriendlyURL = PortalUtil.getGroupFriendlyURL(
-				group, layout.isPrivateLayout(), themeDisplay);
+				LayoutSetLocalServiceUtil.getLayoutSet(
+					group.getGroupId(), layout.isPrivateLayout()),
+				themeDisplay);
 
 			return PortalUtil.addPreservedParameters(
 				themeDisplay,
@@ -422,22 +420,6 @@ public class JournalArticleAssetRenderer
 		else {
 			return null;
 		}
-	}
-
-	@Override
-	public void setAddToPagePreferences(
-			PortletPreferences preferences, String portletId,
-			ThemeDisplay themeDisplay)
-		throws Exception {
-
-		preferences.setValue("articleId", _article.getArticleId());
-		preferences.setValue("groupId", String.valueOf(_article.getGroupId()));
-
-		Layout layout = themeDisplay.getLayout();
-
-		JournalContentSearchLocalServiceUtil.updateContentSearch(
-			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
-			portletId, _article.getArticleId(), true);
 	}
 
 	@Override

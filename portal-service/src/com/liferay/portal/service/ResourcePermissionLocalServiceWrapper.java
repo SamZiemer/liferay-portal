@@ -102,8 +102,8 @@ public class ResourcePermissionLocalServiceWrapper
 	* permissions to view all blog posts.
 	* </p>
 	*
-	* @param resourceName the resource's name, which can be either a class
-	name or a portlet ID
+	* @param resourceName the resource's name, which can be either a class name
+	or a portlet ID
 	* @param roleName the role's name
 	* @param scope the scope
 	* @param resourceActionBitwiseValue the bitwise IDs of the actions
@@ -283,10 +283,10 @@ public class ResourcePermissionLocalServiceWrapper
 	}
 
 	/**
-	* Returns the number of rows that match the dynamic query.
+	* Returns the number of rows matching the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
-	* @return the number of rows that match the dynamic query
+	* @return the number of rows matching the dynamic query
 	*/
 	@Override
 	public long dynamicQueryCount(
@@ -295,11 +295,11 @@ public class ResourcePermissionLocalServiceWrapper
 	}
 
 	/**
-	* Returns the number of rows that match the dynamic query.
+	* Returns the number of rows matching the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
-	* @return the number of rows that match the dynamic query
+	* @return the number of rows matching the dynamic query
 	*/
 	@Override
 	public long dynamicQueryCount(
@@ -307,6 +307,14 @@ public class ResourcePermissionLocalServiceWrapper
 		com.liferay.portal.kernel.dao.orm.Projection projection) {
 		return _resourcePermissionLocalService.dynamicQueryCount(dynamicQuery,
 			projection);
+	}
+
+	@Override
+	public com.liferay.portal.model.ResourcePermission fetchResourcePermission(
+		long companyId, java.lang.String name, int scope,
+		java.lang.String primKey, long roleId) {
+		return _resourcePermissionLocalService.fetchResourcePermission(companyId,
+			name, scope, primKey, roleId);
 	}
 
 	@Override
@@ -357,8 +365,8 @@ public class ResourcePermissionLocalServiceWrapper
 
 	/**
 	* @deprecated As of 7.0.0, replaced by {@link
-	#getAvailableResourcePermissionActionIds(
-	long, String, int, String, Collection)}
+	#getAvailableResourcePermissionActionIds(long, String, int,
+	String, Collection)}
 	*/
 	@Deprecated
 	@Override

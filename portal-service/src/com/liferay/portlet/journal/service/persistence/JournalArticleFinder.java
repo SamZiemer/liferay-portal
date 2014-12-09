@@ -17,6 +17,7 @@ package com.liferay.portlet.journal.service.persistence;
 import aQute.bnd.annotation.ProviderType;
 
 /**
+ * @author Brian Wing Shun Chan
  * @generated
  */
 @ProviderType
@@ -183,6 +184,10 @@ public interface JournalArticleFinder {
 		java.util.Date displayDateGT, java.util.Date displayDateLT, int status,
 		java.util.Date reviewDate, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.journal.model.JournalArticle> orderByComparator);
+
+	public java.util.List<com.liferay.portlet.journal.model.JournalArticle> findByNoAssets();
+
+	public java.util.List<com.liferay.portlet.journal.model.JournalArticle> findByNoPermissions();
 
 	public java.util.List<com.liferay.portlet.journal.model.JournalArticle> findByReviewDate(
 		long classNameId, java.util.Date reviewDateLT,

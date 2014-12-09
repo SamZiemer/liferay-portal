@@ -19,7 +19,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portalweb.portal.BaseTestCase;
-import com.liferay.portalweb.portal.util.TestPropsValues;
+import com.liferay.portalweb.util.TestPropsValues;
 
 import java.util.List;
 import java.util.Set;
@@ -120,23 +120,12 @@ public class WebDriverHelper {
 					continue;
 				}
 
-				throw new Exception(javaScriptErrorValue);
+				Exception exception = new Exception(javaScriptErrorValue);
+
+				LiferaySeleniumHelper.addToJavaScriptExceptions(exception);
+
+				throw exception;
 			}
-		}
-	}
-
-	public static void click(WebDriver webDriver, String locator) {
-		WebElement webElement = getWebElement(webDriver, locator);
-
-		try {
-			webElement.click();
-		}
-		catch (Exception e) {
-			if (!webElement.isDisplayed()) {
-				scrollWebElementIntoView(webDriver, webElement);
-			}
-
-			webElement.click();
 		}
 	}
 
@@ -313,20 +302,22 @@ public class WebDriverHelper {
 		return GetterUtil.getInteger(pageYOffset);
 	}
 
-	public static String getText(
-		WebDriver webDriver, String locator, String timeout) {
+	public static int getViewportHeight(WebDriver webDriver) {
+		WebElement bodyWebElement = getWebElement(webDriver, "//body");
 
-		WebElement webElement = getWebElement(webDriver, locator, timeout);
+		WrapsDriver wrapsDriver = (WrapsDriver)bodyWebElement;
 
-		if (!webElement.isDisplayed()) {
-			scrollWebElementIntoView(webDriver, webElement);
-		}
+		WebDriver wrappedWebDriver = wrapsDriver.getWrappedDriver();
 
-		String text = webElement.getText();
+		JavascriptExecutor javascriptExecutor =
+			(JavascriptExecutor)wrappedWebDriver;
 
-		text = text.trim();
+		return GetterUtil.getInteger(
+			javascriptExecutor.executeScript("return window.innerHeight;"));
+	}
 
-		return text.replace("\n", " ");
+	public static int getViewportPositionBottom(WebDriver webDriver) {
+		return getScrollOffsetY(webDriver) + getViewportHeight(webDriver);
 	}
 
 	public static Point getWindowPoint(WebDriver webDriver) {
@@ -361,16 +352,6 @@ public class WebDriverHelper {
 		List<WebElement> webElements = getWebElements(webDriver, locator, "1");
 
 		return !webElements.isEmpty();
-	}
-
-	public static boolean isVisible(WebDriver webDriver, String locator) {
-		WebElement webElement = getWebElement(webDriver, locator, "1");
-
-		if (!webElement.isDisplayed()) {
-			scrollWebElementIntoView(webDriver, webElement);
-		}
-
-		return webElement.isDisplayed();
 	}
 
 	public static void makeVisible(WebDriver webDriver, String locator) {

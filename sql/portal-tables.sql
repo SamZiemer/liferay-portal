@@ -217,7 +217,7 @@ create table BackgroundTask (
 	userName VARCHAR(75) null,
 	createDate DATE null,
 	modifiedDate DATE null,
-	name VARCHAR(75) null,
+	name VARCHAR(255) null,
 	servletContextNames VARCHAR(255) null,
 	taskExecutorClassName VARCHAR(200) null,
 	taskContextMap TEXT null,
@@ -692,7 +692,7 @@ create table DLFolder (
 	lastPostDate DATE null,
 	defaultFileEntryTypeId LONG,
 	hidden_ BOOLEAN,
-	overrideFileEntryTypes BOOLEAN,
+	restrictionType INTEGER,
 	status INTEGER,
 	statusByUserId LONG,
 	statusByUserName VARCHAR(75) null,
@@ -798,6 +798,7 @@ create table Group_ (
 	friendlyURL VARCHAR(255) null,
 	site BOOLEAN,
 	remoteStagingGroupCount INTEGER,
+	inheritContent BOOLEAN,
 	active_ BOOLEAN
 );
 

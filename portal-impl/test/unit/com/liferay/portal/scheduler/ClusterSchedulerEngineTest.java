@@ -35,9 +35,11 @@ import com.liferay.portal.kernel.scheduler.TriggerState;
 import com.liferay.portal.kernel.scheduler.TriggerType;
 import com.liferay.portal.kernel.scheduler.messaging.SchedulerResponse;
 import com.liferay.portal.kernel.servlet.PluginContextLifecycleThreadLocal;
+import com.liferay.portal.kernel.test.AggregateTestRule;
 import com.liferay.portal.kernel.test.CaptureHandler;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
+import com.liferay.portal.kernel.test.NewEnv;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.MethodHandler;
 import com.liferay.portal.kernel.util.MethodKey;
@@ -45,7 +47,7 @@ import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.test.AdviseWith;
-import com.liferay.portal.test.runners.AspectJMockingNewClassLoaderJUnitTestRunner;
+import com.liferay.portal.test.AspectJNewEnvTestRule;
 import com.liferay.portal.util.PortalImpl;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.uuid.PortalUUIDImpl;
@@ -70,18 +72,20 @@ import org.aspectj.lang.annotation.Aspect;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Tina Tian
  */
-@RunWith(AspectJMockingNewClassLoaderJUnitTestRunner.class)
+@NewEnv(type = NewEnv.Type.CLASSLOADER)
 public class ClusterSchedulerEngineTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
-		new CodeCoverageAssertor();
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			CodeCoverageAssertor.INSTANCE, AspectJNewEnvTestRule.INSTANCE);
 
 	@Before
 	public void setUp() throws Exception {
@@ -348,6 +352,7 @@ public class ClusterSchedulerEngineTest {
 				ClusterableContextThreadLocalAdvice.getAndClearThreadLocals()));
 	}
 
+	@NewEnv(type = NewEnv.Type.NONE)
 	@Test
 	public void testGetSchedulerJobs() throws SchedulerException {
 		_mockClusterMasterExecutor.reset(true, 0, 0);
@@ -362,6 +367,7 @@ public class ClusterSchedulerEngineTest {
 		Assert.assertEquals(6, schedulerResponses.size());
 	}
 
+	@NewEnv(type = NewEnv.Type.NONE)
 	@Test
 	public void testGetSetBeanIdentifier() {
 		String beanIdentifier = "BeanIdentifier";
@@ -372,6 +378,7 @@ public class ClusterSchedulerEngineTest {
 			beanIdentifier, _clusterSchedulerEngine.getBeanIdentifier());
 	}
 
+	@NewEnv(type = NewEnv.Type.NONE)
 	@Test
 	public void testMasterToSlave() throws SchedulerException {
 
@@ -891,6 +898,7 @@ public class ClusterSchedulerEngineTest {
 				ClusterableContextThreadLocalAdvice.getAndClearThreadLocals()));
 	}
 
+	@NewEnv(type = NewEnv.Type.NONE)
 	@Test
 	public void testShutdown() throws SchedulerException {
 		_clusterSchedulerEngine.start();
@@ -906,6 +914,7 @@ public class ClusterSchedulerEngineTest {
 				getClusterMasterTokenTransitionListener());
 	}
 
+	@NewEnv(type = NewEnv.Type.NONE)
 	@Test
 	public void testSlaveToMaster() throws SchedulerException {
 

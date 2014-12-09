@@ -16,6 +16,7 @@ package com.liferay.portal.tools.sourceformatter;
 
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -76,9 +77,9 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 	protected void checkPoshiCharactersAfterDefinition(
 		String fileName, String content) {
 
-		Matcher matcher = _poshiCharactersAfterDefinitionTag.matcher(content);
+		if (content.contains("/definition>") &&
+			!content.endsWith("/definition>")) {
 
-		if (matcher.find()) {
 			processErrorMessage(
 				fileName,
 				"Characters found after definition element: " + fileName);
@@ -88,9 +89,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 	protected void checkPoshiCharactersBeforeDefinition(
 		String fileName, String content) {
 
-		Matcher matcher = _poshiCharactersBeforeDefinitionTag.matcher(content);
-
-		if (matcher.find()) {
+		if (!content.startsWith("<definition")) {
 			processErrorMessage(
 				fileName,
 				"Characters found before definition element: " + fileName);
@@ -202,6 +201,9 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 		if (fileName.contains("/build") && !fileName.contains("/tools/")) {
 			newContent = formatAntXML(fileName, newContent);
+		}
+		else if (fileName.contains("/custom-sql/")) {
+			formatCustomSQLXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("structures.xml")) {
 			newContent = formatDDLStructuresXML(newContent);
@@ -527,6 +529,25 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		}
 
 		return newContent;
+	}
+
+	protected void formatCustomSQLXML(String fileName, String content) {
+		Matcher matcher = _whereNotInSQLPattern.matcher(content);
+
+		if (!matcher.find()) {
+			return;
+		}
+
+		int x = content.lastIndexOf("<sql id=", matcher.start());
+
+		int y = content.indexOf(CharPool.QUOTE, x);
+
+		int z = content.indexOf(CharPool.QUOTE, y + 1);
+
+		processErrorMessage(
+			fileName,
+				"LPS-51315 Avoid using WHERE ... NOT IN: " + fileName + " " +
+					content.substring(y + 1, z));
 	}
 
 	protected String formatDDLStructuresXML(String content) throws Exception {
@@ -1180,10 +1201,6 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 	private List<String> _columnNames;
 	private List<String> _friendlyUrlRoutesSortExclusions;
 	private List<String> _numericalPortletNameElementExclusions;
-	private Pattern _poshiCharactersAfterDefinitionTag = Pattern.compile(
-		"</definition>([\\w\\s\\t\\n\\<\\>]+)");
-	private Pattern _poshiCharactersBeforeDefinitionTag = Pattern.compile(
-		"([\\w\\s\\t\\n\\<\\>]+)<definition");
 	private Pattern _poshiClosingTagPattern = Pattern.compile("</[^>/]*>");
 	private Pattern _poshiCommandsPattern = Pattern.compile(
 		"\\<command.*name=\\\"([^\\\"]*)\\\".*\\>[\\s\\S]*?\\</command\\>" +
@@ -1214,6 +1231,8 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			"(?:(?:\\n){1,}+|\\</execute\\>)");
 	private Pattern _poshiWholeTagPattern = Pattern.compile("<[^\\>^/]*\\/>");
 	private String _tablesContent;
+	private Pattern _whereNotInSQLPattern = Pattern.compile(
+		"WHERE[ \t\n]+\\(*[a-zA-z0-9.]+ NOT IN");
 	private List<String> _xmlExclusions;
 
 	private class FinderElementComparator implements Comparator<Element> {

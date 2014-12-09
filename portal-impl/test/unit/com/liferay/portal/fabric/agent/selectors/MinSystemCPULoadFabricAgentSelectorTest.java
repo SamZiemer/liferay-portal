@@ -39,8 +39,8 @@ import org.junit.Test;
 public class MinSystemCPULoadFabricAgentSelectorTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
-		new CodeCoverageAssertor();
+	public static final CodeCoverageAssertor codeCoverageAssertor =
+		CodeCoverageAssertor.INSTANCE;
 
 	@Test
 	public void testSelect() {
@@ -144,6 +144,7 @@ public class MinSystemCPULoadFabricAgentSelectorTest {
 		}
 
 		private final Double _systemCpuLoad;
+
 	}
 
 	protected static class FabricAgentInvocationHandler
@@ -194,6 +195,7 @@ public class MinSystemCPULoadFabricAgentSelectorTest {
 		}
 
 		private final Double _systemCpuLoad;
+
 	}
 
 }

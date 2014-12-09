@@ -563,6 +563,11 @@
 						<bean class="com.liferay.portal.repository.liferayrepository.LiferayRepositoryFactory" />
 					</property>
 				</bean>
+				<bean class="com.liferay.portal.repository.portletrepository.PortletRepositoryDefiner">
+					<property name="repositoryFactory">
+						<bean class="com.liferay.portal.repository.liferayrepository.LiferayRepositoryFactory" />
+					</property>
+				</bean>
 				<bean class="com.liferay.portal.repository.temporaryrepository.TemporaryRepositoryDefiner">
 					<property name="repositoryFactory">
 						<bean class="com.liferay.portal.repository.liferayrepository.LiferayRepositoryFactory" />
@@ -676,10 +681,6 @@
 	</bean>
 	<bean id="com.liferay.portal.security.pwd.PasswordPolicyToolkit" class="com.liferay.portal.security.pwd.PasswordPolicyToolkit" />
 	<bean id="com.liferay.portal.service.impl.LayoutLocalServiceHelper" class="com.liferay.portal.service.impl.LayoutLocalServiceHelper" />
-	<bean id="com.liferay.portal.service.PersistedModelLocalServiceRegistry" class="com.liferay.portal.service.PersistedModelLocalServiceRegistryImpl" />
-	<bean id="com.liferay.portal.service.PersistedModelLocalServiceRegistryUtil" class="com.liferay.portal.service.PersistedModelLocalServiceRegistryUtil">
-		<property name="persistedModelLocalServiceRegistry" ref="com.liferay.portal.service.PersistedModelLocalServiceRegistry" />
-	</bean>
 	<bean id="com.liferay.portal.service.permission.AccountPermissionUtil" class="com.liferay.portal.service.permission.AccountPermissionUtil">
 		<property name="accountPermission">
 			<bean class="com.liferay.portal.service.permission.AccountPermissionImpl" />
@@ -763,11 +764,6 @@
 	<bean id="com.liferay.portal.service.permission.RolePermissionUtil" class="com.liferay.portal.service.permission.RolePermissionUtil">
 		<property name="rolePermission">
 			<bean class="com.liferay.portal.service.permission.RolePermissionImpl" />
-		</property>
-	</bean>
-	<bean id="com.liferay.portal.service.permission.SubscriptionPermissionUtil" class="com.liferay.portal.service.permission.SubscriptionPermissionUtil">
-		<property name="subscriptionPermission">
-			<bean class="com.liferay.portal.service.permission.SubscriptionPermissionImpl" />
 		</property>
 	</bean>
 	<bean id="com.liferay.portal.service.permission.TeamPermissionUtil" class="com.liferay.portal.service.permission.TeamPermissionUtil">
@@ -894,6 +890,7 @@
 		<property name="assetPublisher" ref="com.liferay.portlet.assetpublisher.util.AssetPublisher" />
 	</bean>
 	<bean id="com.liferay.portlet.blogs.service.permission.BlogsEntryPermission" class="com.liferay.portlet.blogs.service.permission.BlogsEntryPermission" />
+	<bean id="com.liferay.portlet.blogs.service.permission.BlogsPermission" class="com.liferay.portlet.blogs.service.permission.BlogsPermission" />
 	<bean id="com.liferay.portlet.documentlibrary.antivirus.AntivirusScannerUtil" class="com.liferay.portlet.documentlibrary.antivirus.AntivirusScannerUtil">
 		<property name="antivirusScanner">
 			<bean class="com.liferay.portlet.documentlibrary.antivirus.AntivirusScannerImpl" />
@@ -1006,11 +1003,6 @@
 			<bean class="com.liferay.portlet.dynamicdatamapping.render.DDMFormRendererImpl" />
 		</property>
 	</bean>
-	<bean id="com.liferay.portlet.dynamicdatamapping.storage.DDMFormValuesValidatorUtil" class="com.liferay.portlet.dynamicdatamapping.storage.DDMFormValuesValidatorUtil">
-		<property name="DDMFormValuesValidator">
-			<bean class="com.liferay.portlet.dynamicdatamapping.storage.DDMFormValuesValidatorImpl" />
-		</property>
-	</bean>
 	<bean id="com.liferay.portlet.dynamicdatamapping.storage.FieldRendererFactory" class="com.liferay.portlet.dynamicdatamapping.storage.FieldRendererFactory">
 		<property name="fieldRenderers">
 			<map>
@@ -1096,6 +1088,16 @@
 			<bean class="com.liferay.portlet.dynamicdatamapping.util.FieldsToDDMFormValuesConverterImpl" />
 		</property>
 	</bean>
+	<bean id="com.liferay.portlet.dynamicdatamapping.validator.DDMFormValidatorUtil" class="com.liferay.portlet.dynamicdatamapping.validator.DDMFormValidatorUtil">
+		<property name="DDMFormValidator">
+			<bean class="com.liferay.portlet.dynamicdatamapping.validator.DDMFormValidatorImpl" />
+		</property>
+	</bean>
+	<bean id="com.liferay.portlet.dynamicdatamapping.validator.DDMFormValuesValidatorUtil" class="com.liferay.portlet.dynamicdatamapping.validator.DDMFormValuesValidatorUtil">
+		<property name="DDMFormValuesValidator">
+			<bean class="com.liferay.portlet.dynamicdatamapping.validator.DDMFormValuesValidatorImpl" />
+		</property>
+	</bean>
 	<bean id="com.liferay.portlet.expando.service.permission.ExpandoColumnPermissionUtil" class="com.liferay.portlet.expando.service.permission.ExpandoColumnPermissionUtil">
 		<property name="expandoColumnPermission">
 			<bean class="com.liferay.portlet.expando.service.permission.ExpandoColumnPermissionImpl" />
@@ -1113,6 +1115,7 @@
 	</bean>
 	<bean id="com.liferay.portlet.journal.service.permission.JournalArticlePermission" class="com.liferay.portlet.journal.service.permission.JournalArticlePermission" />
 	<bean id="com.liferay.portlet.journal.service.permission.JournalFeedPermission" class="com.liferay.portlet.journal.service.permission.JournalFeedPermission" />
+	<bean id="com.liferay.portlet.journal.service.permission.JournalFolderPermission" class="com.liferay.portlet.journal.service.permission.JournalFolderPermission" />
 	<bean id="com.liferay.portlet.journal.service.permission.JournalPermission" class="com.liferay.portlet.journal.service.permission.JournalPermission" />
 	<bean id="com.liferay.portlet.journal.util.JournalContent" class="com.liferay.portlet.journal.util.JournalContentImpl" />
 	<bean id="com.liferay.portlet.journal.util.JournalContentUtil" class="com.liferay.portlet.journal.util.JournalContentUtil">
@@ -1128,6 +1131,7 @@
 		</property>
 	</bean>
 	<bean id="com.liferay.portlet.messageboards.service.permission.MBCategoryPermission" class="com.liferay.portlet.messageboards.service.permission.MBCategoryPermission" />
+	<bean id="com.liferay.portlet.messageboards.service.permission.MBDiscussionPermission" class="com.liferay.portlet.messageboards.service.permission.MBDiscussionPermission" />
 	<bean id="com.liferay.portlet.messageboards.service.permission.MBMessagePermission" class="com.liferay.portlet.messageboards.service.permission.MBMessagePermission" />
 	<bean id="com.liferay.portlet.messageboards.service.permission.MBThreadPermission" class="com.liferay.portlet.messageboards.service.permission.MBThreadPermission" />
 	<bean id="com.liferay.portlet.messageboards.service.permission.MBPermission" class="com.liferay.portlet.messageboards.service.permission.MBPermission" />
@@ -1193,6 +1197,7 @@
 	<bean id="com.liferay.portlet.usersadmin.util.UsersAdminUtil" class="com.liferay.portlet.usersadmin.util.UsersAdminUtil">
 		<property name="usersAdmin" ref="com.liferay.portlet.usersadmin.util.UsersAdmin" />
 	</bean>
+	<bean class="com.liferay.portlet.wiki.convert.WikiDLStoreConvertProcess" />
 	<bean id="com.liferay.portlet.wiki.service.permission.WikiNodePermission" class="com.liferay.portlet.wiki.service.permission.WikiNodePermission" />
 	<bean id="com.liferay.portlet.wiki.service.permission.WikiPagePermission" class="com.liferay.portlet.wiki.service.permission.WikiPagePermission" />
 </beans>

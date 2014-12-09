@@ -211,8 +211,8 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 		Repository repository = getRepository(repositoryId);
 
 		FileEntry fileEntry = repository.addFileEntry(
-			folderId, sourceFileName, mimeType, title, description, changeLog,
-			file, serviceContext);
+			getUserId(), folderId, sourceFileName, mimeType, title, description,
+			changeLog, file, serviceContext);
 
 		dlAppHelperLocalService.addFileEntry(
 			getUserId(), fileEntry, fileEntry.getFileVersion(), serviceContext);
@@ -296,8 +296,8 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 		Repository repository = getRepository(repositoryId);
 
 		FileEntry fileEntry = repository.addFileEntry(
-			folderId, sourceFileName, mimeType, title, description, changeLog,
-			is, size, serviceContext);
+			getUserId(), folderId, sourceFileName, mimeType, title, description,
+			changeLog, is, size, serviceContext);
 
 		dlAppHelperLocalService.addFileEntry(
 			getUserId(), fileEntry, fileEntry.getFileVersion(), serviceContext);
@@ -503,7 +503,7 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 		FileVersion oldFileVersion = oldFileEntry.getFileVersion();
 
 		repository.checkInFileEntry(
-			fileEntryId, majorVersion, changeLog, serviceContext);
+			getUserId(), fileEntryId, majorVersion, changeLog, serviceContext);
 
 		FileEntry fileEntry = getFileEntry(fileEntryId);
 
@@ -560,7 +560,8 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 
 		FileVersion oldFileVersion = oldFileEntry.getFileVersion();
 
-		repository.checkInFileEntry(fileEntryId, lockUuid, serviceContext);
+		repository.checkInFileEntry(
+			getUserId(), fileEntryId, lockUuid, serviceContext);
 
 		FileEntry fileEntry = getFileEntry(fileEntryId);
 
@@ -2425,7 +2426,11 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 		TrashCapability trashCapability = repository.getCapability(
 			TrashCapability.class);
 
-		Folder destinationFolder = repository.getFolder(parentFolderId);
+		Folder destinationFolder = null;
+
+		if (parentFolderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			destinationFolder = repository.getFolder(parentFolderId);
+		}
 
 		return trashCapability.moveFolderFromTrash(
 			getUserId(), folder, destinationFolder, serviceContext);
@@ -2606,7 +2611,8 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 
 		Repository repository = getFileEntryRepository(fileEntryId);
 
-		repository.revertFileEntry(fileEntryId, version, serviceContext);
+		repository.revertFileEntry(
+			getUserId(), fileEntryId, version, serviceContext);
 
 		FileEntry fileEntry = getFileEntry(fileEntryId);
 
@@ -2918,8 +2924,8 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 		Repository repository = getFileEntryRepository(fileEntryId);
 
 		FileEntry fileEntry = repository.updateFileEntry(
-			fileEntryId, sourceFileName, mimeType, title, description,
-			changeLog, majorVersion, file, serviceContext);
+			getUserId(), fileEntryId, sourceFileName, mimeType, title,
+			description, changeLog, majorVersion, file, serviceContext);
 
 		DLProcessorRegistryUtil.cleanUp(fileEntry.getLatestFileVersion());
 
@@ -3009,8 +3015,8 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 		FileVersion oldFileVersion = oldFileEntry.getFileVersion();
 
 		FileEntry fileEntry = repository.updateFileEntry(
-			fileEntryId, sourceFileName, mimeType, title, description,
-			changeLog, majorVersion, is, size, serviceContext);
+			getUserId(), fileEntryId, sourceFileName, mimeType, title,
+			description, changeLog, majorVersion, is, size, serviceContext);
 
 		if (is != null) {
 			DLProcessorRegistryUtil.cleanUp(fileEntry.getLatestFileVersion());
@@ -3041,13 +3047,13 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 		Repository repository = getFileEntryRepository(fileEntryId);
 
 		FileEntry fileEntry = repository.updateFileEntry(
-			fileEntryId, sourceFileName, mimeType, title, description,
-			changeLog, majorVersion, file, serviceContext);
+			getUserId(), fileEntryId, sourceFileName, mimeType, title,
+			description, changeLog, majorVersion, file, serviceContext);
 
 		DLProcessorRegistryUtil.cleanUp(fileEntry.getLatestFileVersion());
 
 		repository.checkInFileEntry(
-			fileEntryId, majorVersion, changeLog, serviceContext);
+			getUserId(), fileEntryId, majorVersion, changeLog, serviceContext);
 
 		dlAppHelperLocalService.updateFileEntry(
 			getUserId(), fileEntry, null, fileEntry.getFileVersion(),
@@ -3071,8 +3077,8 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 		FileVersion oldFileVersion = oldFileEntry.getFileVersion();
 
 		FileEntry fileEntry = repository.updateFileEntry(
-			fileEntryId, sourceFileName, mimeType, title, description,
-			changeLog, majorVersion, is, size, serviceContext);
+			getUserId(), fileEntryId, sourceFileName, mimeType, title,
+			description, changeLog, majorVersion, is, size, serviceContext);
 
 		if (is != null) {
 			DLProcessorRegistryUtil.cleanUp(fileEntry.getLatestFileVersion());
@@ -3081,7 +3087,7 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 		}
 
 		repository.checkInFileEntry(
-			fileEntryId, majorVersion, changeLog, serviceContext);
+			getUserId(), fileEntryId, majorVersion, changeLog, serviceContext);
 
 		dlAppHelperLocalService.updateFileEntry(
 			getUserId(), fileEntry, oldFileVersion, fileEntry.getFileVersion(),
@@ -3125,13 +3131,13 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 	 *         the file entry type to default all Liferay file entries to </li>
 	 *         <li> dlFileEntryTypesSearchContainerPrimaryKeys - a
 	 *         comma-delimited list of file entry type primary keys allowed in
-	 *         the given folder and all descendants </li> <li>
-	 *         overrideFileEntryTypes - boolean specifying whether to override
-	 *         ancestral folder's restriction of file entry types allowed </li>
+	 *         the given folder and all descendants </li> <li> restrictionType -
+	 *         specifying restriction type of file entry types allowed </li>
 	 *         <li> workflowDefinitionXYZ - the workflow definition name
 	 *         specified per file entry type. The parameter name must be the
-	 *         string <code>workflowDefinition</code> appended by the <code>
-	 *         fileEntryTypeId</code> (optionally <code>0</code>). </li> </ul>
+	 *         string <code>workflowDefinition</code> appended by the
+	 *         <code>fileEntryTypeId</code> (optionally <code>0</code>).</li>
+	 *         </ul>
 	 * @return the folder
 	 * @throws PortalException if the current or new parent folder could not be
 	 *         found or if the new parent folder's information was invalid
@@ -3226,9 +3232,10 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 			fileVersions.size() - 1);
 
 		FileEntry destinationFileEntry = toRepository.addFileEntry(
-			newFolderId, fileEntry.getTitle(), latestFileVersion.getMimeType(),
-			latestFileVersion.getTitle(), latestFileVersion.getDescription(),
-			StringPool.BLANK, latestFileVersion.getContentStream(false),
+			getUserId(), newFolderId, fileEntry.getTitle(),
+			latestFileVersion.getMimeType(), latestFileVersion.getTitle(),
+			latestFileVersion.getDescription(), StringPool.BLANK,
+			latestFileVersion.getContentStream(false),
 			latestFileVersion.getSize(), serviceContext);
 
 		FileVersion oldDestinationFileVersion =
@@ -3245,7 +3252,7 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 
 			try {
 				destinationFileEntry = toRepository.updateFileEntry(
-					destinationFileEntry.getFileEntryId(),
+					getUserId(), destinationFileEntry.getFileEntryId(),
 					fileVersion.getTitle(), fileVersion.getMimeType(),
 					fileVersion.getTitle(), fileVersion.getDescription(),
 					StringPool.BLANK,
@@ -3293,7 +3300,7 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 			for (FileEntry srcFileEntry : srcFileEntries) {
 				try {
 					FileEntry fileEntry = repository.copyFileEntry(
-						curDestFolder.getGroupId(),
+						getUserId(), curDestFolder.getGroupId(),
 						srcFileEntry.getFileEntryId(),
 						curDestFolder.getFolderId(), serviceContext);
 

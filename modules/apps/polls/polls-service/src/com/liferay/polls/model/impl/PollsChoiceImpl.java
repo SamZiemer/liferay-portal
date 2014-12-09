@@ -21,9 +21,6 @@ import com.liferay.polls.service.PollsVoteLocalServiceUtil;
  */
 public class PollsChoiceImpl extends PollsChoiceBaseImpl {
 
-	public PollsChoiceImpl() {
-	}
-
 	@Override
 	public int getVotesCount() {
 		return PollsVoteLocalServiceUtil.getChoiceVotesCount(getChoiceId());

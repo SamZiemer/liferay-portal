@@ -17,7 +17,8 @@ package com.liferay.portal.convert;
 import com.liferay.counter.service.CounterLocalServiceUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.test.AggregateTestRule;
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.InstancePool;
@@ -25,14 +26,15 @@ import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Image;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ImageLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.test.DeleteAfterTestRun;
-import com.liferay.portal.test.listeners.MainServletExecutionTestListener;
-import com.liferay.portal.test.runners.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayIntegrationTestRule;
+import com.liferay.portal.test.MainServletTestRule;
 import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.test.GroupTestUtil;
@@ -48,6 +50,8 @@ import com.liferay.portlet.documentlibrary.store.DBStore;
 import com.liferay.portlet.documentlibrary.store.FileSystemStore;
 import com.liferay.portlet.documentlibrary.store.Store;
 import com.liferay.portlet.documentlibrary.store.StoreFactory;
+import com.liferay.portlet.documentlibrary.util.DLPreviewableProcessor;
+import com.liferay.portlet.documentlibrary.util.ImageProcessorUtil;
 import com.liferay.portlet.documentlibrary.util.test.DLAppTestUtil;
 import com.liferay.portlet.messageboards.model.MBCategoryConstants;
 import com.liferay.portlet.messageboards.model.MBMessage;
@@ -66,29 +70,31 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Roberto Díaz
  * @author Sergio González
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class
-	})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class ConvertDocumentLibraryTest {
+
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(), MainServletTestRule.INSTANCE);
 
 	@Before
 	public void setUp() throws Exception {
 		PropsValues.DL_STORE_IMPL = FileSystemStore.class.getName();
 
-		Store store = (Store)InstanceFactory.newInstance(
+		_sourceStore = (Store)InstanceFactory.newInstance(
 			ClassLoaderUtil.getPortalClassLoader(),
 			FileSystemStore.class.getName());
 
-		StoreFactory.setInstance(store);
+		StoreFactory.setInstance(_sourceStore);
 
 		_group = GroupTestUtil.addGroup();
 
@@ -96,7 +102,7 @@ public class ConvertDocumentLibraryTest {
 			ConvertDocumentLibrary.class.getName());
 
 		_convertProcess.setParameterValues(
-			new String[] {DBStore.class.getName()});
+			new String[] {DBStore.class.getName(), Boolean.TRUE.toString()});
 	}
 
 	@After
@@ -107,6 +113,16 @@ public class ConvertDocumentLibraryTest {
 			ClassLoaderUtil.getPortalClassLoader(), PropsValues.DL_STORE_IMPL);
 
 		StoreFactory.setInstance(store);
+	}
+
+	@Test
+	public void testMigrateDLAndDeleteFilesInSourceStore() throws Exception {
+		testMigrateAndCheckOldRepositoryFiles(Boolean.TRUE);
+	}
+
+	@Test
+	public void testMigrateDLAndKeepFilesInSourceStore() throws Exception {
+		testMigrateAndCheckOldRepositoryFiles(Boolean.FALSE);
 	}
 
 	@Test
@@ -260,6 +276,56 @@ public class ConvertDocumentLibraryTest {
 			fileEntry.getFileEntryId());
 	}
 
+	protected void testMigrateAndCheckOldRepositoryFiles(Boolean delete)
+		throws Exception {
+
+		_convertProcess.setParameterValues(
+			new String[] {DBStore.class.getName(), delete.toString()});
+
+		FileEntry rootFileEntry = DLAppTestUtil.addFileEntry(
+			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString() + ".txt");
+
+		Folder folder = DLAppTestUtil.addFolder(
+			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString());
+
+		FileEntry folderFileEntry = DLAppTestUtil.addFileEntry(
+			_group.getGroupId(), folder.getFolderId(), "liferay.jpg",
+			ContentTypes.IMAGE_JPEG, "liferay.jpg",
+			FileUtil.getBytes(getClass(), "dependencies/liferay.jpg"),
+			WorkflowConstants.ACTION_PUBLISH);
+
+		ImageProcessorUtil.generateImages(
+			null, folderFileEntry.getFileVersion());
+
+		_convertProcess.convert();
+
+		DLFileEntry rootDLFileEntry = (DLFileEntry)rootFileEntry.getModel();
+
+		Assert.assertNotEquals(
+			delete,
+			_sourceStore.hasFile(
+				rootDLFileEntry.getCompanyId(),
+				rootDLFileEntry.getDataRepositoryId(),
+				rootDLFileEntry.getName()));
+
+		DLFileEntry folderDLFileEntry = (DLFileEntry)folderFileEntry.getModel();
+
+		Assert.assertNotEquals(
+			delete,
+			_sourceStore.hasDirectory(
+				folderDLFileEntry.getCompanyId(),
+				DLPreviewableProcessor.REPOSITORY_ID,
+				DLPreviewableProcessor.THUMBNAIL_PATH));
+		Assert.assertNotEquals(
+			delete,
+			_sourceStore.hasFile(
+				folderDLFileEntry.getCompanyId(),
+				folderDLFileEntry.getDataRepositoryId(),
+				folderDLFileEntry.getName()));
+	}
+
 	protected void testMigrateDL(long folderId) throws Exception {
 		FileEntry fileEntry = DLAppTestUtil.addFileEntry(
 			_group.getGroupId(), folderId,
@@ -285,5 +351,7 @@ public class ConvertDocumentLibraryTest {
 
 	@DeleteAfterTestRun
 	private Group _group;
+
+	private Store _sourceStore;
 
 }

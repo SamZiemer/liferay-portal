@@ -41,7 +41,7 @@ if (article != null) {
 	}
 }
 
-Locale[] availableLocales = new Locale[0];
+Locale[] availableLocales = new Locale[] {LocaleUtil.fromLanguageId(defaultLanguageId)};
 
 if (ddmFields != null) {
 	Set<Locale> availableLocalesSet = ddmFields.getAvailableLocales();
@@ -189,8 +189,6 @@ if (ddmFields != null) {
 		</div>
 
 		<div class="journal-article-container" id="<portlet:namespace />journalArticleContainer">
-			<aui:input name="defaultLanguageId" type="hidden" value="<%= defaultLanguageId %>" />
-
 			<liferay-ddm:html
 				checkRequired="<%= classNameId == JournalArticleConstants.CLASSNAME_ID_DEFAULT %>"
 				classNameId="<%= PortalUtil.getClassNameId(DDMStructure.class) %>"

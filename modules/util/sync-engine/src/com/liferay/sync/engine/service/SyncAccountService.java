@@ -25,10 +25,15 @@ import com.liferay.sync.engine.util.Encryptor;
 import com.liferay.sync.engine.util.FileUtil;
 import com.liferay.sync.engine.util.OSDetector;
 
+import java.io.IOException;
+
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 
 import java.sql.SQLException;
 
@@ -137,15 +142,17 @@ public class SyncAccountService {
 
 			// Sync account
 
+			SyncAccount syncAccount = fetchSyncAccount(syncAccountId);
+
 			_syncAccountPersistence.deleteById(syncAccountId);
 
 			// Sync files
 
-			List<SyncFile> syncFiles = SyncFileService.findSyncFiles(
-				syncAccountId);
-
-			for (SyncFile syncFile : syncFiles) {
-				SyncFileService.deleteSyncFile(syncFile, false);
+			try {
+				deleteSyncFiles(syncAccount);
+			}
+			catch (IOException ioe) {
+				_logger.error(ioe.getMessage(), ioe);
 			}
 
 			// Sync sites
@@ -162,6 +169,10 @@ public class SyncAccountService {
 			SyncUser syncUser = SyncUserService.fetchSyncUser(syncAccountId);
 
 			SyncUserService.deleteSyncUser(syncUser.getSyncUserId());
+
+			// Sync watch events
+
+			SyncWatchEventService.deleteSyncWatchEvents(syncAccountId);
 		}
 		catch (SQLException sqle) {
 			if (_logger.isDebugEnabled()) {
@@ -353,6 +364,47 @@ public class SyncAccountService {
 		syncAccount.setUiEvent(SyncAccount.UI_EVENT_DEFAULT);
 
 		SyncAccountService.update(syncAccount);
+	}
+
+	protected static void deleteSyncFiles(SyncAccount syncAccount)
+		throws IOException {
+
+		SyncFile syncFile = SyncFileService.fetchSyncFile(
+			syncAccount.getFilePathName());
+
+		SyncFileService.deleteSyncFile(syncFile, false);
+
+		Path filePath = Paths.get(syncAccount.getFilePathName());
+
+		if (!Files.exists(filePath)) {
+			return;
+		}
+
+		Files.walkFileTree(
+			filePath,
+			new SimpleFileVisitor<Path>() {
+
+				@Override
+				public FileVisitResult postVisitDirectory(
+						Path filePath, IOException ioe)
+					throws IOException {
+
+					Files.deleteIfExists(filePath);
+
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFile(
+						Path filePath, BasicFileAttributes basicFileAttributes)
+					throws IOException {
+
+					Files.deleteIfExists(filePath);
+
+					return FileVisitResult.CONTINUE;
+				}
+
+			});
 	}
 
 	private static final Logger _logger = LoggerFactory.getLogger(

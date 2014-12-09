@@ -50,14 +50,14 @@ public abstract class CMISRepositoryHandler
 
 	@Override
 	public FileEntry addFileEntry(
-			long folderId, String sourceFileName, String mimeType, String title,
-			String description, String changeLog, InputStream is, long size,
-			ServiceContext serviceContext)
+			long userId, long folderId, String sourceFileName, String mimeType,
+			String title, String description, String changeLog, InputStream is,
+			long size, ServiceContext serviceContext)
 		throws PortalException {
 
 		return _baseCmisRepository.addFileEntry(
-			folderId, sourceFileName, mimeType, title, description, changeLog,
-			is, size, serviceContext);
+			userId, folderId, sourceFileName, mimeType, title, description,
+			changeLog, is, size, serviceContext);
 	}
 
 	@Override
@@ -77,21 +77,22 @@ public abstract class CMISRepositoryHandler
 
 	@Override
 	public void checkInFileEntry(
-			long fileEntryId, boolean major, String changeLog,
+			long userId, long fileEntryId, boolean major, String changeLog,
 			ServiceContext serviceContext)
 		throws PortalException {
 
 		_baseCmisRepository.checkInFileEntry(
-			fileEntryId, major, changeLog, serviceContext);
+			userId, fileEntryId, major, changeLog, serviceContext);
 	}
 
 	@Override
 	public void checkInFileEntry(
-			long fileEntryId, String lockUuid, ServiceContext serviceContext)
+			long userId, long fileEntryId, String lockUuid,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		_baseCmisRepository.checkInFileEntry(
-			fileEntryId, lockUuid, serviceContext);
+			userId, fileEntryId, lockUuid, serviceContext);
 	}
 
 	@Override
@@ -115,12 +116,12 @@ public abstract class CMISRepositoryHandler
 
 	@Override
 	public FileEntry copyFileEntry(
-			long groupId, long fileEntryId, long destFolderId,
+			long userId, long groupId, long fileEntryId, long destFolderId,
 			ServiceContext serviceContext)
 		throws PortalException {
 
 		return _baseCmisRepository.copyFileEntry(
-			groupId, fileEntryId, destFolderId, serviceContext);
+			userId, groupId, fileEntryId, destFolderId, serviceContext);
 	}
 
 	@Override
@@ -448,11 +449,12 @@ public abstract class CMISRepositoryHandler
 
 	@Override
 	public void revertFileEntry(
-			long fileEntryId, String version, ServiceContext serviceContext)
+			long userId, long fileEntryId, String version,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		_baseCmisRepository.revertFileEntry(
-			fileEntryId, version, serviceContext);
+			userId, fileEntryId, version, serviceContext);
 	}
 
 	@Override
@@ -505,14 +507,14 @@ public abstract class CMISRepositoryHandler
 
 	@Override
 	public FileEntry updateFileEntry(
-			long fileEntryId, String sourceFileName, String mimeType,
-			String title, String description, String changeLog,
+			long userId, long fileEntryId, String sourceFileName,
+			String mimeType, String title, String description, String changeLog,
 			boolean majorVersion, InputStream is, long size,
 			ServiceContext serviceContext)
 		throws PortalException {
 
 		return _baseCmisRepository.updateFileEntry(
-			fileEntryId, sourceFileName, mimeType, title, description,
+			userId, fileEntryId, sourceFileName, mimeType, title, description,
 			changeLog, majorVersion, is, size, serviceContext);
 	}
 

@@ -23,6 +23,12 @@ create table DDMStructureVersion (
 	type_ INTEGER
 );
 
+alter table DLFolder add restrictionType INTEGER;
+
+update DLFolder set restrictionType = 1 where overrideFileEntryTypes = 1;
+
+alter table DLFolder drop column overrideFileEntryTypes;
+
 create table ExportImportConfiguration (
 	mvccVersion LONG default 0,
 	exportImportConfigurationId LONG not null primary key,
@@ -41,6 +47,8 @@ create table ExportImportConfiguration (
 	statusByUserName VARCHAR(75) null,
 	statusDate DATE null
 );
+
+alter table Group_ add inheritContent BOOLEAN;
 
 alter table JournalFolder add restrictionType INTEGER;
 

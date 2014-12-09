@@ -40,12 +40,12 @@ import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
 import com.liferay.portal.model.Lock;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileVersion;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFolder;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.util.GroupSubscriptionCheckSubscriptionSender;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.SubscriptionSender;
@@ -63,10 +63,10 @@ import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.model.DLSyncConstants;
 import com.liferay.portlet.documentlibrary.service.base.DLAppHelperLocalServiceBaseImpl;
+import com.liferay.portlet.documentlibrary.service.permission.DLPermission;
 import com.liferay.portlet.documentlibrary.social.DLActivityKeys;
 import com.liferay.portlet.documentlibrary.util.DLAppHelperThreadLocal;
 import com.liferay.portlet.documentlibrary.util.DLProcessorRegistryUtil;
-import com.liferay.portlet.documentlibrary.util.DLUtil;
 import com.liferay.portlet.documentlibrary.util.comparator.FileVersionVersionComparator;
 import com.liferay.portlet.social.model.SocialActivityConstants;
 import com.liferay.portlet.trash.model.TrashEntry;
@@ -97,44 +97,18 @@ public class DLAppHelperLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		if (DLAppHelperThreadLocal.isEnabled()) {
-			updateAsset(
-				userId, fileEntry, fileVersion,
-				serviceContext.getAssetCategoryIds(),
-				serviceContext.getAssetTagNames(),
-				serviceContext.getAssetLinkEntryIds());
-
-			if (PropsValues.DL_FILE_ENTRY_COMMENTS_ENABLED) {
-				mbMessageLocalService.addDiscussionMessage(
-					fileEntry.getUserId(), fileEntry.getUserName(),
-					fileEntry.getGroupId(), DLFileEntryConstants.getClassName(),
-					fileEntry.getFileEntryId(),
-					WorkflowConstants.ACTION_PUBLISH);
-			}
-		}
-
-		boolean previousEnabled = WorkflowThreadLocal.isEnabled();
-
 		if (!DLAppHelperThreadLocal.isEnabled()) {
-			WorkflowThreadLocal.setEnabled(false);
+			return;
 		}
 
-		try {
-			if (fileVersion instanceof LiferayFileVersion) {
-				DLUtil.startWorkflowInstance(
-					userId, (DLFileVersion)fileVersion.getModel(),
-					DLSyncConstants.EVENT_ADD, serviceContext);
-			}
-		}
-		finally {
-			if (!DLAppHelperThreadLocal.isEnabled()) {
-				WorkflowThreadLocal.setEnabled(previousEnabled);
-			}
+		if (PropsValues.DL_FILE_ENTRY_COMMENTS_ENABLED) {
+			mbMessageLocalService.addDiscussionMessage(
+				fileEntry.getUserId(), fileEntry.getUserName(),
+				fileEntry.getGroupId(), DLFileEntryConstants.getClassName(),
+				fileEntry.getFileEntryId(), WorkflowConstants.ACTION_PUBLISH);
 		}
 
-		if (DLAppHelperThreadLocal.isEnabled()) {
-			registerDLProcessorCallback(fileEntry, null);
-		}
+		registerDLProcessorCallback(fileEntry, null);
 	}
 
 	@Override
@@ -239,46 +213,44 @@ public class DLAppHelperLocalServiceImpl
 
 	@Override
 	public void deleteFileEntry(FileEntry fileEntry) throws PortalException {
-		if (DLAppHelperThreadLocal.isEnabled()) {
-
-			// Subscriptions
-
-			subscriptionLocalService.deleteSubscriptions(
-				fileEntry.getCompanyId(), DLFileEntryConstants.getClassName(),
-				fileEntry.getFileEntryId());
-
-			// File previews
-
-			DLProcessorRegistryUtil.cleanUp(fileEntry);
-
-			// File ranks
-
-			dlFileRankLocalService.deleteFileRanksByFileEntryId(
-				fileEntry.getFileEntryId());
-
-			// File shortcuts
-
-			dlFileShortcutLocalService.deleteFileShortcuts(
-				fileEntry.getFileEntryId());
-
-			// Asset
-
-			assetEntryLocalService.deleteEntry(
-				DLFileEntryConstants.getClassName(),
-				fileEntry.getFileEntryId());
-
-			// Message boards
-
-			mbMessageLocalService.deleteDiscussionMessages(
-				DLFileEntryConstants.getClassName(),
-				fileEntry.getFileEntryId());
-
-			// Ratings
-
-			ratingsStatsLocalService.deleteStats(
-				DLFileEntryConstants.getClassName(),
-				fileEntry.getFileEntryId());
+		if (!DLAppHelperThreadLocal.isEnabled()) {
+			return;
 		}
+
+		// Subscriptions
+
+		subscriptionLocalService.deleteSubscriptions(
+			fileEntry.getCompanyId(), DLFileEntryConstants.getClassName(),
+			fileEntry.getFileEntryId());
+
+		// File previews
+
+		DLProcessorRegistryUtil.cleanUp(fileEntry);
+
+		// File ranks
+
+		dlFileRankLocalService.deleteFileRanksByFileEntryId(
+			fileEntry.getFileEntryId());
+
+		// File shortcuts
+
+		dlFileShortcutLocalService.deleteFileShortcuts(
+			fileEntry.getFileEntryId());
+
+		// Asset
+
+		assetEntryLocalService.deleteEntry(
+			DLFileEntryConstants.getClassName(), fileEntry.getFileEntryId());
+
+		// Message boards
+
+		mbMessageLocalService.deleteDiscussionMessages(
+			DLFileEntryConstants.getClassName(), fileEntry.getFileEntryId());
+
+		// Ratings
+
+		ratingsStatsLocalService.deleteStats(
+			DLFileEntryConstants.getClassName(), fileEntry.getFileEntryId());
 	}
 
 	@Override
@@ -1927,7 +1899,9 @@ public class DLAppHelperLocalServiceImpl
 			folderName = folder.getName();
 		}
 
-		SubscriptionSender subscriptionSender = new SubscriptionSender();
+		SubscriptionSender subscriptionSender =
+			new GroupSubscriptionCheckSubscriptionSender(
+				DLPermission.RESOURCE_NAME);
 
 		DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
 
@@ -1971,15 +1945,15 @@ public class DLAppHelperLocalServiceImpl
 		subscriptionSender.setUserId(fileVersion.getUserId());
 
 		subscriptionSender.addPersistedSubscribers(
-			Folder.class.getName(), fileVersion.getGroupId());
+			DLFolder.class.getName(), fileVersion.getGroupId());
 
 		if (folder != null) {
 			subscriptionSender.addPersistedSubscribers(
-				Folder.class.getName(), folder.getFolderId());
+				DLFolder.class.getName(), folder.getFolderId());
 
 			for (Long ancestorFolderId : folder.getAncestorFolderIds()) {
 				subscriptionSender.addPersistedSubscribers(
-					Folder.class.getName(), ancestorFolderId);
+					DLFolder.class.getName(), ancestorFolderId);
 			}
 		}
 
