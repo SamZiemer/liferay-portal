@@ -145,7 +145,7 @@ public class FlagsRequestMessageListener extends BaseMessageListener {
 
 		String bodyLocation = PrefsPropsUtil.getString(
 			companyId, PropsKeys.FLAGS_EMAIL_BODY);
-		String body =  ContentUtil.get(
+		String body = ContentUtil.get(
 			getClass().getClassLoader(), bodyLocation);
 
 		// Recipients
