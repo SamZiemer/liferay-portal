@@ -128,10 +128,10 @@ public class ActionUtil {
 		Layout layout = PortletConfigurationLayoutUtil.getLayout(themeDisplay);
 
 		if (!PortletPermissionUtil.contains(
-					permissionChecker, themeDisplay.getScopeGroupId(), layout,
-					portletId, ActionKeys.CONFIGURATION)
-				&& !portletRequest.getParameter("mvcPath")
-								  .endsWith("edit_permissions.jsp")) {
+				permissionChecker, themeDisplay.getScopeGroupId(), layout,
+				portletId, ActionKeys.CONFIGURATION) &&
+			!portletRequest.getParameter("mvcPath")
+				.endsWith("edit_permissions.jsp")) {
 
 			throw new PrincipalException.MustHavePermission(
 				permissionChecker, Portlet.class.getName(), portletId,
