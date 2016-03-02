@@ -110,10 +110,19 @@ public abstract class BaseDBProcess implements DBProcess {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 
+		DB db = DBManagerUtil.getDB();
+
 		try {
 			DatabaseMetaData metadata = connection.getMetaData();
 
-			rs = metadata.getTables(null, null, tableName, null);
+			if (db.getDBType() != DBType.POSTGRESQL) {
+				rs = metadata.getTables(null, null, tableName, null);
+			}
+			else {
+				String schema = getCurrentScema();
+
+				rs = metadata.getTables(null, schema, tableName, null);
+			}
 
 			while (rs.next()) {
 				return true;
@@ -124,6 +133,28 @@ public abstract class BaseDBProcess implements DBProcess {
 		}
 
 		return false;
+	}
+
+	protected String getCurrentScema() throws Exception {
+		String schema = null;
+
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		try {
+			ps = connection.prepareStatement("select current_schema();");
+
+			rs = ps.executeQuery();
+
+			if (rs.next()) {
+				schema = (String)rs.getObject("current_schema");
+			}
+		}
+		finally {
+			DataAccess.cleanUp(ps, rs);
+		}
+
+		return schema;
 	}
 
 	protected boolean hasColumn(String tableName, String columnName)
