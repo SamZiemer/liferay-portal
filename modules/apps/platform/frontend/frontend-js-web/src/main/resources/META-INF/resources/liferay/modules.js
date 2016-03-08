@@ -46,6 +46,10 @@
 				combine: COMBINE,
 				filter: Liferay.AUI.getFilterConfig(),
 				modules: {
+					'liferay-address': {
+						path: 'address.js',
+						requires: []
+					},
 					'liferay-alert': {
 						path: 'alert.js',
 						requires: [
@@ -376,6 +380,7 @@
 					'liferay-item-selector-url': {
 						path: 'item_selector_url.js',
 						requires: [
+							'aui-event-input',
 							'liferay-item-viewer',
 							'liferay-portlet-base'
 						]
