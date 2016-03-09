@@ -21,7 +21,7 @@ dependencies {
 	provided project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-io")
 	provided project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-validator")
 	provided project(":apps:foundation:mobile-device-rules:mobile-device-rules-api")
-	provided project(":apps:foundation:osgi-service-tracker-collections")
+	provided project(":apps:foundation:osgi:osgi-service-tracker-collections")
 	provided project(":apps:foundation:portal-background-task:portal-background-task-api")
 	provided project(":apps:foundation:portal:portal-instance-lifecycle")
 	provided project(":apps:foundation:portal:portal-upgrade")
