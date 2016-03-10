@@ -15,6 +15,7 @@
 package com.liferay.calendar.upgrade.v1_0_3;
 
 import com.liferay.calendar.constants.CalendarPortletKeys;
+import com.liferay.portal.kernel.util.LoggingTimer;
 
 /**
  * @author Mate Thurzo
@@ -22,25 +23,23 @@ import com.liferay.calendar.constants.CalendarPortletKeys;
 public class UpgradeLastPublishDate
 	extends com.liferay.portal.upgrade.v7_0_0.UpgradeLastPublishDate {
 
+	protected void addLastPublishDateColumns() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			addLastPublishDateColumn("Calendar");
+			addLastPublishDateColumn("CalendarBooking");
+			addLastPublishDateColumn("CalendarNotificationTemplate");
+			addLastPublishDateColumn("CalendarResource");
+		}
+	}
+
 	@Override
 	protected void doUpgrade() throws Exception {
-		runSQL("alter table Calendar add lastPublishDate DATE null");
+		addLastPublishDateColumns();
 
 		updateLastPublishDates(CalendarPortletKeys.CALENDAR, "Calendar");
-
-		runSQL("alter table CalendarBooking add lastPublishDate DATE null");
-
 		updateLastPublishDates(CalendarPortletKeys.CALENDAR, "CalendarBooking");
-
-		runSQL(
-			"alter table CalendarNotificationTemplate add lastPublishDate " +
-				"DATE null");
-
 		updateLastPublishDates(
 			CalendarPortletKeys.CALENDAR, "CalendarNotificationTemplate");
-
-		runSQL("alter table CalendarResource add lastPublishDate DATE null");
-
 		updateLastPublishDates(
 			CalendarPortletKeys.CALENDAR, "CalendarResource");
 	}

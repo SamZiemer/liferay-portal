@@ -19,7 +19,6 @@ import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.journal.model.JournalArticle;
-import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -197,25 +196,19 @@ public class UpgradeJournalArticles extends UpgradePortletId {
 			String oldRootPortletId, String newRootPortletId)
 		throws Exception {
 
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		StringBundler sb = new StringBundler(8);
 
-		try {
-			StringBundler sb = new StringBundler(9);
+		sb.append("select portletPreferencesId, plid, portletId, preferences ");
+		sb.append("from PortletPreferences where portletId = '");
+		sb.append(oldRootPortletId);
+		sb.append("' OR portletId like '");
+		sb.append(oldRootPortletId);
+		sb.append("_INSTANCE_%' OR portletId like '");
+		sb.append(oldRootPortletId);
+		sb.append("_USER_%_INSTANCE_%'");
 
-			sb.append("select portletPreferencesId, plid, portletId, ");
-			sb.append("preferences from PortletPreferences where portletId ");
-			sb.append("= '");
-			sb.append(oldRootPortletId);
-			sb.append("' OR portletId like '");
-			sb.append(oldRootPortletId);
-			sb.append("_INSTANCE_%' OR portletId like '");
-			sb.append(oldRootPortletId);
-			sb.append("_USER_%_INSTANCE_%'");
-
-			ps = connection.prepareStatement(sb.toString());
-
-			rs = ps.executeQuery();
+		try (PreparedStatement ps = connection.prepareStatement(sb.toString());
+			ResultSet rs = ps.executeQuery()) {
 
 			while (rs.next()) {
 				long portletPreferencesId = rs.getLong("portletPreferencesId");
@@ -238,9 +231,6 @@ public class UpgradeJournalArticles extends UpgradePortletId {
 				updatePortletPreference(
 					portletPreferencesId, newPortletId, newPreferences);
 			}
-		}
-		finally {
-			DataAccess.cleanUp(ps, rs);
 		}
 	}
 
@@ -267,13 +257,10 @@ public class UpgradeJournalArticles extends UpgradePortletId {
 			String newPreferences)
 		throws Exception {
 
-		PreparedStatement ps = null;
-
-		try {
-			ps = connection.prepareStatement(
+		try (PreparedStatement ps = connection.prepareStatement(
 				"update PortletPreferences set preferences = ?, " +
 					"portletId = ? where portletPreferencesId = " +
-						portletPreferencesId);
+						portletPreferencesId)) {
 
 			ps.setString(1, newPreferences);
 			ps.setString(2, newPortletId);
@@ -284,9 +271,6 @@ public class UpgradeJournalArticles extends UpgradePortletId {
 			if (_log.isWarnEnabled()) {
 				_log.warn(sqle, sqle);
 			}
-		}
-		finally {
-			DataAccess.cleanUp(ps);
 		}
 	}
 

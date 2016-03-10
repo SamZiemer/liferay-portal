@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import nebula.plugin.extraconfigurations.OptionalBasePlugin;
@@ -67,7 +68,6 @@ import org.dm.gradle.plugins.bundle.BundlePlugin;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.AntBuilder;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -77,7 +77,10 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
@@ -86,7 +89,6 @@ import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
@@ -138,8 +140,6 @@ import org.gradle.util.VersionNumber;
  */
 public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 
-	public static final String ANT_JGIT_CONFIGURATION_NAME = "antJGit";
-
 	public static final String COPY_LIBS_TASK_NAME = "copyLibs";
 
 	public static final String DEFAULT_REPOSITORY_URL =
@@ -167,27 +167,6 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 	public static final String UPDATE_FILE_VERSIONS_TASK_NAME =
 		"updateFileVersions";
 
-	protected Configuration addConfigurationAntJGit(final Project project) {
-		Configuration configuration = GradleUtil.addConfiguration(
-			project, ANT_JGIT_CONFIGURATION_NAME);
-
-		configuration.defaultDependencies(
-			new Action<DependencySet>() {
-
-				@Override
-				public void execute(DependencySet dependencySet) {
-					addDependenciesAntJGit(project);
-				}
-
-			});
-
-		configuration.setDescription(
-			"Configures Liferay Ant JGit for this project.");
-		configuration.setVisible(false);
-
-		return configuration;
-	}
-
 	protected Configuration addConfigurationPortalTest(Project project) {
 		Configuration configuration = GradleUtil.addConfiguration(
 			project, PORTAL_TEST_CONFIGURATION_NAME);
@@ -198,15 +177,6 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 		configuration.setVisible(false);
 
 		return configuration;
-	}
-
-	protected void addDependenciesAntJGit(Project project) {
-		String version = GradleUtil.getPortalToolVersion(
-			project, _ANT_JGIT_PORTAL_TOOL_NAME);
-
-		GradleUtil.addDependency(
-			project, ANT_JGIT_CONFIGURATION_NAME, GradleUtil.PORTAL_TOOL_GROUP,
-			_ANT_JGIT_PORTAL_TOOL_NAME, version);
 	}
 
 	protected void addDependenciesPortalTest(Project project) {
@@ -372,8 +342,8 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 	}
 
 	protected Task addTaskPrintArtifactPublishCommands(
-		final WritePropertiesTask recordArtifactTask,
-		Configuration antJGitConfiguration, final File portalRootDir) {
+		File gitRepoDir, final File portalRootDir,
+		final WritePropertiesTask recordArtifactTask, boolean testProject) {
 
 		Project project = recordArtifactTask.getProject();
 
@@ -395,6 +365,10 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 
 					StringBuilder sb = new StringBuilder();
 
+					if (all) {
+						sb.append("(git diff-index --quiet HEAD || ");
+					}
+
 					sb.append("git commit ");
 
 					if (all) {
@@ -415,6 +389,10 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 					sb.append(message);
 
 					sb.append('"');
+
+					if (all) {
+						sb.append(')');
+					}
 
 					return sb.toString();
 				}
@@ -473,65 +451,38 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 						_getGitCommitCommand(
 							project, "artifact properties", true));
 
-					// Convert module to project dependencies
-
-					File projectDir = project.getProjectDir();
-
-					File projectGroupDir = projectDir.getParentFile();
-
-					BasePluginConvention basePluginConvention =
-						GradleUtil.getConvention(
-							project, BasePluginConvention.class);
-
-					String archivesBaseName =
-						basePluginConvention.getArchivesBaseName();
-
-					commands.add(
-						String.format(
-							_MODULE_TO_PROJECT_DEPENDENCIES_COMMAND,
-							FileUtil.getAbsolutePath(projectGroupDir),
-							escapeBRE(project.getGroup()),
-							escapeBRE(archivesBaseName), project.getPath()));
-
-					// Convert project to module dependencies
-
-					commands.add(
-						String.format(
-							_PROJECT_TO_MODULE_DEPENDENCIES_COMMAND,
-							FileUtil.getAbsolutePath(rootDir),
-							FileUtil.getAbsolutePath(projectGroupDir),
-							escapeBRE(project.getPath()), project.getGroup(),
-							archivesBaseName,
-							String.valueOf(project.getVersion())));
-
 					// Commit other changed files
 
 					commands.add(
 						_getGitCommitCommand(project, "apply", true, false));
 
+					System.out.println();
+
 					for (String command : commands) {
-						System.out.println(command);
+						System.out.print(" && ");
+						System.out.print(command);
 					}
 
-					throw new GradleException();
+					if (GradleUtil.getProperty(project, "first", false)) {
+						throw new GradleException();
+					}
 				}
 
 			});
-
-		task.onlyIf(
-			new OutOfDateArtifactSpec(
-				antJGitConfiguration, recordArtifactTask, portalRootDir));
 
 		task.setDescription(
 			"Prints the artifact publish commands if this project has been " +
 				"changed since the last publish.");
 
+		configureTaskEnabledIfStale(
+			task, gitRepoDir, recordArtifactTask, testProject);
+
 		return task;
 	}
 
 	protected Task addTaskPrintStaleArtifact(
-		WritePropertiesTask recordArtifactTask,
-		Configuration antJGitConfiguration, File portalRootDir) {
+		File gitRepoDir, File portalRootDir,
+		WritePropertiesTask recordArtifactTask, boolean testProject) {
 
 		Project project = recordArtifactTask.getProject();
 
@@ -551,14 +502,13 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 
 			});
 
-		task.onlyIf(
-			new OutOfDateArtifactSpec(
-				antJGitConfiguration, recordArtifactTask, portalRootDir));
-
 		task.setDescription(
 			"Prints the project directory if this project has been changed " +
 				"since the last publish.");
 		task.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
+
+		configureTaskEnabledIfStale(
+			task, gitRepoDir, recordArtifactTask, testProject);
 
 		return task;
 	}
@@ -696,7 +646,7 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 	}
 
 	protected ReplaceRegexTask addTaskUpdateFileVersions(
-		final Project project) {
+		final Project project, final File gitRepoDir) {
 
 		ReplaceRegexTask replaceRegexTask = GradleUtil.addTask(
 			project, UPDATE_FILE_VERSIONS_TASK_NAME, ReplaceRegexTask.class);
@@ -722,6 +672,35 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 				}
 
 			});
+
+		if (gitRepoDir != null) {
+			replaceRegexTask.pre(
+				new Closure<String>(null) {
+
+					@SuppressWarnings("unused")
+					public String doCall(String content, File file) {
+						String fileName = file.getName();
+
+						if (!fileName.equals("build.gradle")) {
+							return content;
+						}
+
+						if (FileUtil.isChild(file, gitRepoDir)) {
+							return content.replaceAll(
+								getModuleDependencyRegex(project),
+								Matcher.quoteReplacement(
+									getProjectDependency(project)));
+						}
+						else {
+							return content.replaceAll(
+								Pattern.quote(getProjectDependency(project)),
+								Matcher.quoteReplacement(
+									getModuleDependency(project)));
+						}
+					}
+
+				});
+		}
 
 		replaceRegexTask.setDescription(
 			"Updates the project version in external files.");
@@ -886,6 +865,37 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 			bundleDefaultInstructions);
 	}
 
+	protected void configureBundleInstructions(Project project) {
+		Map<String, String> bundleInstructions = getBundleInstructions(project);
+
+		String includeResource = bundleInstructions.get(
+			Constants.INCLUDERESOURCE);
+
+		if (Validator.isNull(includeResource) ||
+			!includeResource.contains("-*.")) {
+
+			return;
+		}
+
+		Configuration configuration = GradleUtil.getConfiguration(
+			project, JavaPlugin.COMPILE_CONFIGURATION_NAME);
+
+		ResolvedConfiguration resolvedConfiguration =
+			configuration.getResolvedConfiguration();
+
+		for (ResolvedDependency resolvedDependency :
+				resolvedConfiguration.getFirstLevelModuleDependencies()) {
+
+			String name = resolvedDependency.getModuleName();
+			String version = resolvedDependency.getModuleVersion();
+
+			includeResource = includeResource.replace(
+				name + "-*.", name + "-" + version + ".");
+		}
+
+		bundleInstructions.put(Constants.INCLUDERESOURCE, includeResource);
+	}
+
 	protected void configureConfiguration(Configuration configuration) {
 		DependencySet dependencySet = configuration.getDependencies();
 
@@ -937,7 +947,9 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 	protected void configureDefaults(
 		final Project project, LiferayPlugin liferayPlugin) {
 
-		final File portalRootDir = getPortalRootDir(project);
+		final File gitRepoDir = getRootDir(project, ".gitrepo");
+		final File portalRootDir = getRootDir(
+			project.getRootProject(), "portal-impl");
 		final boolean publishing = isPublishing(project);
 		boolean testProject = isTestProject(project);
 
@@ -953,7 +965,6 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 
 		applyConfigScripts(project);
 
-		Configuration antJGitConfiguration = addConfigurationAntJGit(project);
 		Configuration portalConfiguration = GradleUtil.getConfiguration(
 			project, LiferayJavaPlugin.PORTAL_CONFIGURATION_NAME);
 		Configuration portalTestConfiguration = addConfigurationPortalTest(
@@ -969,12 +980,12 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 			project);
 
 		addTaskPrintArtifactPublishCommands(
-			recordArtifactTask, antJGitConfiguration, portalRootDir);
+			gitRepoDir, portalRootDir, recordArtifactTask, testProject);
 		addTaskPrintStaleArtifact(
-			recordArtifactTask, antJGitConfiguration, portalRootDir);
+			gitRepoDir, portalRootDir, recordArtifactTask, testProject);
 
 		final ReplaceRegexTask updateFileVersionsTask =
-			addTaskUpdateFileVersions(project);
+			addTaskUpdateFileVersions(project, gitRepoDir);
 
 		configureBasePlugin(project, portalRootDir);
 		configureConfigurations(project);
@@ -1031,7 +1042,6 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 				public void execute(Project project) {
 					configureArtifacts(
 						project, jarJavadocTask, jarSourcesTask, jarTLDDocTask);
-					configureProjectBndProperties(project);
 					configureProjectVersion(project);
 					configureTaskUpdateFileVersions(
 						updateFileVersionsTask, portalRootDir);
@@ -1042,6 +1052,11 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 
 					configureTaskUploadArchives(
 						project, recordArtifactTask, updateFileVersionsTask);
+
+					if (hasPlugin(project, BundlePlugin.class)) {
+						configureBundleInstructions(project);
+						configureProjectBndProperties(project);
+					}
 				}
 
 			});
@@ -1262,6 +1277,21 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 			FileUtil.join(
 				portalConfiguration, sourceSet.getRuntimeClasspath(),
 				portalTestConfiguration));
+	}
+
+	protected void configureTaskEnabledIfStale(
+		Task task, File gitRepoDir, WritePropertiesTask recordArtifactTask,
+		boolean testProject) {
+
+		if (testProject) {
+			task.setEnabled(false);
+		}
+
+		if (gitRepoDir != null) {
+			task.onlyIf(new LeafArtifactSpec(gitRepoDir));
+		}
+
+		task.onlyIf(new OutOfDateArtifactSpec(recordArtifactTask));
 	}
 
 	protected void configureTaskFindBugs(FindBugs findBugs) {
@@ -1491,13 +1521,7 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 
 		Project project = updateFileVersionsTask.getProject();
 
-		BasePluginConvention basePluginConvention = GradleUtil.getConvention(
-			project, BasePluginConvention.class);
-
-		String archivesBaseName = basePluginConvention.getArchivesBaseName();
-
-		String regex =
-			"\"" + Pattern.quote(archivesBaseName) + "\", version: \"(\\d.+)\"";
+		String regex = getModuleDependencyRegex(project);
 
 		Map<String, Object> args = new HashMap<>();
 
@@ -1643,20 +1667,60 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 		return project.file("lib");
 	}
 
+	protected String getModuleDependency(Project project) {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("group: \"");
+		sb.append(project.getGroup());
+		sb.append("\", name: \"");
+
+		BasePluginConvention basePluginConvention = GradleUtil.getConvention(
+			project, BasePluginConvention.class);
+
+		sb.append(basePluginConvention.getArchivesBaseName());
+
+		sb.append("\", version: \"");
+		sb.append(project.getVersion());
+		sb.append('"');
+
+		return sb.toString();
+	}
+
+	protected String getModuleDependencyRegex(Project project) {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("group: \"");
+		sb.append(project.getGroup());
+		sb.append("\", name: \"");
+
+		BasePluginConvention basePluginConvention = GradleUtil.getConvention(
+			project, BasePluginConvention.class);
+
+		sb.append(basePluginConvention.getArchivesBaseName());
+
+		sb.append("\", version: \"");
+
+		return Pattern.quote(sb.toString()) + "(\\d.+)\"";
+	}
+
 	@Override
 	protected Class<LiferayPlugin> getPluginClass() {
 		return LiferayPlugin.class;
 	}
 
-	protected File getPortalRootDir(Project project) {
-		File dir = project.getRootDir();
+	protected String getProjectDependency(Project project) {
+		return "project(\"" + project.getPath() + "\")";
+	}
+
+	protected File getRootDir(Project project, String markerFileName) {
+		File dir = project.getProjectDir();
 
 		dir = dir.getParentFile();
 
 		while (true) {
-			File portalImplDir = new File(dir, "portal-impl");
+			File markerFile = new File(dir, markerFileName);
 
-			if (portalImplDir.exists()) {
+			if (markerFile.exists()) {
 				return dir;
 			}
 
@@ -1694,9 +1758,6 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 		return false;
 	}
 
-	private static final String _ANT_JGIT_PORTAL_TOOL_NAME =
-		"com.liferay.ant.jgit";
-
 	private static final String _GROUP = "com.liferay";
 
 	private static final String _IGNORED_MESSAGE_PATTERN = "artifact:ignore";
@@ -1705,16 +1766,6 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 
 	private static final boolean _MAVEN_LOCAL_IGNORE = Boolean.getBoolean(
 		"maven.local.ignore");
-
-	private static final String _MODULE_TO_PROJECT_DEPENDENCIES_COMMAND =
-		"find %s -name 'build.gradle' -type f -exec sed -i " +
-			"'s/group: \"%s\", name: \"%s\", version: \".*\"/" +
-				"project(\"%s\")/' {} \\;";
-
-	private static final String _PROJECT_TO_MODULE_DEPENDENCIES_COMMAND =
-		"find %s -name 'build.gradle' -not -path '%s/*' -type f -exec sed -i " +
-			"'s/project(\"%s\")/" +
-				"group: \"%s\", name: \"%s\", version: \"%s\"/' {} \\;";
 
 	private static final String _REPOSITORY_URL = System.getProperty(
 		"repository.url", DEFAULT_REPOSITORY_URL);
@@ -1743,37 +1794,62 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 	private static final Logger _logger = Logging.getLogger(
 		LiferayDefaultsPlugin.class);
 
-	private static class OutOfDateArtifactSpec implements Spec<Task> {
+	private static class LeafArtifactSpec implements Spec<Task> {
 
-		public OutOfDateArtifactSpec(
-			FileCollection antJGitFileCollection,
-			WritePropertiesTask recordArtifactTask, File rootDir) {
-
-			_antJGitFileCollection = antJGitFileCollection;
-			_recordArtifactTask = recordArtifactTask;
-
-			if (rootDir == null) {
-				Project project = recordArtifactTask.getProject();
-
-				rootDir = project.getRootDir();
-
-				while (true) {
-					File gitDir = new File(rootDir, ".git");
-
-					if (gitDir.exists()) {
-						break;
-					}
-
-					rootDir = rootDir.getParentFile();
-				}
-			}
-
-			_rootDir = rootDir;
+		public LeafArtifactSpec(File gitRepoDir) {
+			_gitRepoDir = gitRepoDir;
 		}
 
 		@Override
 		public boolean isSatisfiedBy(Task task) {
 			Project project = task.getProject();
+
+			for (Configuration configuration : project.getConfigurations()) {
+				if (_hasExternalProjectDependencies(project, configuration)) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		private boolean _hasExternalProjectDependencies(
+			Project project, Configuration configuration) {
+
+			for (Dependency dependency : configuration.getDependencies()) {
+				if (!(dependency instanceof ProjectDependency)) {
+					continue;
+				}
+
+				ProjectDependency projectDependency =
+					(ProjectDependency)dependency;
+
+				Project dependencyProject =
+					projectDependency.getDependencyProject();
+
+				if (!FileUtil.isChild(
+						dependencyProject.getProjectDir(), _gitRepoDir)) {
+
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		private final File _gitRepoDir;
+
+	}
+
+	private static class OutOfDateArtifactSpec implements Spec<Task> {
+
+		public OutOfDateArtifactSpec(WritePropertiesTask recordArtifactTask) {
+			_recordArtifactTask = recordArtifactTask;
+		}
+
+		@Override
+		public boolean isSatisfiedBy(Task task) {
+			final Project project = task.getProject();
 
 			Properties artifactProperties;
 
@@ -1786,7 +1862,7 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 					"Unable to read artifact properties", ioe);
 			}
 
-			String artifactGitId = artifactProperties.getProperty(
+			final String artifactGitId = artifactProperties.getProperty(
 				"artifact.git.id");
 
 			if (Validator.isNull(artifactGitId)) {
@@ -1797,36 +1873,46 @@ public class LiferayDefaultsPlugin extends BaseDefaultsPlugin<LiferayPlugin> {
 				return true;
 			}
 
-			AntBuilder antBuilder = project.createAntBuilder();
+			final ByteArrayOutputStream byteArrayOutputStream =
+				new ByteArrayOutputStream();
 
-			antBuilder.setProperty("project.dir", _rootDir);
+			project.exec(
+				new Action<ExecSpec>() {
 
-			Map<String, String> args = new HashMap<>();
+					@Override
+					public void execute(ExecSpec execSpec) {
+						execSpec.commandLine(
+							"git", "log", "--format=%s",
+							artifactGitId + "..HEAD", ".");
 
-			args.put("classpath", _antJGitFileCollection.getAsPath());
-			args.put(
-				"resource", "com/liferay/ant/jgit/ant-jgit-tasks.properties");
+						execSpec.setStandardOutput(byteArrayOutputStream);
+						execSpec.setWorkingDir(project.getProjectDir());
+					}
 
-			antBuilder.invokeMethod("taskdef", args);
+				});
 
-			args.clear();
+			String output = byteArrayOutputStream.toString();
 
-			args.put("ignoredMessagePattern", _IGNORED_MESSAGE_PATTERN);
-			args.put("path", FileUtil.getAbsolutePath(project.getProjectDir()));
-			args.put("property", "git.up.to.date");
-			args.put("since", artifactGitId);
+			String[] lines = output.split("\\r?\\n");
 
-			antBuilder.invokeMethod("git-up-to-date", args);
+			for (String line : lines) {
+				if (_logger.isInfoEnabled()) {
+					_logger.info(line);
+				}
 
-			Map<String, Object> properties = antBuilder.getProperties();
+				if (Validator.isNull(line)) {
+					continue;
+				}
 
-			return !Boolean.parseBoolean(
-				String.valueOf(properties.get("git.up.to.date")));
+				if (!line.contains(_IGNORED_MESSAGE_PATTERN)) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
-		private final FileCollection _antJGitFileCollection;
 		private final WritePropertiesTask _recordArtifactTask;
-		private final File _rootDir;
 
 	}
 

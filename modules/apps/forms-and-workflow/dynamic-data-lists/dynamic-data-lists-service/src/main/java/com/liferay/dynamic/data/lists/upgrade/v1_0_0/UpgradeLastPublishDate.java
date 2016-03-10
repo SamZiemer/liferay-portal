@@ -15,6 +15,7 @@
 package com.liferay.dynamic.data.lists.upgrade.v1_0_0;
 
 import com.liferay.dynamic.data.lists.constants.DDLPortletKeys;
+import com.liferay.portal.kernel.util.LoggingTimer;
 
 /**
  * @author Levente Hudak
@@ -22,14 +23,18 @@ import com.liferay.dynamic.data.lists.constants.DDLPortletKeys;
 public class UpgradeLastPublishDate
 	extends com.liferay.portal.upgrade.v7_0_0.UpgradeLastPublishDate {
 
+	protected void addLastPublishDateColumns() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			addLastPublishDateColumn("DDLRecord");
+			addLastPublishDateColumn("DDLRecordSet");
+		}
+	}
+
 	@Override
 	protected void doUpgrade() throws Exception {
-		runSQL("alter table DDLRecord add lastPublishDate DATE null");
+		addLastPublishDateColumns();
 
 		updateLastPublishDates(DDLPortletKeys.DYNAMIC_DATA_LISTS, "DDLRecord");
-
-		runSQL("alter table DDLRecordSet add lastPublishDate DATE null");
-
 		updateLastPublishDates(
 			DDLPortletKeys.DYNAMIC_DATA_LISTS, "DDLRecordSet");
 	}

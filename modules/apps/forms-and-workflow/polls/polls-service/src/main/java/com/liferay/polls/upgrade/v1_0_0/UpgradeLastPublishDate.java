@@ -15,6 +15,7 @@
 package com.liferay.polls.upgrade.v1_0_0;
 
 import com.liferay.polls.constants.PollsPortletKeys;
+import com.liferay.portal.kernel.util.LoggingTimer;
 
 /**
  * @author Mate Thurzo
@@ -22,18 +23,20 @@ import com.liferay.polls.constants.PollsPortletKeys;
 public class UpgradeLastPublishDate
 	extends com.liferay.portal.upgrade.v7_0_0.UpgradeLastPublishDate {
 
+	protected void addLastPublishDateColumns() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			addLastPublishDateColumn("PollsChoice");
+			addLastPublishDateColumn("PollsQuestion");
+			addLastPublishDateColumn("PollsVote");
+		}
+	}
+
 	@Override
 	protected void doUpgrade() throws Exception {
-		runSQL("alter table PollsChoice add lastPublishDate DATE null");
+		addLastPublishDateColumns();
 
 		updateLastPublishDates(PollsPortletKeys.POLLS, "PollsChoice");
-
-		runSQL("alter table PollsQuestion add lastPublishDate DATE null");
-
 		updateLastPublishDates(PollsPortletKeys.POLLS, "PollsQuestion");
-
-		runSQL("alter table PollsVote add lastPublishDate DATE null");
-
 		updateLastPublishDates(PollsPortletKeys.POLLS, "PollsVote");
 	}
 

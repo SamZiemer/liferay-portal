@@ -439,6 +439,10 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 		checkPropertyUtils(fileName, newContent);
 
+		// LPS-63953
+
+		checkStringUtilReplace(fileName, newContent);
+
 		Matcher matcher = _javaClassPattern.matcher(newContent);
 
 		if (matcher.find()) {
@@ -695,7 +699,10 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 				String trimmedPreviousLine = StringUtil.trimLeading(
 					previousLine);
 
-				checkChaining(trimmedLine, fileName, lineCount);
+				if (line.matches(".*\\WgetClass\\(\\)\\..+")) {
+					processErrorMessage(
+						fileName, "chaining: " + fileName + " " + lineCount);
+				}
 
 				checkStringBundler(trimmedLine, fileName, lineCount);
 

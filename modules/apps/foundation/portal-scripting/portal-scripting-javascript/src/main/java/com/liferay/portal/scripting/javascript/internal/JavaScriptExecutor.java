@@ -14,8 +14,7 @@
 
 package com.liferay.portal.scripting.javascript.internal;
 
-import aQute.bnd.annotation.metatype.Configurable;
-
+import com.liferay.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cache.SingleVMPool;
 import com.liferay.portal.kernel.scripting.ScriptingException;
@@ -72,7 +71,9 @@ public class JavaScriptExecutor extends BaseScriptingExecutor {
 
 			Scriptable scriptable = context.initStandardObjects();
 
-			context.setApplicationClassLoader(getClass().getClassLoader());
+			Class<?> clazz = getClass();
+
+			context.setApplicationClassLoader(clazz.getClassLoader());
 
 			for (Map.Entry<String, Object> entry : inputObjects.entrySet()) {
 				String key = entry.getKey();
@@ -133,7 +134,7 @@ public class JavaScriptExecutor extends BaseScriptingExecutor {
 	@Modified
 	protected void activate(Map<String, Object> properties) {
 		JavaScriptExecutorConfiguration javaScriptExecutorConfiguration =
-			Configurable.createConfigurable(
+			ConfigurableUtil.createConfigurable(
 				JavaScriptExecutorConfiguration.class, properties);
 
 		String[] forbiddenClassNames = StringUtil.split(
@@ -158,7 +159,9 @@ public class JavaScriptExecutor extends BaseScriptingExecutor {
 		try {
 			Context context = Context.enter();
 
-			context.setApplicationClassLoader(getClass().getClassLoader());
+			Class<?> clazz = getClass();
+
+			context.setApplicationClassLoader(clazz.getClassLoader());
 
 			compiledScript = context.compileString(script, "script", 0, null);
 		}
