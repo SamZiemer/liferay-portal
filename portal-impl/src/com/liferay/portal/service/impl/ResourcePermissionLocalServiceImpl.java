@@ -362,11 +362,11 @@ public class ResourcePermissionLocalServiceImpl
 			resourcePermissions.size());
 
 		for (ResourcePermission resourcePermission : resourcePermissions) {
-			Set<String> emptySet = Collections.emptySet();
+			Set<String> emptyActionIds = Collections.emptySet();
 
 			if (resourcePermission.getActionIds() == 0) {
 				roleIdsToActionIds.put(
-					resourcePermission.getRoleId(), emptySet);
+					resourcePermission.getRoleId(), emptyActionIds);
 			}
 
 			Set<String> availableActionIds = new HashSet<>(actionIds.size());
