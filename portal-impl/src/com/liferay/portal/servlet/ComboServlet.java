@@ -17,6 +17,7 @@ package com.liferay.portal.servlet;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cache.SingleVMPoolUtil;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
+import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -156,7 +157,7 @@ public class ComboServlet extends HttpServlet {
 		if (modulePathsSet.isEmpty()) {
 			PortalUtil.sendError(
 				HttpServletResponse.SC_NOT_FOUND,
-				new NoSuchGroupException(
+				new NoSuchLayoutException(
 					"Query string translates to an empty module paths set"),
 				request, response);
 
