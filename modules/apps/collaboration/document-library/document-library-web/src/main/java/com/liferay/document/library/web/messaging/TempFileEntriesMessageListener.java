@@ -14,8 +14,8 @@
 
 package com.liferay.document.library.web.messaging;
 
-import com.liferay.bnd.util.ConfigurableUtil;
 import com.liferay.document.library.configuration.DLConfiguration;
+import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.model.Repository;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.repository.LocalRepository;
 import com.liferay.portal.kernel.repository.RepositoryProvider;
+import com.liferay.portal.kernel.repository.UndeployedExternalRepositoryException;
 import com.liferay.portal.kernel.repository.capabilities.TemporaryFileEntriesCapability;
 import com.liferay.portal.kernel.scheduler.SchedulerEngineHelper;
 import com.liferay.portal.kernel.scheduler.TimeUnit;
@@ -80,12 +81,12 @@ public class TempFileEntriesMessageListener
 			localRepository = _repositoryProvider.getLocalRepository(
 				repository.getRepositoryId());
 		}
-		catch (PortalException pe) {
+		catch (PortalException | UndeployedExternalRepositoryException e) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					"Unable to get implementation for repository " +
 						repository.getRepositoryId(),
-					pe);
+					e);
 			}
 
 			return;

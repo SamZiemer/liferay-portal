@@ -45,7 +45,7 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 	LARTypeException lte = (LARTypeException)errorException;
 	%>
 
-	<liferay-ui:message arguments="<%= lte.getMessage() %>" key="please-import-a-lar-file-of-the-correct-type-x-is-not-valid" />
+	<liferay-ui:message arguments="<%= lte.getMessage() %>" key="please-import-a-lar-file-of-the-correct-type-x" />
 </liferay-ui:error>
 
 <liferay-ui:error exception="<%= LayoutImportException.class %>" message="an-unexpected-error-occurred-while-importing-your-file" />
@@ -343,7 +343,7 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 
 			<liferay-staging:deletions cmd="<%= Constants.IMPORT %>" />
 
-			<liferay-staging:permissions action="import" descriptionCSSClass="permissions-description" global="<%= group.isCompany() %>" labelCSSClass="permissions-label" />
+			<liferay-staging:permissions action="<%= Constants.IMPORT %>" descriptionCSSClass="permissions-description" global="<%= group.isCompany() %>" labelCSSClass="permissions-label" />
 
 			<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" cssClass="options-group" label="update-data">
 				<aui:input checked="<%= true %>" helpMessage="import-data-strategy-mirror-help" id="mirror" label="mirror" name="<%= PortletDataHandlerKeys.DATA_STRATEGY %>" type="radio" value="<%= PortletDataHandlerKeys.DATA_STRATEGY_MIRROR %>" />

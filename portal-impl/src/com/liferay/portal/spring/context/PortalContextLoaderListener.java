@@ -171,6 +171,9 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 				_log.error(e, e);
 			}
 
+			ModuleFrameworkUtilAdapter.unregisterContext(
+				_arrayApplicationContext);
+
 			_arrayApplicationContext.close();
 		}
 		finally {

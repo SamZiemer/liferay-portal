@@ -14,8 +14,8 @@
 
 package com.liferay.dynamic.data.mapping.web.portlet;
 
-import com.liferay.bnd.util.ConfigurableUtil;
 import com.liferay.dynamic.data.mapping.web.configuration.DDMWebConfiguration;
+import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 
 import java.util.Map;
@@ -38,7 +38,6 @@ import org.osgi.service.component.annotations.Modified;
 		"com.liferay.portlet.autopropagated-parameters=scopeTitle",
 		"com.liferay.portlet.autopropagated-parameters=showAncestorScopes",
 		"com.liferay.portlet.autopropagated-parameters=showManageTemplates",
-		"com.liferay.portlet.autopropagated-parameters=showToolbar",
 		"com.liferay.portlet.css-class-wrapper=portlet-dynamic-data-mapping",
 		"com.liferay.portlet.display-category=category.hidden",
 		"com.liferay.portlet.header-portlet-css=/css/main.css",

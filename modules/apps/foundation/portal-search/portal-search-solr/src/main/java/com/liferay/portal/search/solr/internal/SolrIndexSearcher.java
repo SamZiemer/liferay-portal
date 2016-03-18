@@ -14,7 +14,7 @@
 
 package com.liferay.portal.search.solr.internal;
 
-import com.liferay.bnd.util.ConfigurableUtil;
+import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.search.SearchPaginationUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -540,6 +540,10 @@ public class SolrIndexSearcher extends BaseIndexSearcher {
 		Collection<String> fieldNames = solrDocument.getFieldNames();
 
 		for (String fieldName : fieldNames) {
+			if (fieldName.equals(_VERSION_FIELD)) {
+				continue;
+			}
+
 			Collection<Object> fieldValues = solrDocument.getFieldValues(
 				fieldName);
 
@@ -704,6 +708,8 @@ public class SolrIndexSearcher extends BaseIndexSearcher {
 			hits.addStatsResults(statsResults);
 		}
 	}
+
+	private static final String _VERSION_FIELD = "_version_";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		SolrIndexSearcher.class);
