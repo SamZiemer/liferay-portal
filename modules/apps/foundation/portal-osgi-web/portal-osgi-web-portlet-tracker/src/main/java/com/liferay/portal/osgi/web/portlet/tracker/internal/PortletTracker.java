@@ -924,8 +924,6 @@ public class PortletTracker
 		ServletContextHelperRegistration servletContextHelperRegistration =
 			getServletContextHelperRegistration(bundle, serviceRegistrations);
 
-		servletContextHelperRegistration.initDefaults();
-
 		ServletContext servletContext =
 			servletContextHelperRegistration.getServletContext();
 
@@ -1024,8 +1022,8 @@ public class PortletTracker
 
 		BundleContext bundleContext = bundle.getBundleContext();
 
-		ServiceReference<ServletContextHelperRegistration>
-			serviceReference = bundleContext.getServiceReference(
+		ServiceReference<ServletContextHelperRegistration> serviceReference =
+			bundleContext.getServiceReference(
 				ServletContextHelperRegistration.class);
 
 		serviceRegistrations.

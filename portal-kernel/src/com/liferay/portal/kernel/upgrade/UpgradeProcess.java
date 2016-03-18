@@ -213,7 +213,7 @@ public abstract class UpgradeProcess
 
 			sb.append("alter table ");
 			sb.append(tableName);
-			sb.append(" add column ");
+			sb.append(" add ");
 			sb.append(_columnName);
 
 			return sb.toString();

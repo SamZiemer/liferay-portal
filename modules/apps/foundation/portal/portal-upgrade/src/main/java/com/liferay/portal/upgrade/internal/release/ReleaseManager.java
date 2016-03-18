@@ -14,12 +14,13 @@
 
 package com.liferay.portal.upgrade.internal.release;
 
-import com.liferay.bnd.util.ConfigurableUtil;
 import com.liferay.osgi.service.tracker.collections.map.PropertyServiceReferenceComparator;
 import com.liferay.osgi.service.tracker.collections.map.PropertyServiceReferenceMapper;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapListener;
+import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
+import com.liferay.portal.kernel.cache.CacheRegistryUtil;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBContext;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -325,33 +326,42 @@ public class ReleaseManager {
 
 		@Override
 		public void run() {
-			for (UpgradeInfo upgradeInfo : _upgradeInfos) {
-				UpgradeStep upgradeStep = upgradeInfo.getUpgradeStep();
+			boolean active = CacheRegistryUtil.isActive();
 
-				try {
-					upgradeStep.upgrade(
-						new DBProcessContext() {
+			try {
+				CacheRegistryUtil.setActive(false);
 
-							@Override
-							public DBContext getDBContext() {
-								return new DBContext();
-							}
+				for (UpgradeInfo upgradeInfo : _upgradeInfos) {
+					UpgradeStep upgradeStep = upgradeInfo.getUpgradeStep();
 
-							@Override
-							public OutputStream getOutputStream() {
-								return _outputStream;
-							}
+					try {
+						upgradeStep.upgrade(
+							new DBProcessContext() {
 
-						});
+								@Override
+								public DBContext getDBContext() {
+									return new DBContext();
+								}
 
-					_releaseLocalService.updateRelease(
-						_bundleSymbolicName,
-						upgradeInfo.getToSchemaVersionString(),
-						upgradeInfo.getFromSchemaVersionString());
+								@Override
+								public OutputStream getOutputStream() {
+									return _outputStream;
+								}
+
+							});
+
+						_releaseLocalService.updateRelease(
+							_bundleSymbolicName,
+							upgradeInfo.getToSchemaVersionString(),
+							upgradeInfo.getFromSchemaVersionString());
+					}
+					catch (Exception e) {
+						throw new RuntimeException(e);
+					}
 				}
-				catch (Exception e) {
-					throw new RuntimeException(e);
-				}
+			}
+			finally {
+				CacheRegistryUtil.setActive(active);
 			}
 		}
 

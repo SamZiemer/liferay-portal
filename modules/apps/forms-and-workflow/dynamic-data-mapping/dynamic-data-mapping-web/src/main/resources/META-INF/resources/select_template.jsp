@@ -27,6 +27,8 @@ long classPK = ParamUtil.getLong(request, "classPK");
 long resourceClassNameId = ParamUtil.getLong(request, "resourceClassNameId");
 String eventName = ParamUtil.getString(request, "eventName", "selectTemplate");
 
+String mode = ParamUtil.getString(request, "mode", DDMTemplateConstants.TEMPLATE_MODE_CREATE);
+
 DDMStructure structure = null;
 
 long structureClassNameId = PortalUtil.getClassNameId(DDMStructure.class);
@@ -70,31 +72,20 @@ templateSearch.setOrderByType(ddmDisplayContext.getOrderByType());
 	<aui:input name="resourceClassNameId" type="hidden" value="<%= String.valueOf(resourceClassNameId) %>" />
 	<aui:input name="eventName" type="hidden" value="<%= eventName %>" />
 
-	<c:choose>
-		<c:when test="<%= showToolbar %>">
+	<%
+	request.setAttribute(WebKeys.SEARCH_CONTAINER, templateSearch);
+	%>
 
-			<%
-			request.setAttribute(WebKeys.SEARCH_CONTAINER, templateSearch);
-			%>
-
-			<liferay-util:include page="/template_toolbar.jsp" servletContext="<%= application %>">
-				<liferay-util:param name="mvcPath" value="/select_template.jsp" />
-				<liferay-util:param name="redirect" value="<%= currentURL %>" />
-				<liferay-util:param name="classNameId" value="<%= String.valueOf(classNameId) %>" />
-				<liferay-util:param name="classPK" value="<%= String.valueOf(classPK) %>" />
-				<liferay-util:param name="eventName" value="<%= eventName %>" />
-				<liferay-util:param name="includeCheckBox" value="<%= Boolean.FALSE.toString() %>" />
-				<liferay-util:param name="orderByCol" value="<%= ddmDisplayContext.getOrderByCol() %>" />
-				<liferay-util:param name="orderByType" value="<%= ddmDisplayContext.getOrderByType() %>" />
-			</liferay-util:include>
-		</c:when>
-		<c:otherwise>
-			<liferay-ui:header
-				localizeTitle="<%= false %>"
-				title="<%= title %>"
-			/>
-		</c:otherwise>
-	</c:choose>
+	<liferay-util:include page="/template_toolbar.jsp" servletContext="<%= application %>">
+		<liferay-util:param name="mvcPath" value="/select_template.jsp" />
+		<liferay-util:param name="redirect" value="<%= currentURL %>" />
+		<liferay-util:param name="classNameId" value="<%= String.valueOf(classNameId) %>" />
+		<liferay-util:param name="classPK" value="<%= String.valueOf(classPK) %>" />
+		<liferay-util:param name="eventName" value="<%= eventName %>" />
+		<liferay-util:param name="includeCheckBox" value="<%= Boolean.FALSE.toString() %>" />
+		<liferay-util:param name="orderByCol" value="<%= ddmDisplayContext.getOrderByCol() %>" />
+		<liferay-util:param name="orderByType" value="<%= ddmDisplayContext.getOrderByType() %>" />
+	</liferay-util:include>
 
 	<div class="container-fluid-1280">
 		<liferay-ui:search-container
@@ -136,6 +127,11 @@ templateSearch.setOrderByType(ddmDisplayContext.getOrderByType());
 						<%
 						Map<String, Object> data = new HashMap<String, Object>();
 
+						if (ddmDisplay.isShowConfirmSelectTemplate()) {
+							data.put("confirm-selection", Boolean.TRUE.toString());
+							data.put("confirm-selection-message", ddmDisplay.getConfirmSelectTemplateMessage(locale));
+						}
+
 						data.put("ddmtemplateid", template.getTemplateId());
 						data.put("ddmtemplatekey", template.getTemplateKey());
 						data.put("description", template.getDescription(locale));
@@ -159,6 +155,7 @@ templateSearch.setOrderByType(ddmDisplayContext.getOrderByType());
 	<liferay-util:param name="classNameId" value="<%= String.valueOf(classNameId) %>" />
 	<liferay-util:param name="classPK" value="<%= String.valueOf(classPK) %>" />
 	<liferay-util:param name="resourceClassNameId" value="<%= String.valueOf(resourceClassNameId) %>" />
+	<liferay-util:param name="mode" value="<%= mode %>" />
 </liferay-util:include>
 
 <aui:script>
