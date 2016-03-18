@@ -18,10 +18,9 @@ Import-Package:\
 	\
 	!org.junit.*,\
 	*
-Include-Resource:\
+Liferay-Releng-Module-Group-Description:
+Liferay-Releng-Module-Group-Title: LDAP
+-includeresource:\
 	@../../../../../lib/portal/antlr2.jar,\
 	@../../../../../lib/portal/antlr3.jar,\
 	@../../../../../lib/portal/stringtemplate.jar
-Liferay-Releng-Module-Group-Description:
-Liferay-Releng-Module-Group-Title: LDAP
--include: ../../app.bnd

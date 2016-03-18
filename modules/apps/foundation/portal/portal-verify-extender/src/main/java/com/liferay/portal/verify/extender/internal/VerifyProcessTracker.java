@@ -14,24 +14,28 @@
 
 package com.liferay.portal.verify.extender.internal;
 
-import com.liferay.bnd.util.ConfigurableUtil;
 import com.liferay.counter.kernel.service.CounterLocalService;
 import com.liferay.osgi.service.tracker.collections.map.PropertyServiceReferenceComparator;
 import com.liferay.osgi.service.tracker.collections.map.PropertyServiceReferenceMapper;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapListener;
+import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
+import com.liferay.portal.kernel.search.IndexWriterHelperUtil;
 import com.liferay.portal.kernel.service.ReleaseLocalService;
+import com.liferay.portal.kernel.util.NotificationThreadLocal;
+import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
 import com.liferay.portal.output.stream.container.OutputStreamContainer;
 import com.liferay.portal.output.stream.container.OutputStreamContainerFactory;
 import com.liferay.portal.output.stream.container.OutputStreamContainerFactoryTracker;
 import com.liferay.portal.verify.VerifyException;
 import com.liferay.portal.verify.VerifyProcess;
 import com.liferay.portal.verify.extender.internal.configuration.VerifyProcessTrackerConfiguration;
+import com.liferay.portlet.exportimport.staging.StagingAdvicesThreadLocal;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -178,13 +182,30 @@ public class VerifyProcessTracker {
 		List<VerifyProcess> verifyProcesses = getVerifyProcesses(
 			verifyProcessName);
 
-		for (VerifyProcess verifyProcess : verifyProcesses) {
-			try {
-				verifyProcess.verify();
+		boolean indexReadOnly = IndexWriterHelperUtil.isIndexReadOnly();
+
+		IndexWriterHelperUtil.setIndexReadOnly(
+			_verifyProcessTrackerConfiguration.indexReadOnly());
+
+		NotificationThreadLocal.setEnabled(false);
+		StagingAdvicesThreadLocal.setEnabled(false);
+		WorkflowThreadLocal.setEnabled(false);
+
+		try {
+			for (VerifyProcess verifyProcess : verifyProcesses) {
+				try {
+					verifyProcess.verify();
+				}
+				catch (VerifyException ve) {
+					_log.error(ve, ve);
+				}
 			}
-			catch (VerifyException ve) {
-				_log.error(ve, ve);
-			}
+		}
+		finally {
+			IndexWriterHelperUtil.setIndexReadOnly(indexReadOnly);
+			NotificationThreadLocal.setEnabled(true);
+			StagingAdvicesThreadLocal.setEnabled(true);
+			WorkflowThreadLocal.setEnabled(true);
 		}
 	}
 

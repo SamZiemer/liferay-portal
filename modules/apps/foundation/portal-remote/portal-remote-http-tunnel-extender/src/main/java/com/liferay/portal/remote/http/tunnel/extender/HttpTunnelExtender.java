@@ -14,7 +14,7 @@
 
 package com.liferay.portal.remote.http.tunnel.extender;
 
-import com.liferay.bnd.util.ConfigurableUtil;
+import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.remote.http.tunnel.configuration.HttpTunnelExtenderConfiguration;
 import com.liferay.portal.servlet.TunnelServlet;
@@ -172,7 +172,7 @@ public class HttpTunnelExtender extends AbstractExtender {
 
 			properties.put(
 				HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
-				_bundle.getSymbolicName());
+				"liferay.http.tunnel." + _bundle.getSymbolicName());
 			properties.put(
 				HttpWhiteboardConstants.
 					HTTP_WHITEBOARD_FILTER_INIT_PARAM_PREFIX +
@@ -195,7 +195,7 @@ public class HttpTunnelExtender extends AbstractExtender {
 
 			properties.put(
 				HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_NAME,
-				_bundle.getSymbolicName());
+				"liferay.http.tunnel." + _bundle.getSymbolicName());
 			properties.put(
 				HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_PATH,
 				"/" + _bundle.getSymbolicName());
@@ -222,7 +222,7 @@ public class HttpTunnelExtender extends AbstractExtender {
 
 			properties.put(
 				HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
-				_bundle.getSymbolicName());
+				"liferay.http.tunnel." + _bundle.getSymbolicName());
 			properties.put(
 				HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME,
 				"HttpTunnelServlet");

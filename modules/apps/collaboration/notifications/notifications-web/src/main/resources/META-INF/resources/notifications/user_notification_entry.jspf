@@ -17,14 +17,6 @@
 <%
 UserNotificationFeedEntry userNotificationFeedEntry = UserNotificationManagerUtil.interpret(StringPool.BLANK, userNotificationEvent, ServiceContextFactory.getInstance(request));
 
-Portlet portlet = PortletLocalServiceUtil.getPortletById(themeDisplay.getCompanyId(), userNotificationEvent.getType());
-
-String portletIcon = portlet.getContextPath() + portlet.getIcon();
-
-String timestamp = Time.getRelativeTimeDescription(userNotificationEvent.getTimestamp(), themeDisplay.getLocale(), themeDisplay.getTimeZone(), dateFormatDateTime);
-
-String timeTitle = dateFormatDateTime.format(userNotificationEvent.getTimestamp());
-
 JSONObject jsonObject = JSONFactoryUtil.createJSONObject(userNotificationEvent.getPayload());
 
 long userNotificationEventUserId = jsonObject.getLong("userId");
@@ -59,14 +51,19 @@ if (userNotificationEvent.isArchived()) {
 
 				<div class="timestamp">
 					<span class="portlet-icon">
-						<span onmouseover="Liferay.Portal.ToolTip.show(this, '<%= portlet.getDisplayName() %>')">
-							<img src="<%= portletIcon %>">
-							<span class="hide-accessible taglib-text"><%= portlet.getDisplayName() %></span>
+
+						<%
+						Portlet portlet = PortletLocalServiceUtil.getPortletById(themeDisplay.getCompanyId(), userNotificationEvent.getType());
+						%>
+
+						<span onmouseover="Liferay.Portal.ToolTip.show(this, '<%= PortalUtil.getPortletTitle(portlet, application, themeDisplay.getLocale()) %>')">
+							<img src="<%= portlet.getContextPath() + portlet.getIcon() %>">
+							<span class="hide-accessible taglib-text"><%= PortalUtil.getPortletTitle(portlet, application, themeDisplay.getLocale()) %></span>
 						</span>
 					</span>
 
-					<span title="<%= timeTitle %>">
-						<%= timestamp %>
+					<span title="<%= dateFormatDateTime.format(userNotificationEvent.getTimestamp()) %>">
+						<%= Time.getRelativeTimeDescription(userNotificationEvent.getTimestamp(), themeDisplay.getLocale(), themeDisplay.getTimeZone(), dateFormatDateTime) %>
 					</span>
 				</div>
 			</a>

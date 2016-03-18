@@ -38,7 +38,6 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portlet.asset.util.AssetUtil;
 
@@ -176,7 +175,7 @@ public class AssetPublisherPortletToolbarContributor
 
 		urlMenuItem.setData(data);
 
-		urlMenuItem.setIcon("icon-plus-sign-2");
+		urlMenuItem.setLabel(title);
 
 		LiferayPortletResponse liferayPortletResponse =
 			PortalUtil.getLiferayPortletResponse(portletResponse);
@@ -212,23 +211,14 @@ public class AssetPublisherPortletToolbarContributor
 
 		menu.setData(data);
 
-		menu.setDirection("down");
+		menu.setDirection("right");
 		menu.setExtended(false);
-		menu.setIcon("../aui/plus-sign-2");
+		menu.setIcon("plus");
+		menu.setMarkupView("lexicon");
 		menu.setMenuItems(portletTitleMenuItems);
+		menu.setScroll(false);
 		menu.setShowArrow(false);
-
-		boolean showWhenSingleIcon = true;
-
-		if (portletTitleMenuItems.size() == 1) {
-			MenuItem menuItem = portletTitleMenuItems.get(0);
-
-			if (Validator.isNull(menuItem.getLabel())) {
-				showWhenSingleIcon = false;
-			}
-		}
-
-		menu.setShowWhenSingleIcon(showWhenSingleIcon);
+		menu.setShowWhenSingleIcon(true);
 
 		return menu;
 	}

@@ -71,6 +71,11 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testFormatReturnStatements() throws Exception {
+		test("FormatReturnStatements.testjava");
+	}
+
+	@Test
 	public void testIfClauseIncorrectLineBreaks() throws Exception {
 		test("IfClauseIncorrectLineBreaks.testjava");
 	}
@@ -214,6 +219,11 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 		test(
 			"MissingSerialVersionUID.testjava",
 			"Assign ProcessCallable implementation a serialVersionUID:");
+	}
+
+	@Test
+	public void testNullVariable() throws Exception {
+		test("NullVariable.testjava");
 	}
 
 	@Test
