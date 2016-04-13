@@ -513,8 +513,6 @@ AUI.add(
 
 						var labelNode = instance.getLabelNode();
 
-						var tipNode = labelNode.one('.taglib-icon-help');
-
 						if (Lang.isValue(label) && Lang.isNode(labelNode)) {
 							labelNode.html(A.Escape.html(label));
 
@@ -523,9 +521,11 @@ AUI.add(
 							if (fieldDefinition.required) {
 								labelNode.append(TPL_REQUIRED_MARK);
 							}
-						}
 
-						instance._addTip(labelNode, tipNode);
+							var tipNode = labelNode.one('.taglib-icon-help');
+
+							instance._addTip(labelNode, tipNode);
+						}
 					},
 
 					setValue: function(value) {
