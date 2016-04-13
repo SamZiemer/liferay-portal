@@ -517,12 +517,12 @@ AUI.add(
 
 						if (Lang.isValue(label) && Lang.isNode(labelNode)) {
 							labelNode.html(A.Escape.html(label));
-						}
 
-						var fieldDefinition = instance.getFieldDefinition();
+							var fieldDefinition = instance.getFieldDefinition();
 
-						if (fieldDefinition.required) {
-							labelNode.append(TPL_REQUIRED_MARK);
+							if (fieldDefinition.required) {
+								labelNode.append(TPL_REQUIRED_MARK);
+							}
 						}
 
 						instance._addTip(labelNode, tipNode);
