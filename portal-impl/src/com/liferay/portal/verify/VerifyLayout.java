@@ -125,6 +125,10 @@ public class VerifyLayout extends VerifyProcess {
 						layoutFriendlyURL.getLanguageId());
 				}
 			}
+
+			runSQL(
+				"delete from LayoutFriendlyURL where plid not in (select " +
+					"plid from Layout)");
 		}
 	}
 
