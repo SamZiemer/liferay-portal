@@ -15,6 +15,7 @@
 package com.liferay.portal.verify;
 
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.LayoutFriendlyURLException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -23,6 +24,7 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutFriendlyURL;
 import com.liferay.portal.kernel.service.LayoutFriendlyURLLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
+import com.liferay.portal.kernel.service.persistence.LayoutFriendlyURLUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -111,6 +113,8 @@ public class VerifyLayout extends VerifyProcess {
 			List<Layout> layouts =
 				LayoutLocalServiceUtil.getNullFriendlyURLLayouts();
 
+			List<LayoutFriendlyURL> layoutFriendlyUrls;
+
 			for (Layout layout : layouts) {
 				List<LayoutFriendlyURL> layoutFriendlyURLs =
 					LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLs(
@@ -123,6 +127,22 @@ public class VerifyLayout extends VerifyProcess {
 					LayoutLocalServiceUtil.updateFriendlyURL(
 						layout.getUserId(), layout.getPlid(), friendlyURL,
 						layoutFriendlyURL.getLanguageId());
+				}
+			}
+
+			layoutFriendlyUrls =
+				LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLs(
+					QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+			for (LayoutFriendlyURL layoutFriendlyURL: layoutFriendlyUrls) {
+				Layout layout = LayoutLocalServiceUtil.fetchLayoutByFriendlyURL(
+					layoutFriendlyURL.getGroupId(),
+					layoutFriendlyURL.getPrivateLayout(),
+					layoutFriendlyURL.getFriendlyURL());
+
+				if (layout != null) {
+					LayoutFriendlyURLLocalServiceUtil.deleteLayoutFriendlyURL(
+						layoutFriendlyURL);
 				}
 			}
 		}
