@@ -42,6 +42,7 @@ import com.liferay.dynamic.data.mapping.util.DDMXML;
 import com.liferay.dynamic.data.mapping.util.impl.DDMFormTemplateSynchonizer;
 import com.liferay.dynamic.data.mapping.validator.DDMFormValidationException;
 import com.liferay.dynamic.data.mapping.validator.DDMFormValidator;
+import com.liferay.portal.background.task.constants.BackgroundTaskContextMapConstants;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManager;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.LocaleException;
@@ -1685,6 +1686,9 @@ public class DDMStructureLocalServiceImpl
 		Map<String, Serializable> taskContextMap = new HashMap<>();
 
 		taskContextMap.put("structureId", structure.getStructureId());
+
+		taskContextMap.put(
+			BackgroundTaskContextMapConstants.DELETE_ON_SUCCESS, true);
 
 		backgroundTaskmanager.addBackgroundTask(
 			structure.getUserId(), structure.getGroupId(), backgroundTaskName,
