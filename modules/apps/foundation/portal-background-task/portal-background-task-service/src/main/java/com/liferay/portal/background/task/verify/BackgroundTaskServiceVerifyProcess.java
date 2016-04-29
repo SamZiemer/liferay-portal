@@ -28,56 +28,57 @@ import org.osgi.service.component.annotations.Reference;
  * @author Alec Shay
  */
 @Component(
-    immediate = true,
-    property = {"verify.process.name=com.liferay.background.task.service"},
-    service = VerifyProcess.class
+	immediate = true,
+	property = {"verify.process.name=com.liferay.background.task.service"},
+	service = VerifyProcess.class
 )
 public class BackgroundTaskServiceVerifyProcess extends VerifyProcess {
 
-    @Override
-    protected void doVerify() throws Exception {
-        deleteBackgroundTasks();
-    }
+	protected void deleteBackgroundTasks() {
+		try {
+			if (_log.isInfoEnabled()) {
+				_log.info("Deleting unnecessary backgroundtask entries");
+			}
 
-    protected void deleteBackgroundTasks() {
-        try {
-            if (_log.isInfoEnabled()) {
-                _log.info("Deleting unnecessary backgroundtask entries");
-            }
+			java.util.List<BackgroundTask> tasksToRemove =
+				_backgroundTaskLocalService.getBackgroundTasks(
+					"com.liferay.portal.lar.backgroundtask." +
+						"StagingIndexingBackgroundTaskExecutor",
+					BackgroundTaskConstants.STATUS_SUCCESSFUL);
 
-            java.util.List<BackgroundTask> tasksToRemove =
-                _backgroundTaskLocalService.getBackgroundTasks(
-                    "com.liferay.portal.lar.backgroundtask." +
-                        "StagingIndexingBackgroundTaskExecutor",
-                    BackgroundTaskConstants.STATUS_SUCCESSFUL);
+			if (tasksToRemove != null) {
+				for (int i = 0; i < tasksToRemove.size(); i++) {
+					BackgroundTask backgroundTask = tasksToRemove.get(i);
 
-            if (tasksToRemove != null) {
-                for (int i = 0; i < tasksToRemove.size(); i++) {
-                    BackgroundTask backgroundTask = tasksToRemove.get(i);
+					_backgroundTaskLocalService.deleteBackgroundTask(
+						backgroundTask);
+				}
 
-                    _backgroundTaskLocalService.deleteBackgroundTask(
-                        backgroundTask);
-                }
+				if (_log.isInfoEnabled()) {
+					_log.info("Deleted StagingIndexingBackgroundTaskExecutors");
+				}
+			}
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+	}
 
-                if (_log.isInfoEnabled()) {
-                    _log.info("Deleted StagingIndexingBackgroundTaskExecutors");
-                }
-            }
-        }
-        catch (Exception e) {
-            _log.error(e, e);
-        }
-    }
+	@Override
+	protected void doVerify() throws Exception {
+		deleteBackgroundTasks();
+	}
 
-    @Reference(unbind = "-")
-    protected void setBackgroundTaskLocalService(
-        BackgroundTaskLocalService backgroundTaskLocalService) {
+	@Reference(unbind = "-")
+	protected void setBackgroundTaskLocalService(
+		BackgroundTaskLocalService backgroundTaskLocalService) {
 
-        _backgroundTaskLocalService = backgroundTaskLocalService;
-    }
+		_backgroundTaskLocalService = backgroundTaskLocalService;
+	}
 
-    private static final Log _log = LogFactoryUtil.getLog(
-        BackgroundTaskServiceVerifyProcess.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		BackgroundTaskServiceVerifyProcess.class);
 
-    private BackgroundTaskLocalService _backgroundTaskLocalService;
+	private BackgroundTaskLocalService _backgroundTaskLocalService;
+
 }
