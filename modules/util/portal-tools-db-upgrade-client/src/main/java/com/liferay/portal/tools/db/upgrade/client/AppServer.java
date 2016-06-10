@@ -28,44 +28,44 @@ public class AppServer {
 
 	public static AppServer getJBossEAPAppServer() {
 		return new AppServer(
-			"jboss", "../../jboss-eap-6.4.0", "",
-			"/modules/com/liferay/portal/main",
-			"/standalone/deployments/ROOT.war");
+			"../../jboss-eap-6.4.0", "", "/modules/com/liferay/portal/main",
+			"/standalone/deployments/ROOT.war", "jboss");
 	}
 
 	public static AppServer getJOnASAppServer() {
 		return new AppServer(
-			"jonas", "../../jonas-5.2.3", "", "/lib/ext",
-			"/deploy/liferay-portal");
+			"../../jonas-5.2.3", "", "/lib/ext", "/deploy/liferay-portal",
+			"jonas");
 	}
 
 	public static AppServer getResinAppServer() {
 		return new AppServer(
-			"resin", "../../resin-4.0.44", "", "/ext-lib", "/webapps/ROOT");
+			"../../resin-4.0.44", "", "/ext-lib", "/webapps/ROOT", "resin");
 	}
 
 	public static AppServer getTCServerAppServer() {
 		return new AppServer(
-			"tomcat", "../../tc-server-2.9.11", "", "/liferay/lib",
-			"/liferay/webapps/ROOT");
+			"../../tc-server-2.9.11", "", "/liferay/lib",
+			"/liferay/webapps/ROOT", "tomcat");
 	}
 
 	public static AppServer getTomcatAppServer() {
 		return new AppServer(
-			"tomcat", "../../tomcat-8.0.32", "/bin", "/lib", "/webapps/ROOT");
+			"../../tomcat-8.0.32", "/bin", "/lib", "/webapps/ROOT", "tomcat");
 	}
 
 	public static AppServer getWebLogicAppServer() {
 		return new AppServer(
-			"weblogic", "../../weblogic-12.1.3", "", "/domains/liferay/lib",
-			"/domains/liferay/autodeploy/ROOT");
+			"../../weblogic-12.1.3", "", "/domains/liferay/lib",
+			"/domains/liferay/autodeploy/ROOT", "weblogic");
 	}
 
 	public static AppServer getWebSphereAppServer() {
 		return new AppServer(
-			"websphere", "../../websphere-8.5.5.0", "", "/lib/ext",
+			"../../websphere-8.5.5.0", "", "/lib/ext",
 			"/profiles/liferay/installedApps/liferay-cell/liferay-portal.ear" +
-				"/liferay-portal.war");
+				"/liferay-portal.war",
+			"websphere");
 	}
 
 	public static AppServer getWildFlyAppServer() {
@@ -83,16 +83,15 @@ public class AppServer {
 		sb.append("javax/transaction");
 
 		return new AppServer(
-			"wildfly", "../../wildfly-10.0.0", sb.toString(),
+			"../../wildfly-10.0.0", sb.toString(),
 			"/modules/com/liferay/portal/main",
-			"/standalone/deployments/ROOT.war");
+			"/standalone/deployments/ROOT.war", "wildfly");
 	}
 
 	public AppServer(
-		String serverDetectorServerId, String dirName, String extraLibDirNames,
-		String globalLibDirName, String portalDirName) {
+		String dirName, String extraLibDirNames, String globalLibDirName,
+		String portalDirName, String serverDetectorServerId) {
 
-		_serverDetectorServerId = serverDetectorServerId;
 		_dir = new File(dirName);
 
 		if (extraLibDirNames != null) {
@@ -103,6 +102,7 @@ public class AppServer {
 
 		_globalLibDir = new File(dirName, globalLibDirName);
 		_portalDir = new File(dirName, portalDirName);
+		_serverDetectorServerId = serverDetectorServerId;
 	}
 
 	public File getDir() {
