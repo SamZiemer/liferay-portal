@@ -56,7 +56,7 @@ if (fileEntryId != 0) {
 			<c:choose>
 				<c:when test="<%= Validator.isNotNull(itemSelectorEventName) && Validator.isNotNull(itemSelectorURL) %>">
 					<c:choose>
-						<c:when test="<%= BrowserSnifferUtil.isMobile(request) %>" >
+						<c:when test="<%= BrowserSnifferUtil.isMobile(request) %>">
 							<%= selectFileLink %>
 						</c:when>
 						<c:otherwise>
