@@ -238,11 +238,11 @@ while (manageableCalendarsIterator.hasNext()) {
 		<aui:input defaultLanguageId="<%= themeDisplay.getLanguageId() %>" name="title" />
 
 		<div class="<%= allDay ? "allday-class-active" : "" %>" id="<portlet:namespace />startDateContainer">
-			<aui:input ignoreRequestValue="<%= true %>" label="start-date" name="startTime" timeFormat="<%= timeFormat %>" value="<%= startTimeJCalendar %>" />
+			<aui:input ignoreRequestValue="<%= true %>" label="from" name="startTime" timeFormat="<%= timeFormat %>" value="<%= startTimeJCalendar %>" />
 		</div>
 
 		<div class="<%= allDay ? "allday-class-active" : "" %>" id="<portlet:namespace />endDateContainer">
-			<aui:input ignoreRequestValue="<%= true %>" label="end-date" name="endTime" timeFormat="<%= timeFormat %>" value="<%= endTimeJCalendar %>" />
+			<aui:input ignoreRequestValue="<%= true %>" label="to" name="endTime" timeFormat="<%= timeFormat %>" value="<%= endTimeJCalendar %>" />
 		</div>
 
 		<aui:input checked="<%= allDay %>" name="allDay" />
@@ -484,7 +484,7 @@ while (manageableCalendarsIterator.hasNext()) {
 	</c:if>
 </aui:script>
 
-<aui:script use="json,liferay-calendar-date-picker-util,liferay-calendar-interval-selector,liferay-calendar-list,liferay-calendar-recurrence-util,liferay-calendar-reminders,liferay-calendar-simple-menu,liferay-calendar-util">
+<aui:script use="json,liferay-calendar-interval-selector,liferay-calendar-interval-selector-scheduler-event-link,liferay-calendar-list,liferay-calendar-recurrence-util,liferay-calendar-reminders,liferay-calendar-simple-menu,liferay-calendar-util">
 	var defaultCalendarId = <%= calendarId %>;
 
 	var scheduler = window.<portlet:namespace />scheduler;
@@ -644,44 +644,32 @@ while (manageableCalendarsIterator.hasNext()) {
 		}
 	);
 
-	window.<portlet:namespace />placeholderSchedulerEvent = new Liferay.SchedulerEvent(
+	var placeholderSchedulerEvent = new Liferay.SchedulerEvent(
 		{
-			after: {
-				endDateChange: function(event) {
-					Liferay.DatePickerUtil.syncUI(event.currentTarget, intervalSelector);
-				},
-				startDateChange: function(event) {
-					Liferay.DatePickerUtil.syncUI(event.currentTarget, intervalSelector);
-				}
-			},
 			borderColor: '#000',
 			borderStyle: 'dashed',
 			borderWidth: '2px',
 			color: '#F8F8F8',
 			content: '',
 			editingEvent: true,
-			endDate: Liferay.CalendarUtil.toLocalTime(new Date(<%= endTime %>)),
-			on: {
-				endDateChange: function(event) {
-					event.stopPropagation();
-				},
-				startDateChange: function(event) {
-					event.stopPropagation();
-				}
-			},
+			endDate: new Date(<%= endTimeYear %>, <%= endTimeMonth %>, <%= endTimeDay %>, <%= endTimeHour %>, <%= endTimeMinute %>),
 			preventDateChange: true,
 			scheduler: scheduler,
-			startDate: Liferay.CalendarUtil.toLocalTime(new Date(<%= startTime %>))
+			startDate: new Date(<%= startTimeYear %>, <%= startTimeMonth %>, <%= startTimeDay %>, <%= startTimeHour %>, <%= startTimeMinute %>)
 		}
 	);
 
-	Liferay.DatePickerUtil.linkToSchedulerEvent('#<portlet:namespace />endDateContainer', window.<portlet:namespace />placeholderSchedulerEvent, 'endTime');
-	Liferay.DatePickerUtil.linkToSchedulerEvent('#<portlet:namespace />startDateContainer', window.<portlet:namespace />placeholderSchedulerEvent, 'startTime');
+	new Liferay.IntervalSelectorSchedulerEventLink(
+		{
+			intervalSelector: intervalSelector,
+			schedulerEvent: placeholderSchedulerEvent
+		}
+	);
 
 	scheduler.after(
 		'*:load',
 		function(event) {
-			scheduler.addEvents(window.<portlet:namespace />placeholderSchedulerEvent);
+			scheduler.addEvents(placeholderSchedulerEvent);
 
 			scheduler.syncEventsUI();
 		}
@@ -780,10 +768,10 @@ while (manageableCalendarsIterator.hasNext()) {
 			var checked = allDayCheckbox.get('checked');
 
 			if (checked) {
-				window.<portlet:namespace />placeholderSchedulerEvent.set('allDay', true);
+				placeholderSchedulerEvent.set('allDay', true);
 			}
 			else {
-				window.<portlet:namespace />placeholderSchedulerEvent.set('allDay', false);
+				placeholderSchedulerEvent.set('allDay', false);
 
 				endDateContainer.show();
 			}

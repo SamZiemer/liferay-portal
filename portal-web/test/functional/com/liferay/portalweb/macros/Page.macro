@@ -505,6 +505,12 @@
 		</execute>
 	</command>
 
+	<command name="hideFromNavigationMenu">
+		<execute function="Check#checkToggleSwitch" locator1="Checkbox#HIDE_FROM_NAVIGATION_MENU" />
+
+		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
+	</command>
+
 	<command name="localizedPG">
 		<var name="key_pageLocale" value="${pageLocale}" />
 
@@ -733,6 +739,15 @@
 	</command>
 
 	<command name="viewPageFriendlyURLPG">
+		<if>
+			<isset var="friendlyUrlLocalized" />
+			<then>
+				<var name="key_friendlyUrlLocalized" value="${friendlyUrlLocalized}" />
+
+				<execute function="Click" locator1="SitePagesEditPage#FRIENDLY_URL_LOCALIZED" />
+			</then>
+		</if>
+
 		<execute function="AssertTextEquals" locator1="SitePagesEditPage#FRIENDLY_URL_FIELD" value1="/${pageName}" />
 	</command>
 
@@ -787,7 +802,7 @@
 	</command>
 
 	<command name="viewPageLockCheck">
-		<execute function="Click" locator1="Dockbar#PAGE_INFO_MESSAGE_ICON" />
+		<execute function="Click" locator1="ControlMenu#INFO" />
 
 		<execute function="AssertTextEquals#assertPartialText" locator1="Message#CUSTOMIZED_PAGE_INFO" value1="This page is linked to a site template which does not allow modifications to it." />
 	</command>
@@ -837,13 +852,13 @@
 	</command>
 
 	<command name="viewPageTemplateLockCheck">
-		<execute function="Click" locator1="Dockbar#PAGE_INFO_MESSAGE_ICON" />
+		<execute function="Click" locator1="ControlMenu#INFO" />
 
 		<execute function="AssertTextEquals#assertPartialText" locator1="Message#CUSTOMIZED_PAGE_INFO" value1="This page is linked to a page template. Disable the automatic propagation of changes to this page to be able to make modifications." />
 	</command>
 
 	<command name="viewPageTemplateNoLockCheck">
-		<execute function="AssertElementNotPresent" locator1="Dockbar#PAGE_INFO_MESSAGE_ICON" />
+		<execute function="AssertElementNotPresent" locator1="ControlMenu#INFO" />
 		<execute function="AssertElementNotPresent" locator1="Message#CUSTOMIZED_PAGE_INFO" />
 	</command>
 

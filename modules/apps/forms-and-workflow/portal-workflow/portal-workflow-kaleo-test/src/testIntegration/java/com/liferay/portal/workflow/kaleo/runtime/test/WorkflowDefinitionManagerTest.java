@@ -69,7 +69,7 @@ public class WorkflowDefinitionManagerTest {
 
 				if (count >= 5) {
 					throw new IllegalStateException(
-						"Unable to get the reference to workflow definition " +
+						"Unable to get reference to a workflow definition " +
 							"manager");
 				}
 
@@ -392,12 +392,7 @@ public class WorkflowDefinitionManagerTest {
 	protected void assertValid(InputStream inputStream) throws Exception {
 		byte[] bytes = FileUtil.getBytes(inputStream);
 
-		try {
-			_workflowDefinitionManager.validateWorkflowDefinition(bytes);
-		}
-		catch (WorkflowException we) {
-			Assert.fail(we.getMessage());
-		}
+		_workflowDefinitionManager.validateWorkflowDefinition(bytes);
 	}
 
 	protected InputStream getResource(String name) {
