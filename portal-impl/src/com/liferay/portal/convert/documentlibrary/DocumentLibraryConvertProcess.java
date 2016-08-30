@@ -301,46 +301,9 @@ public class DocumentLibraryConvertProcess
 		actionableDynamicQuery.performActions();
 	}
 
-	protected void migrateMB() throws PortalException {
-		int count = MBMessageLocalServiceUtil.getMBMessagesCount();
-
-		MaintenanceUtil.appendStatus(
-			"Migrating message boards attachments in " + count + " messages");
-
-		ActionableDynamicQuery actionableDynamicQuery =
-			MBMessageLocalServiceUtil.getActionableDynamicQuery();
-
-		actionableDynamicQuery.setPerformActionMethod(
-			new ActionableDynamicQuery.PerformActionMethod<MBMessage>() {
-
-				@Override
-				public void performAction(MBMessage mbMessage)
-					throws PortalException {
-
-					for (FileEntry fileEntry :
-							mbMessage.getAttachmentsFileEntries()) {
-
-						DLFileEntry dlFileEntry =
-							(DLFileEntry)fileEntry.getModel();
-
-						migrateDLFileEntry(
-							mbMessage.getCompanyId(),
-							DLFolderConstants.getDataRepositoryId(
-								dlFileEntry.getRepositoryId(),
-								dlFileEntry.getFolderId()),
-							new LiferayFileEntry(dlFileEntry));
-					}
-				}
-
-			});
-
-		actionableDynamicQuery.performActions();
-	}
-
 	protected void migratePortlets() throws Exception {
 		migrateImages();
 		migrateDL();
-		migrateMB();
 
 		Collection<DLStoreConvertProcess> dlStoreConvertProcesses =
 			_getDLStoreConvertProcesses();
