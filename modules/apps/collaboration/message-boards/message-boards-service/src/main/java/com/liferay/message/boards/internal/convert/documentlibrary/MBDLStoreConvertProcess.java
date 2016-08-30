@@ -39,7 +39,7 @@ public class MBDLStoreConvertProcess implements DLStoreConvertProcess {
 	public void migrate(final DLStoreConverter dlStoreConverter)
 		throws PortalException {
 
-		int count =	_mbMessageLocalService.getMBMessagesCount();
+		int count = _mbMessageLocalService.getMBMessagesCount();
 
 		MaintenanceUtil.appendStatus(
 			"Migrating message boards attachments in " + count + " messages");
@@ -55,7 +55,7 @@ public class MBDLStoreConvertProcess implements DLStoreConvertProcess {
 					throws PortalException {
 
 					for (FileEntry fileEntry :
-						mbMessage.getAttachmentsFileEntries()) {
+							mbMessage.getAttachmentsFileEntries()) {
 
 						DLFileEntry dlFileEntry =
 							(DLFileEntry)fileEntry.getModel();
@@ -74,7 +74,7 @@ public class MBDLStoreConvertProcess implements DLStoreConvertProcess {
 		actionableDynamicQuery.performActions();
 	}
 
-	@Reference(unbind ="-")
+	@Reference(unbind = "-")
 	public void setWikiPageLocalService(
 		MBMessageLocalService mbMessageLocalService) {
 
@@ -82,4 +82,5 @@ public class MBDLStoreConvertProcess implements DLStoreConvertProcess {
 	}
 
 	private MBMessageLocalService _mbMessageLocalService;
+
 }
