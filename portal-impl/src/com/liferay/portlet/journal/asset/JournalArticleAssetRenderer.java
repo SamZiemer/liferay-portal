@@ -241,7 +241,7 @@ public class JournalArticleAssetRenderer
 			WebKeys.PORTLET_ID);
 
 		PortletPreferences portletSetup =
-			PortletPreferencesFactoryUtil.getLayoutPortletSetup(
+			PortletPreferencesFactoryUtil.getStrictLayoutPortletSetup(
 				layout, portletId);
 
 		String linkToLayoutUuid = GetterUtil.getString(
@@ -259,9 +259,11 @@ public class JournalArticleAssetRenderer
 			String groupFriendlyURL = PortalUtil.getGroupFriendlyURL(
 				group, layout.isPrivateLayout(), themeDisplay);
 
-			return groupFriendlyURL.concat(
-				JournalArticleConstants.CANONICAL_URL_SEPARATOR).concat(
-					_article.getUrlTitle());
+			return PortalUtil.addPreservedParameters(
+				themeDisplay,
+				groupFriendlyURL.concat(
+					JournalArticleConstants.CANONICAL_URL_SEPARATOR).concat(
+						_article.getUrlTitle()));
 		}
 
 		List<Long> hitLayoutIds =

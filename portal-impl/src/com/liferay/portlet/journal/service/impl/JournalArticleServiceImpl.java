@@ -29,13 +29,13 @@ import com.liferay.portlet.journal.model.JournalArticleConstants;
 import com.liferay.portlet.journal.model.JournalFolderConstants;
 import com.liferay.portlet.journal.service.base.JournalArticleServiceBaseImpl;
 import com.liferay.portlet.journal.service.permission.JournalArticlePermission;
+import com.liferay.portlet.journal.service.permission.JournalFolderPermission;
 import com.liferay.portlet.journal.service.permission.JournalPermission;
 
 import java.io.File;
 import java.io.Serializable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -153,8 +153,8 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 			String articleURL, ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
-		JournalPermission.check(
-			getPermissionChecker(), groupId, ActionKeys.ADD_ARTICLE);
+		JournalFolderPermission.check(
+			getPermissionChecker(), groupId, folderId, ActionKeys.ADD_ARTICLE);
 
 		return journalArticleLocalService.addArticle(
 			getUserId(), groupId, folderId, classNameId, classPK, articleId,
@@ -264,8 +264,8 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
-		JournalPermission.check(
-			getPermissionChecker(), groupId, ActionKeys.ADD_ARTICLE);
+		JournalFolderPermission.check(
+			getPermissionChecker(), groupId, folderId, ActionKeys.ADD_ARTICLE);
 
 		return journalArticleLocalService.addArticle(
 			getUserId(), groupId, folderId, classNameId, classPK, articleId,
@@ -301,8 +301,12 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 			boolean autoArticleId, double version)
 		throws PortalException, SystemException {
 
-		JournalPermission.check(
-			getPermissionChecker(), groupId, ActionKeys.ADD_ARTICLE);
+		JournalArticle article = journalArticleLocalService.getArticle(
+			groupId, oldArticleId);
+
+		JournalFolderPermission.check(
+			getPermissionChecker(), groupId, article.getFolderId(),
+			ActionKeys.ADD_ARTICLE);
 
 		return journalArticleLocalService.copyArticle(
 			getUserId(), groupId, oldArticleId, newArticleId, autoArticleId,
@@ -438,6 +442,16 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 
 		journalArticleLocalService.expireArticle(
 			getUserId(), groupId, articleId, articleURL, serviceContext);
+	}
+
+	@Override
+	public JournalArticle fetchArticle(long groupId, String articleId)
+		throws PortalException, SystemException {
+
+		JournalArticlePermission.check(
+			getPermissionChecker(), groupId, articleId, ActionKeys.VIEW);
+
+		return journalArticleLocalService.fetchArticle(groupId, articleId);
 	}
 
 	/**
@@ -966,39 +980,100 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 			ArrayUtil.toArray(folderIds.toArray(new Long[folderIds.size()])));
 	}
 
+	/**
+	 * Returns an ordered range of all the web content articles matching the
+	 * group, user, the root folder or any of its subfolders.
+	 *
+	 * @param  groupId the primary key of the web content article's group
+	 * @param  userId the primary key of the user (optionally <code>0</code>)
+	 * @param  rootFolderId the primary key of the root folder to begin the
+	 *         search
+	 * @param  status the web content article's workflow status. For more
+	 *         information see {@link WorkflowConstants} for constants starting
+	 *         with the "STATUS_" prefix.
+	 * @param  start the lower bound of the range of web content articles to
+	 *         return
+	 * @param  end the upper bound of the range of web content articles to
+	 *         return (not inclusive)
+	 * @param  orderByComparator the comparator to order the web content
+	 *         articles
+	 * @return the range of matching web content articles ordered by the
+	 *         comparator
+	 * @throws PortalException if the root folder could not be found, if the
+	 *         current user did not have permission to view the root folder, or
+	 *         if a portal exception occurred
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public List<JournalArticle> getGroupArticles(
+			long groupId, long userId, long rootFolderId, int status,
+			boolean includeOwner, int start, int end,
+			OrderByComparator orderByComparator)
+		throws PortalException, SystemException {
+
+		List<Long> folderIds = new ArrayList<Long>();
+
+		if (rootFolderId != JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			folderIds = journalFolderService.getFolderIds(
+				groupId, rootFolderId);
+		}
+
+		QueryDefinition queryDefinition = new QueryDefinition(
+			status, userId, includeOwner, start, end, orderByComparator);
+
+		return journalArticleFinder.filterFindByG_F_C(
+			groupId, folderIds, JournalArticleConstants.CLASSNAME_ID_DEFAULT,
+			queryDefinition);
+	}
+
+	/**
+	 * Returns an ordered range of all the web content articles matching the
+	 * group, user, the root folder or any of its subfolders.
+	 *
+	 * @param  groupId the primary key of the web content article's group
+	 * @param  userId the primary key of the user (optionally <code>0</code>)
+	 * @param  rootFolderId the primary key of the root folder to begin the
+	 *         search
+	 * @param  status the web content article's workflow status. For more
+	 *         information see {@link WorkflowConstants} for constants starting
+	 *         with the "STATUS_" prefix.
+	 * @param  start the lower bound of the range of web content articles to
+	 *         return
+	 * @param  end the upper bound of the range of web content articles to
+	 *         return (not inclusive)
+	 * @param  orderByComparator the comparator to order the web content
+	 *         articles
+	 * @return the range of matching web content articles ordered by the
+	 *         comparator
+	 * @throws PortalException if the root folder could not be found, if the
+	 *         current user did not have permission to view the root folder, or
+	 *         if a portal exception occurred
+	 * @throws SystemException if a system exception occurred
+	 */
 	@Override
 	public List<JournalArticle> getGroupArticles(
 			long groupId, long userId, long rootFolderId, int status, int start,
 			int end, OrderByComparator orderByComparator)
 		throws PortalException, SystemException {
 
-		List<Long> folderIds = new ArrayList<Long>();
-
-		if (rootFolderId == JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			folderIds = journalFolderService.getFolderIds(
-				groupId, rootFolderId);
-		}
-
-		QueryDefinition queryDefinition = new QueryDefinition(
-			status, start, end, orderByComparator);
-
-		if (folderIds.isEmpty()) {
-			return Collections.emptyList();
-		}
-		else if (userId <= 0) {
-			return journalArticleFinder.filterFindByG_F(
-				groupId, folderIds, queryDefinition);
-		}
-		else {
-			return journalArticleFinder.filterFindByG_U_F_C(
-				groupId, userId, folderIds,
-				JournalArticleConstants.CLASSNAME_ID_DEFAULT, queryDefinition);
-		}
+		return getGroupArticles(
+			groupId, userId, rootFolderId, status, false, start, end,
+			orderByComparator);
 	}
 
 	/**
 	 * Returns an ordered range of all the web content articles matching the
 	 * group, user, the root folder or any of its subfolders.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end -
+	 * start</code> instances. <code>start</code> and <code>end</code> are not
+	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
+	 * refers to the first result in the set. Setting both <code>start</code>
+	 * and <code>end</code> to {@link
+	 * com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
+	 * result set.
+	 * </p>
 	 *
 	 * @param  groupId the primary key of the web content article's group
 	 * @param  userId the primary key of the user (optionally <code>0</code>)
@@ -1056,27 +1131,47 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 			long groupId, long userId, long rootFolderId, int status)
 		throws PortalException, SystemException {
 
+		return getGroupArticlesCount(
+			groupId, userId, rootFolderId, status, false);
+	}
+
+	/**
+	 * Returns the number of web content articles matching the group, user,
+	 * the root folder or any of its subfolders.
+	 *
+	 * @param  groupId the primary key of the web content article's group
+	 * @param  userId the primary key of the user (optionally <code>0</code>)
+	 * @param  rootFolderId the primary key of the root folder to begin the
+	 *         search
+	 * @param  status the web content article's workflow status. For more
+	 *         information see {@link WorkflowConstants} for constants starting
+	 *         with the "STATUS_" prefix.
+	 * @return the range of matching web content articles ordered by the
+	 *         comparator
+	 * @throws PortalException if the root folder could not be found, if the
+	 *         current user did not have permission to view the root folder, or
+	 *         if a portal exception occurred
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public int getGroupArticlesCount(
+			long groupId, long userId, long rootFolderId, int status,
+			boolean includeOwner)
+		throws PortalException, SystemException {
+
 		List<Long> folderIds = new ArrayList<Long>();
 
-		if (rootFolderId == JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+		if (rootFolderId != JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 			folderIds = journalFolderService.getFolderIds(
 				groupId, rootFolderId);
 		}
 
-		QueryDefinition queryDefinition = new QueryDefinition(status);
+		QueryDefinition queryDefinition = new QueryDefinition(
+			status, userId, includeOwner);
 
-		if (folderIds.isEmpty()) {
-			return 0;
-		}
-		else if (userId <= 0) {
-			return journalArticleFinder.filterCountByG_F(
-				groupId, folderIds, queryDefinition);
-		}
-		else {
-			return journalArticleFinder.filterCountByG_U_F_C(
-				groupId, userId, folderIds,
-				JournalArticleConstants.CLASSNAME_ID_DEFAULT, queryDefinition);
-		}
+		return journalArticleFinder.filterCountByG_F_C(
+			groupId, folderIds, JournalArticleConstants.CLASSNAME_ID_DEFAULT,
+			queryDefinition);
 	}
 
 	/**

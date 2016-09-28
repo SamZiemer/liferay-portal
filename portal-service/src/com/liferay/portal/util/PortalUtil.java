@@ -124,6 +124,13 @@ public class PortalUtil {
 		getPortal().addPortalPortEventListener(portalPortEventListener);
 	}
 
+	public static void addPortalPortProtocolEventListener(
+		PortalPortProtocolEventListener portalPortProtocolEventListener) {
+
+		getPortal().addPortalPortProtocolEventListener(
+			portalPortProtocolEventListener);
+	}
+
 	public static void addPortletBreadcrumbEntry(
 		HttpServletRequest request, String title, String url) {
 
@@ -369,8 +376,16 @@ public class PortalUtil {
 		return getPortal().getCompanyIds();
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #getComputerAddresses()}
+	 */
+	@Deprecated
 	public static String getComputerAddress() {
 		return getPortal().getComputerAddress();
+	}
+
+	public static Set<String> getComputerAddresses() {
+		return getPortal().getComputerAddresses();
 	}
 
 	public static String getComputerName() {
@@ -521,6 +536,19 @@ public class PortalUtil {
 		return getPortal().getDigestAuthUserId(request);
 	}
 
+	public static String getDisplayURL(Group group, ThemeDisplay themeDisplay)
+		throws PortalException {
+
+		return getPortal().getDisplayURL(group, themeDisplay);
+	}
+
+	public static String getDisplayURL(
+			Group group, ThemeDisplay themeDisplay, boolean privateLayout)
+		throws PortalException {
+
+		return getPortal().getDisplayURL(group, themeDisplay, privateLayout);
+	}
+
 	public static String getEmailFromAddress(
 			PortletPreferences preferences, long companyId, String defaultValue)
 		throws SystemException {
@@ -538,6 +566,13 @@ public class PortalUtil {
 	}
 
 	public static Map<String, Serializable> getExpandoBridgeAttributes(
+			ExpandoBridge expandoBridge, HttpServletRequest request)
+		throws PortalException, SystemException {
+
+		return getPortal().getExpandoBridgeAttributes(expandoBridge, request);
+	}
+
+	public static Map<String, Serializable> getExpandoBridgeAttributes(
 			ExpandoBridge expandoBridge, PortletRequest portletRequest)
 		throws PortalException, SystemException {
 
@@ -552,6 +587,14 @@ public class PortalUtil {
 
 		return getPortal().getExpandoBridgeAttributes(
 			expandoBridge, uploadPortletRequest);
+	}
+
+	public static Serializable getExpandoValue(
+			HttpServletRequest request, String name, int type,
+			String displayType)
+		throws PortalException, SystemException {
+
+		return getPortal().getExpandoValue(request, name, type, displayType);
 	}
 
 	public static Serializable getExpandoValue(
@@ -846,6 +889,13 @@ public class PortalUtil {
 		throws PortalException, SystemException {
 
 		return getPortal().getLayoutURL(layout, themeDisplay, doAsUser);
+	}
+
+	public static String getLayoutURL(
+			Layout layout, ThemeDisplay themeDisplay, Locale locale)
+		throws PortalException, SystemException {
+
+		return getPortal().getLayoutURL(layout, themeDisplay, locale);
 	}
 
 	public static String getLayoutURL(ThemeDisplay themeDisplay)
@@ -1334,6 +1384,14 @@ public class PortalUtil {
 		return getPortal().getServletContextName();
 	}
 
+	public static long[] getSharedContentSiteGroupIds(
+			long companyId, long groupId, long userId)
+		throws PortalException, SystemException {
+
+		return getPortal().getSharedContentSiteGroupIds(
+			companyId, groupId, userId);
+	}
+
 	public static Map<String, List<Portlet>> getSiteAdministrationCategoriesMap(
 			HttpServletRequest request)
 		throws SystemException {
@@ -1553,6 +1611,10 @@ public class PortalUtil {
 		return getPortal().getUserValue(userId, param, defaultValue);
 	}
 
+	public static String getValidPortalDomain(long companyId, String domain) {
+		return getPortal().getValidPortalDomain(companyId, domain);
+	}
+
 	public static long getValidUserId(long companyId, long userId)
 		throws PortalException, SystemException {
 
@@ -1764,6 +1826,10 @@ public class PortalUtil {
 		return getPortal().isReservedParameter(name);
 	}
 
+	public static boolean isRightToLeft(HttpServletRequest request) {
+		return getPortal().isRightToLeft(request);
+	}
+
 	public static boolean isRSSFeedsEnabled() {
 		return getPortal().isRSSFeedsEnabled();
 	}
@@ -1809,6 +1875,10 @@ public class PortalUtil {
 
 		return getPortal().
 			resetPortletAddDefaultResourceCheckWhitelistActions();
+	}
+
+	public static String resetPortletParameters(String url, String portletId) {
+		return getPortal().resetPortletParameters(url, portletId);
 	}
 
 	/**
@@ -1926,8 +1996,9 @@ public class PortalUtil {
 	}
 
 	public static PortletMode updatePortletMode(
-		String portletId, User user, Layout layout, PortletMode portletMode,
-		HttpServletRequest request) {
+			String portletId, User user, Layout layout, PortletMode portletMode,
+			HttpServletRequest request)
+		throws PortalException, SystemException {
 
 		return getPortal().updatePortletMode(
 			portletId, user, layout, portletMode, request);

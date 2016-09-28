@@ -20,7 +20,17 @@
 long groupId = ParamUtil.getLong(request, FileEntryDisplayTerms.SELECTED_GROUP_ID);
 
 if (groupId == 0) {
-	groupId = ParamUtil.getLong(request, "groupId");
+	groupId = ParamUtil.getLong(request, "groupId", scopeGroupId);
+
+	Group group = GroupLocalServiceUtil.fetchGroup(groupId);
+
+	if ((group != null) && group.isStaged()) {
+		Group liveGroup = group.getLiveGroup();
+
+		if ((liveGroup != null) && !liveGroup.isStagedPortlet(PortletKeys.DOCUMENT_LIBRARY)) {
+			groupId = liveGroup.getGroupId();
+		}
+	}
 }
 
 Folder folder = (Folder)request.getAttribute(WebKeys.DOCUMENT_LIBRARY_FOLDER);
@@ -45,9 +55,15 @@ if (folderId > 0) {
 else {
 	long defaultFolderId = DLFolderConstants.getFolderId(groupId, DLFolderConstants.getDataRepositoryId(groupId, searchFolderIds));
 
-	List<Long> folderIds = DLAppServiceUtil.getSubfolderIds(groupId, searchFolderIds);
+	List<Folder> folders = DLAppServiceUtil.getFolders(groupId, searchFolderIds);
 
-	folderIds.add(0, defaultFolderId);
+	List<Long> folderIds = new ArrayList<Long>(folders.size() + 1);
+
+	folderIds.add(defaultFolderId);
+
+	for (Folder subFolder : folders) {
+		folderIds.add(subFolder.getFolderId());
+	}
 
 	folderIdsArray = StringUtil.split(StringUtil.merge(folderIds), 0L);
 }
@@ -60,9 +76,6 @@ if (folder != null) {
 	DLUtil.addPortletBreadcrumbEntries(folder, request, renderResponse);
 }
 
-int entryStart = ParamUtil.getInteger(request, "entryStart");
-int entryEnd = ParamUtil.getInteger(request, "entryEnd", PropsValues.SEARCH_CONTAINER_PAGE_DEFAULT_DELTA);
-
 String keywords = ParamUtil.getString(request, "keywords");
 
 PortletURL portletURL = renderResponse.createRenderURL();
@@ -72,7 +85,7 @@ portletURL.setParameter("groupId", String.valueOf(groupId));
 portletURL.setParameter("folderId", String.valueOf(folderId));
 %>
 
-<aui:form method="post" name="fm">
+<aui:form action="<%= portletURL %>" method="post" name="fm">
 
 	<%
 	FileEntrySearch fileEntrySearchContainer = new FileEntrySearch(renderRequest, portletURL);
@@ -92,7 +105,7 @@ portletURL.setParameter("folderId", String.valueOf(folderId));
 			title="folders"
 		/>
 
-		<liferay-ui:breadcrumb showGuestGroup="<%= false %>" showLayout="<%= false %>" showParentGroups="<%= false %>" />
+		<liferay-ui:breadcrumb showCurrentGroup="<%= false %>" showGuestGroup="<%= false %>" showLayout="<%= false %>" showParentGroups="<%= false %>" />
 
 		<div class="helper-clearfix">
 			<liferay-ui:icon-menu cssClass="lfr-document-library-add-menu" icon='<%= themeDisplay.getPathThemeImages() + "/common/add.png" %>' message="add">
@@ -185,25 +198,22 @@ portletURL.setParameter("folderId", String.valueOf(folderId));
 
 			// Name
 
-			StringBundler sb = new StringBundler(4);
+			StringBundler sb = new StringBundler(6);
 
-			sb.append("<img align=\"left\" border=\"0\" src=\"");
-			sb.append(themeDisplay.getPathThemeImages());
+			sb.append("<img align=\"left\" alt=\"");
+			sb.append(LanguageUtil.get(locale, "folder"));
+			sb.append("\" border=\"0\" src=\"");
+			sb.append(HtmlUtil.escapeAttribute(themeDisplay.getPathThemeImages()));
 			sb.append("/common/folder.png\">");
-			sb.append(curFolder.getName());
+			sb.append(HtmlUtil.escape(curFolder.getName()));
 
 			row.addText(sb.toString(), rowURL);
 
 			// Statistics
 
-			List<Long> subfolderIds = DLAppServiceUtil.getSubfolderIds(curFolder.getRepositoryId(), curFolder.getFolderId(), false);
+			int foldersCount = DLAppServiceUtil.getFoldersCount(curFolder.getRepositoryId(), curFolder.getFolderId());
 
-			int foldersCount = subfolderIds.size();
-
-			subfolderIds.clear();
-			subfolderIds.add(curFolder.getFolderId());
-
-			int fileEntriesCount = DLAppServiceUtil.getFoldersFileEntriesCount(curFolder.getRepositoryId(), subfolderIds, WorkflowConstants.STATUS_APPROVED);
+			int fileEntriesCount = DLAppServiceUtil.getFoldersFileEntriesCount(curFolder.getRepositoryId(), Arrays.asList(curFolder.getFolderId()), WorkflowConstants.STATUS_APPROVED);
 
 			row.addText(String.valueOf(foldersCount), rowURL);
 			row.addText(String.valueOf(fileEntriesCount), rowURL);
@@ -275,24 +285,26 @@ portletURL.setParameter("folderId", String.valueOf(folderId));
 	<%
 	}
 	else {
-		PortletURL iteratorURL = renderResponse.createRenderURL();
-
-		iteratorURL.setParameter("struts_action", "/dynamic_data_mapping/select_document_library");
-		iteratorURL.setParameter("groupId", String.valueOf(groupId));
-		iteratorURL.setParameter("folderId", String.valueOf(folderId));
-
-		fileEntrySearchContainer = new FileEntrySearch(renderRequest, displayTerms, (FileEntrySearchTerms)fileEntrySearchContainer.getSearchTerms(), "cur2", SearchContainer.DEFAULT_DELTA, iteratorURL, headerNames, "there-are-no-documents-in-this-folder");
+		fileEntrySearchContainer = new FileEntrySearch(renderRequest, displayTerms, (FileEntrySearchTerms)fileEntrySearchContainer.getSearchTerms(), "cur2", SearchContainer.DEFAULT_DELTA, portletURL, headerNames, "there-are-no-documents-in-this-folder");
 
 		try {
 			SearchContext searchContext = SearchContextFactory.getInstance(request);
 
 			searchContext.setAttribute("groupId", groupId);
 			searchContext.setAttribute("paginationType", "regular");
-			searchContext.setEnd(entryEnd);
+			searchContext.setEnd(fileEntrySearchContainer.getEnd());
 			searchContext.setFolderIds(folderIdsArray);
 			searchContext.setGroupIds(new long[] {groupId});
 			searchContext.setKeywords(keywords);
-			searchContext.setStart(entryStart);
+
+			QueryConfig queryConfig = new QueryConfig();
+
+			queryConfig.setHighlightEnabled(true);
+			queryConfig.setSearchSubfolders(true);
+
+			searchContext.setQueryConfig(queryConfig);
+
+			searchContext.setStart(fileEntrySearchContainer.getStart());
 
 			searchContext.setScopeStrict(false);
 

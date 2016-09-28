@@ -216,6 +216,10 @@ boolean hasViewPagesPermission = (pagesCount > 0) && (liveGroup.isStaged() || se
 	var clickHandler = function(event) {
 		var dataValue = event.target.ancestor('li').attr('data-value');
 
+		processDataValue(dataValue);
+	};
+
+	var processDataValue = function(dataValue) {
 		if (dataValue === 'add-page' || dataValue === 'add-child-page') {
 			var content = A.one('#<portlet:namespace />addLayout');
 
@@ -225,7 +229,7 @@ boolean hasViewPagesPermission = (pagesCount > 0) && (liveGroup.isStaged() || se
 						dialog: {
 							bodyContent: content.show(),
 							cssClass: 'lfr-add-dialog',
-							width: 600
+							width: 800
 						},
 						title: '<%= UnicodeLanguageUtil.get(pageContext, "add-page") %>'
 					}
@@ -295,6 +299,10 @@ boolean hasViewPagesPermission = (pagesCount > 0) && (liveGroup.isStaged() || se
 	};
 
 	A.one('#<portlet:namespace />layoutsNav').delegate('click', clickHandler, 'li a');
+
+	<c:if test='<%= layout.isTypeControlPanel() && (SessionMessages.get(liferayPortletRequest, portletDisplay.getId() + "addError") != null) %>'>
+		processDataValue('add-page');
+	</c:if>
 </aui:script>
 
 <%!

@@ -20,6 +20,7 @@ import com.liferay.portal.UserActiveException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
+import com.liferay.portal.kernel.servlet.DynamicServletRequest;
 import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.struts.LastPath;
@@ -41,6 +42,7 @@ import com.liferay.portal.model.PortletPreferencesIds;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserTracker;
 import com.liferay.portal.model.UserTrackerPath;
+import com.liferay.portal.security.auth.InterruptedPortletRequestWhitelistUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
@@ -69,8 +71,11 @@ import java.io.IOException;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.portlet.PortletConfig;
 import javax.portlet.PortletContext;
@@ -88,6 +93,7 @@ import javax.servlet.jsp.PageContext;
 
 import org.apache.struts.Globals;
 import org.apache.struts.action.Action;
+import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.config.ActionConfig;
 import org.apache.struts.config.ForwardConfig;
@@ -140,15 +146,6 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 			HttpServletRequest request, HttpServletResponse response)
 		throws IOException, ServletException {
 
-		HttpSession session = request.getSession();
-
-		Boolean basicAuthEnabled = (Boolean)session.getAttribute(
-			WebKeys.BASIC_AUTH_ENABLED);
-
-		if (basicAuthEnabled != null) {
-			session.removeAttribute(WebKeys.BASIC_AUTH_ENABLED);
-		}
-
 		String path = super.processPath(request, response);
 
 		ActionMapping actionMapping =
@@ -156,9 +153,7 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 
 		Action action = StrutsActionRegistryUtil.getAction(path);
 
-		if (((basicAuthEnabled != null) && basicAuthEnabled.booleanValue()) ||
-			((actionMapping == null) && (action == null))) {
-
+		if ((actionMapping == null) && (action == null)) {
 			String lastPath = getLastPath(request);
 
 			if (_log.isDebugEnabled()) {
@@ -716,10 +711,17 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 			return _PATH_PORTAL_ERROR;
 		}
 
+		long companyId = PortalUtil.getCompanyId(request);
+		String portletId = ParamUtil.getString(request, "p_p_id");
+
 		if (!path.equals(_PATH_PORTAL_JSON_SERVICE) &&
 			!path.equals(_PATH_PORTAL_RENDER_PORTLET) &&
 			!ParamUtil.getBoolean(request, "wsrp") &&
-			!themeDisplay.isImpersonated()) {
+			!themeDisplay.isImpersonated() &&
+			!InterruptedPortletRequestWhitelistUtil.
+				isPortletInvocationWhitelisted(
+					companyId, portletId,
+					PortalUtil.getStrutsAction(request))) {
 
 			// Authenticated users should agree to Terms of Use
 
@@ -793,9 +795,6 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 			try {
 				Portlet portlet = null;
 
-				long companyId = PortalUtil.getCompanyId(request);
-				String portletId = ParamUtil.getString(request, "p_p_id");
-
 				if (Validator.isNotNull(portletId)) {
 					portlet = PortletLocalServiceUtil.getPortletById(
 						companyId, portletId);
@@ -829,6 +828,45 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 		}
 
 		return path;
+	}
+
+	@Override
+	protected void processPopulate(
+			HttpServletRequest request, HttpServletResponse response,
+			ActionForm actionForm, ActionMapping actionMapping)
+		throws ServletException {
+
+		if (actionForm == null) {
+			return;
+		}
+
+		boolean hasIgnoredParameter = false;
+
+		Map<String, String[]> oldParameterMap = request.getParameterMap();
+
+		Map<String, String[]> newParameterMap =
+			new LinkedHashMap<String, String[]>(oldParameterMap.size());
+
+		for (Map.Entry<String, String[]> entry : oldParameterMap.entrySet()) {
+			String name = entry.getKey();
+
+			Matcher matcher = _strutsPortletIgnoredParamtersPattern.matcher(
+				name);
+
+			if (matcher.matches()) {
+				hasIgnoredParameter = true;
+			}
+			else {
+				newParameterMap.put(name, entry.getValue());
+			}
+		}
+
+		if (hasIgnoredParameter) {
+			request = new DynamicServletRequest(
+				request, newParameterMap, false);
+		}
+
+		super.processPopulate(request, response, actionForm, actionMapping);
 	}
 
 	@Override
@@ -884,7 +922,9 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 						user.getCompanyId(), strutsPath);
 				}
 
-				if ((portlet != null) && portlet.isActive()) {
+				if ((portlet != null) && portlet.isActive() &&
+					!portlet.isSystem()) {
+
 					ThemeDisplay themeDisplay =
 						(ThemeDisplay)request.getAttribute(
 							WebKeys.THEME_DISPLAY);
@@ -996,6 +1036,9 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 
 	private static Log _log = LogFactoryUtil.getLog(
 		PortalRequestProcessor.class);
+
+	private static Pattern _strutsPortletIgnoredParamtersPattern =
+		Pattern.compile(PropsValues.STRUTS_PORTLET_IGNORED_PARAMETERS_REGEXP);
 
 	private Set<String> _lastPaths;
 	private Set<String> _publicPaths;

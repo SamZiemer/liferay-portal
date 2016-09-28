@@ -23,21 +23,21 @@ if (portletResource.equals(PortletKeys.DOCUMENT_LIBRARY)) {
 	strutsAction = "/document_library";
 }
 
-String redirect = ParamUtil.getString(request, "redirect");
-
 String portletNameSpace = PortalUtil.getPortletNamespace(portletResource);
 %>
 
-<liferay-portlet:actionURL portletConfiguration="true" var="configurationURL" />
+<liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL" />
 
-<aui:form action="<%= configurationURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
+<liferay-portlet:renderURL portletConfiguration="true" var="configurationRenderURL" />
+
+<aui:form action="<%= configurationActionURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
-	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+	<aui:input name="redirect" type="hidden" value="<%= configurationRenderURL %>" />
 	<aui:input name="preferences--rootFolderId--" type="hidden" value="<%= rootFolderId %>" />
 	<aui:input name="preferences--folderColumns--" type="hidden" />
 	<aui:input name="preferences--fileEntryColumns--" type="hidden" />
 
-	<liferay-ui:error key="rootFolderId" message="please-enter-a-valid-root-folder" />
+	<liferay-ui:error key="rootFolderIdInvalid" message="please-enter-a-valid-root-folder" />
 
 	<liferay-ui:panel-container extended="<%= true %>" id="documentLibrarySettingsPanelContainer" persistState="<%= true %>">
 		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="documentLibraryDisplay" persistState="<%= true %>" title="display-settings">
@@ -52,19 +52,17 @@ String portletNameSpace = PortalUtil.getPortletNamespace(portletResource);
 
 		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="documentLibraryFoldersListingPanel" persistState="<%= true %>" title="folders-listing">
 			<aui:fieldset>
-				<aui:field-wrapper label="root-folder">
-					<div class="input-append">
-						<liferay-ui:input-resource id="rootFolderName" url="<%= rootFolderName %>" />
+				<div class="control-group">
+					<aui:input label="root-folder" name="rootFolderName" type="resource" value="<%= rootFolderName %>" />
 
-						<aui:button name="openFolderSelectorButton" value="select" />
+					<aui:button name="openFolderSelectorButton" value="select" />
 
-						<%
-						String taglibRemoveFolder = "Liferay.Util.removeFolderSelection('rootFolderId', 'rootFolderName', '" + renderResponse.getNamespace() + "');";
-						%>
+					<%
+					String taglibRemoveFolder = "Liferay.Util.removeFolderSelection('rootFolderId', 'rootFolderName', '" + renderResponse.getNamespace() + "');";
+					%>
 
-						<aui:button disabled="<%= rootFolderId <= 0 %>" name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
-					</div>
-				</aui:field-wrapper>
+					<aui:button disabled="<%= rootFolderId <= 0 %>" name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
+				</div>
 
 				<aui:input name="preferences--showSubfolders--" type="checkbox" value="<%= showSubfolders %>" />
 
@@ -169,6 +167,8 @@ String portletNameSpace = PortalUtil.getPortletNamespace(portletResource);
 
 <liferay-portlet:renderURL portletName="<%= portletResource %>" var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
 	<portlet:param name="struts_action" value='<%= strutsAction + "/select_folder" %>' />
+	<portlet:param name="folderId" value="<%= String.valueOf(rootFolderId) %>" />
+	<portlet:param name="ignoreRootFolder" value="<%= Boolean.TRUE.toString() %>" />
 </liferay-portlet:renderURL>
 
 <aui:script use="aui-base">
@@ -180,7 +180,7 @@ String portletNameSpace = PortalUtil.getPortletNamespace(portletResource);
 					dialog: {
 						constrain: true,
 						modal: true,
-						width: 600
+						width: 800
 					},
 					id: '_<%= HtmlUtil.escapeJS(portletResource) %>_selectFolder',
 					title: '<liferay-ui:message arguments="folder" key="select-x" />',

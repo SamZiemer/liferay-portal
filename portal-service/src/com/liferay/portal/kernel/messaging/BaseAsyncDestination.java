@@ -22,6 +22,8 @@ import com.liferay.portal.kernel.executor.PortalExecutorManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.proxy.MessageValuesThreadLocal;
+import com.liferay.portal.kernel.util.GroupThreadLocal;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.NamedThreadFactory;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -33,6 +35,7 @@ import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.service.UserLocalServiceUtil;
 
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -165,6 +168,12 @@ public abstract class BaseAsyncDestination extends BaseDestination {
 
 		populateMessageFromThreadLocals(message);
 
+		if (_log.isDebugEnabled()) {
+			_log.debug(
+				"Sending message " + message + " from destination " +
+					getName() + " to message listeners " + messageListeners);
+		}
+
 		dispatch(messageListeners, message);
 	}
 
@@ -220,6 +229,14 @@ public abstract class BaseAsyncDestination extends BaseDestination {
 			message.put("companyId", CompanyThreadLocal.getCompanyId());
 		}
 
+		if (!message.contains("defaultLocale")) {
+			message.put("defaultLocale", LocaleThreadLocal.getDefaultLocale());
+		}
+
+		if (!message.contains("groupId")) {
+			message.put("groupId", GroupThreadLocal.getGroupId());
+		}
+
 		if (!message.contains("permissionChecker")) {
 			message.put(
 				"permissionChecker",
@@ -234,6 +251,17 @@ public abstract class BaseAsyncDestination extends BaseDestination {
 			message.put(
 				"principalPassword", PrincipalThreadLocal.getPassword());
 		}
+
+		if (!message.contains("siteDefaultLocale")) {
+			message.put(
+				"siteDefaultLocale", LocaleThreadLocal.getSiteDefaultLocale());
+		}
+
+		if (!message.contains("themeDisplayLocale")) {
+			message.put(
+				"themeDisplayLocale",
+				LocaleThreadLocal.getThemeDisplayLocale());
+		}
 	}
 
 	protected void populateThreadLocalsFromMessage(Message message) {
@@ -241,6 +269,18 @@ public abstract class BaseAsyncDestination extends BaseDestination {
 
 		if (companyId > 0) {
 			CompanyThreadLocal.setCompanyId(companyId);
+		}
+
+		Locale defaultLocale = (Locale)message.get("defaultLocale");
+
+		if (defaultLocale != null) {
+			LocaleThreadLocal.setDefaultLocale(defaultLocale);
+		}
+
+		long groupId = message.getLong("groupId");
+
+		if (groupId > 0) {
+			GroupThreadLocal.setGroupId(groupId);
 		}
 
 		PermissionChecker permissionChecker = (PermissionChecker)message.get(
@@ -280,6 +320,18 @@ public abstract class BaseAsyncDestination extends BaseDestination {
 		if (clusterForwardMessage != null) {
 			MessageValuesThreadLocal.setValue(
 				ClusterLink.CLUSTER_FORWARD_MESSAGE, clusterForwardMessage);
+		}
+
+		Locale siteDefaultLocale = (Locale)message.get("siteDefaultLocale");
+
+		if (siteDefaultLocale != null) {
+			LocaleThreadLocal.setSiteDefaultLocale(siteDefaultLocale);
+		}
+
+		Locale themeDisplayLocale = (Locale)message.get("themeDisplayLocale");
+
+		if (themeDisplayLocale != null) {
+			LocaleThreadLocal.setThemeDisplayLocale(themeDisplayLocale);
 		}
 	}
 

@@ -25,8 +25,6 @@ if (portletResource.equals(PortletKeys.DOCUMENT_LIBRARY)) {
 
 String tabs2 = ParamUtil.getString(request, "tabs2", "display-settings");
 
-String redirect = ParamUtil.getString(request, "redirect");
-
 String emailFromName = ParamUtil.getString(request, "preferences--emailFromName--", DLUtil.getEmailFromName(portletPreferences, company.getCompanyId()));
 String emailFromAddress = ParamUtil.getString(request, "preferences--emailFromAddress--", DLUtil.getEmailFromAddress(portletPreferences, company.getCompanyId()));
 
@@ -57,17 +55,16 @@ String emailSubject = PrefsParamUtil.getString(portletPreferences, request, emai
 String emailBody = PrefsParamUtil.getString(portletPreferences, request, emailBodyParam, defaultEmailBody);
 %>
 
-<liferay-portlet:renderURL portletConfiguration="true" var="portletURL">
+<liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL" />
+
+<liferay-portlet:renderURL portletConfiguration="true" var="configurationRenderURL">
 	<portlet:param name="tabs2" value="<%= tabs2 %>" />
-	<portlet:param name="redirect" value="<%= redirect %>" />
 </liferay-portlet:renderURL>
 
-<liferay-portlet:actionURL portletConfiguration="true" var="configurationURL" />
-
-<aui:form action="<%= configurationURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
+<aui:form action="<%= configurationActionURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
 	<aui:input name="tabs2" type="hidden" value="<%= tabs2 %>" />
-	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+	<aui:input name="redirect" type="hidden" value="<%= configurationRenderURL %>" />
 
 	<%
 	String tabs2Names = "display-settings,email-from,document-added-email,document-updated-email";
@@ -76,7 +73,7 @@ String emailBody = PrefsParamUtil.getString(portletPreferences, request, emailBo
 	<liferay-ui:tabs
 		names="<%= tabs2Names %>"
 		param="tabs2"
-		url="<%= portletURL %>"
+		url="<%= configurationRenderURL %>"
 	/>
 
 	<liferay-ui:error key="displayViewsInvalid" message="display-style-views-cannot-be-empty" />
@@ -99,19 +96,17 @@ String emailBody = PrefsParamUtil.getString(portletPreferences, request, emailBo
 			<liferay-ui:panel-container extended="<%= true %>" id="documentLibrarySettingsPanelContainer" persistState="<%= true %>">
 				<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="documentLibraryItemsListingPanel" persistState="<%= true %>" title="display-settings">
 					<aui:fieldset>
-						<aui:field-wrapper label="root-folder">
-							<div class="input-append">
-								<liferay-ui:input-resource id="rootFolderName" url="<%= rootFolderName %>" />
+						<div class="control-group">
+							<aui:input label="root-folder" name="rootFolderName" type="resource" value="<%= rootFolderName %>" />
 
-								<aui:button name="selectFolderButton" value="select" />
+							<aui:button name="selectFolderButton" value="select" />
 
-								<%
-								String taglibRemoveFolder = "Liferay.Util.removeFolderSelection('rootFolderId', 'rootFolderName', '" + renderResponse.getNamespace() + "');";
-								%>
+							<%
+							String taglibRemoveFolder = "Liferay.Util.removeFolderSelection('rootFolderId', 'rootFolderName', '" + renderResponse.getNamespace() + "');";
+							%>
 
-								<aui:button disabled="<%= rootFolderId <= 0 %>" name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
-							</div>
-						</aui:field-wrapper>
+							<aui:button disabled="<%= rootFolderId <= 0 %>" name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
+						</div>
 
 						<aui:input label="show-search" name="preferences--showFoldersSearch--" type="checkbox" value="<%= showFoldersSearch %>" />
 
@@ -122,6 +117,20 @@ String emailBody = PrefsParamUtil.getString(portletPreferences, request, emailBo
 							%>
 
 								<aui:option label="<%= pageDeltaValue %>" selected="<%= entriesPerPage == pageDeltaValue %>" />
+
+							<%
+							}
+							%>
+
+						</aui:select>
+
+						<aui:select label="maximum-pagination-pages-to-display" name="preferences--numberOfPages--">
+
+							<%
+							for (int searchContainerPageIteratorPageValue : PropsValues.SEARCH_CONTAINER_PAGE_ITERATOR_PAGE_VALUES) {
+							%>
+
+								<aui:option label="<%= searchContainerPageIteratorPageValue %>" selected="<%= numberOfPages == searchContainerPageIteratorPageValue %>" />
 
 							<%
 							}
@@ -223,6 +232,8 @@ String emailBody = PrefsParamUtil.getString(portletPreferences, request, emailBo
 
 			<liferay-portlet:renderURL portletName="<%= portletResource %>" var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
 				<portlet:param name="struts_action" value='<%= strutsAction + "/select_folder" %>' />
+				<portlet:param name="folderId" value="<%= String.valueOf(rootFolderId) %>" />
+				<portlet:param name="ignoreRootFolder" value="<%= Boolean.TRUE.toString() %>" />
 			</liferay-portlet:renderURL>
 
 			<aui:script use="aui-base">
@@ -234,7 +245,7 @@ String emailBody = PrefsParamUtil.getString(portletPreferences, request, emailBo
 								dialog: {
 									constrain: true,
 									modal: true,
-									width: 600
+									width: 800
 								},
 								id: '_<%= HtmlUtil.escapeJS(portletResource) %>_selectFolder',
 								title: '<liferay-ui:message arguments="folder" key="select-x" />',
@@ -306,7 +317,7 @@ String emailBody = PrefsParamUtil.getString(portletPreferences, request, emailBo
 						[$PORTLET_NAME$]
 					</dt>
 					<dd>
-						<%= PortalUtil.getPortletTitle(renderResponse) %>
+						<%= HtmlUtil.escape(PortalUtil.getPortletTitle(renderResponse)) %>
 					</dd>
 					<dt>
 						[$SITE_NAME$]
@@ -434,7 +445,7 @@ String emailBody = PrefsParamUtil.getString(portletPreferences, request, emailBo
 						[$PORTLET_NAME$]
 					</dt>
 					<dd>
-						<%= PortalUtil.getPortletTitle(renderResponse) %>
+						<%= HtmlUtil.escape(PortalUtil.getPortletTitle(renderResponse)) %>
 					</dd>
 					<dt>
 						[$SITE_NAME$]
@@ -465,7 +476,7 @@ String emailBody = PrefsParamUtil.getString(portletPreferences, request, emailBo
 
 <aui:script>
 	function <portlet:namespace />initEditor() {
-		return "<%= UnicodeFormatter.toString(emailBody) %>";
+		return '<%= UnicodeFormatter.toString(emailBody) %>';
 	}
 
 	function <portlet:namespace />updateLanguage() {

@@ -74,9 +74,7 @@ String discountType = BeanParamUtil.getString(coupon, request, "discountType");
 				<aui:input label="autogenerate-code" name="autoCode" type="checkbox" />
 			</c:when>
 			<c:otherwise>
-				<aui:field-wrapper label="code">
-					<liferay-ui:input-resource url="<%= code %>" />
-				</aui:field-wrapper>
+				<aui:input name="code" type="resource" value="<%= code %>" />
 			</c:otherwise>
 		</c:choose>
 
@@ -137,7 +135,7 @@ String discountType = BeanParamUtil.getString(coupon, request, "discountType");
 				List categoryIds = (List)errorException;
 				%>
 
-				<liferay-ui:message key="the-following-are-invalid-category-ids" /> <%= StringUtil.merge((String[])categoryIds.toArray(new String[0])) %>
+				<liferay-ui:message key="the-following-are-invalid-category-ids" /> <%= HtmlUtil.escape(StringUtil.merge((String[])categoryIds.toArray(new String[0]))) %>
 			</liferay-ui:error>
 
 			<liferay-ui:error exception="<%= CouponLimitSKUsException.class %>">
@@ -146,7 +144,7 @@ String discountType = BeanParamUtil.getString(coupon, request, "discountType");
 				List skus = (List)errorException;
 				%>
 
-				<liferay-ui:message key="the-following-are-invalid-item-skus" /> <%= StringUtil.merge((String[])skus.toArray(new String[0])) %>
+				<liferay-ui:message key="the-following-are-invalid-item-skus" /> <%= HtmlUtil.escape(StringUtil.merge((String[])skus.toArray(new String[0]))) %>
 			</liferay-ui:error>
 
 			<aui:fieldset>

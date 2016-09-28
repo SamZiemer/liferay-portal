@@ -46,6 +46,10 @@ public interface Document extends Cloneable, Serializable {
 	public void addFile(String name, InputStream is, String fileExt)
 		throws IOException;
 
+	public void addFile(
+			String name, InputStream is, String fileExt, int maxStringLength)
+		throws IOException;
+
 	public void addKeyword(String name, boolean value);
 
 	public void addKeyword(String name, Boolean value);
@@ -100,10 +104,22 @@ public interface Document extends Cloneable, Serializable {
 
 	public void addKeyword(String name, String[] values);
 
+	public void addKeywordSortable(String name, Boolean value);
+
+	public void addKeywordSortable(String name, Boolean[] values);
+
+	public void addKeywordSortable(String name, String value);
+
+	public void addKeywordSortable(String name, String[] values);
+
 	public void addLocalizedKeyword(String name, Map<Locale, String> values);
 
 	public void addLocalizedKeyword(
 		String name, Map<Locale, String> values, boolean lowerCase);
+
+	public void addLocalizedKeyword(
+		String name, Map<Locale, String> values, boolean lowerCase,
+		boolean sortable);
 
 	public void addLocalizedText(String name, Map<Locale, String> values);
 
@@ -153,9 +169,29 @@ public interface Document extends Cloneable, Serializable {
 
 	public void addNumber(String name, String[] values);
 
+	public void addNumberSortable(String name, Double value);
+
+	public void addNumberSortable(String name, Double[] values);
+
+	public void addNumberSortable(String name, Float value);
+
+	public void addNumberSortable(String name, Float[] values);
+
+	public void addNumberSortable(String name, Integer value);
+
+	public void addNumberSortable(String name, Integer[] values);
+
+	public void addNumberSortable(String name, Long value);
+
+	public void addNumberSortable(String name, Long[] values);
+
 	public void addText(String name, String value);
 
 	public void addText(String name, String[] values);
+
+	public void addTextSortable(String name, String value);
+
+	public void addTextSortable(String name, String[] values);
 
 	public void addUID(String portletId, long field1);
 

@@ -446,18 +446,18 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 
 		Company company = companyPersistence.findByPrimaryKey(companyId);
 
-		if (Validator.isNull(company.getKey()) &&
-			(company.getKeyObj() == null)) {
-
-			try {
-				company.setKey(Base64.objectToString(Encryptor.generateKey()));
-			}
-			catch (EncryptorException ee) {
-				throw new SystemException(ee);
-			}
-
-			companyPersistence.update(company);
+		if (company.getKeyObj() != null) {
+			return;
 		}
+
+		try {
+			company.setKey(Base64.objectToString(Encryptor.generateKey()));
+		}
+		catch (EncryptorException ee) {
+			throw new SystemException(ee);
+		}
+
+		companyPersistence.update(company);
 	}
 
 	@Override
@@ -1236,10 +1236,6 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 
 		deleteGroupActionableDynamicQuery.performActions();
 
-		Group companyGroup = groupLocalService.getCompanyGroup(companyId);
-
-		deleteGroupActionableDynamicQuery.deleteGroup(companyGroup);
-
 		String[] systemGroups = PortalUtil.getSystemGroups();
 
 		for (String groupName : systemGroups) {
@@ -1247,6 +1243,10 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 
 			deleteGroupActionableDynamicQuery.deleteGroup(group);
 		}
+
+		Group companyGroup = groupLocalService.getCompanyGroup(companyId);
+
+		deleteGroupActionableDynamicQuery.deleteGroup(companyGroup);
 
 		// Layout prototype
 
@@ -1328,7 +1328,10 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		PasswordPolicy defaultPasswordPolicy =
 			passwordPolicyLocalService.getDefaultPasswordPolicy(companyId);
 
-		passwordPolicyLocalService.deletePasswordPolicy(defaultPasswordPolicy);
+		if (defaultPasswordPolicy != null) {
+			passwordPolicyLocalService.deletePasswordPolicy(
+				defaultPasswordPolicy);
+		}
 
 		// Portal preferences
 

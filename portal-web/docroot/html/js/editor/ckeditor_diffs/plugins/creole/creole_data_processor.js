@@ -47,34 +47,13 @@
 
 	var TAG_UNORDERED_LIST_ITEM = '*';
 
-	CKEDITOR.plugins.add(
-		'creole_data_processor',
-		{
-			requires: ['htmlwriter'],
+	var attachmentURLPrefix;
 
-			init: function(editor) {
-				editor.dataProcessor = new CKEDITOR.htmlDataProcessor(editor);
+	var CreoleDataProcessor = function() {};
 
-				editor.on(
-					'paste',
-					function(event) {
-						var data = event.data;
+	CreoleDataProcessor.prototype = {
+		constructor: CreoleDataProcessor,
 
-						var htmlData = data.dataValue;
-
-						htmlData = CKEDITOR.htmlDataProcessor.prototype.toDataFormat(htmlData);
-
-						data.dataValue = htmlData;
-					},
-					editor.element.$
-				);
-
-				editor.fire('customDataProcessorLoaded');
-			}
-		}
-	);
-
-	CKEDITOR.htmlDataProcessor.prototype = {
 		toDataFormat: function(html, fixForBody ) {
 			var instance = this;
 
@@ -83,22 +62,33 @@
 			return data;
 		},
 
-		toHtml: function(data, fixForBody) {
+		toHtml: function(data, config) {
 			var instance = this;
-
-			var div = document.createElement('div');
 
 			if (!instance._creoleParser) {
 				instance._creoleParser = new CKEDITOR.CreoleParser(
 					{
-						imagePrefix: CKEDITOR.config.attachmentURLPrefix
+						imagePrefix: attachmentURLPrefix
 					}
 				);
 			}
 
-			instance._creoleParser.parse(div, data);
+			if (config) {
+				var fragment = CKEDITOR.htmlParser.fragment.fromHtml(data);
 
-			data = div.innerHTML;
+				var writer = new CKEDITOR.htmlParser.basicWriter();
+
+				fragment.writeHtml(writer);
+
+				data = writer.getHtml();
+			}
+			else {
+				var div = document.createElement('div');
+
+				instance._creoleParser.parse(div, data);
+
+				data = div.innerHTML;
+			}
 
 			return data;
 		},
@@ -187,9 +177,12 @@
 
 			if (instance._skipParse) {
 				newLineCharacter = NEW_LINE;
-			}
 
-			listTagsIn.push(newLineCharacter);
+				listTagsIn.push(newLineCharacter);
+			}
+			else if (element.previousSibling && element.nextSibling && (element.nextSibling !== NEW_LINE)) {
+				listTagsIn.push(newLineCharacter);
+			}
 		},
 
 		_handleData: function(data, element) {
@@ -316,6 +309,7 @@
 			var instance = this;
 
 			var res = new Array(parseInt(params[1], 10) + 1);
+
 			res = res.join(STR_EQUALS);
 
 			if (instance._isDataAvailable() && !instance._isLastItemNewLine()) {
@@ -340,7 +334,7 @@
 			var attrAlt = element.getAttribute('alt');
 			var attrSrc = element.getAttribute('src');
 
-			attrSrc = attrSrc.replace(CKEDITOR.config.attachmentURLPrefix, STR_BLANK);
+			attrSrc = attrSrc.replace(attachmentURLPrefix, STR_BLANK);
 
 			listTagsIn.push('{{', attrSrc);
 
@@ -354,19 +348,17 @@
 		_handleLink: function(element, listTagsIn, listTagsOut) {
 			var hrefAttribute = element.getAttribute('href');
 
-			if (CKEDITOR.env.ie && (CKEDITOR.env.version < 8)) {
-				var ckeSavedHref = element.getAttribute('data-cke-saved-href');
-
-				if (ckeSavedHref) {
-					hrefAttribute = ckeSavedHref;
-				}
-			}
-
 			if (!REGEX_URL_PREFIX.test(hrefAttribute)) {
 				hrefAttribute = decodeURIComponent(hrefAttribute);
 			}
 
-			listTagsIn.push('[[', hrefAttribute, STR_PIPE);
+			var linkText = element.textContent || element.innerText;
+
+			listTagsIn.push('[[');
+
+			if (linkText !== hrefAttribute) {
+				listTagsIn.push(hrefAttribute, STR_PIPE);
+			}
 
 			listTagsOut.push(']]');
 		},
@@ -558,7 +550,10 @@
 		_pushTagList: function(tagsList) {
 			var instance = this;
 
-			var endResult, i, length, tag;
+			var endResult;
+			var i;
+			var length;
+			var tag;
 
 			endResult = instance._endResult;
 			length = tagsList.length;
@@ -580,4 +575,19 @@
 
 		_skipParse: false
 	};
+
+	CKEDITOR.plugins.add(
+		'creole_data_processor',
+		{
+			requires: ['htmlwriter'],
+
+			init: function(editor) {
+				attachmentURLPrefix = editor.config.attachmentURLPrefix;
+
+				editor.dataProcessor = new CreoleDataProcessor(editor);
+
+				editor.fire('customDataProcessorLoaded');
+			}
+		}
+	);
 })();

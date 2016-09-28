@@ -19,49 +19,28 @@
 <div class="navbar <%= cssClass %>" id="<%= id %>" <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>>
 	<div class="navbar-inner">
 		<div class="container">
-			<%= responsiveButtons %>
+			<span id="<%= id %>ResponsiveButton">
+				<%= responsiveButtons %>
+			</span>
 
-			<%= bodyContentString %>
+			<span id="<%= id %>bodyContent">
+				<%= bodyContentString %>
+			</span>
 
-			<aui:script use="aui-base,event-outside">
-				A.one('#<%= id %>').delegate(
-					'click',
-					function(event) {
-						var btnNavbar = event.currentTarget;
+			<aui:script use="aui-base,event-outside,liferay-menu-toggle">
+				A.all('#<%= id %>ResponsiveButton .btn-navbar').each(
+					function(item, index, collection) {
+						var contentId = item.attr('id');
+						var navId = item.attr('data-navid');
 
-						var navId = btnNavbar.attr('data-navId');
-
-						var navbarCollapse = A.one('#' + navId + 'NavbarCollapse');
-
-						if (navbarCollapse) {
-							var handle = Liferay.Data['<%= id %>Handle'];
-
-							if (navbarCollapse.hasClass('open') && handle) {
-								handle.detach();
-
-								handle = null;
+						var toggleMenu = new Liferay.MenuToggle(
+							{
+								content: '#' + navId + 'NavbarCollapse, #<%= id %>ResponsiveButton #' + contentId,
+								toggleTouch: true,
+								trigger: '#<%= id %>ResponsiveButton #' + contentId
 							}
-							else {
-								handle = navbarCollapse.on(
-									'mousedownoutside',
-									function(event) {
-										if (!btnNavbar.contains(event.target)) {
-											Liferay.Data['<%= id %>Handle'] = null;
-
-											handle.detach();
-
-											navbarCollapse.removeClass('open');
-										}
-									}
-								);
-							}
-
-							navbarCollapse.toggleClass('open');
-
-							Liferay.Data['<%= id %>Handle'] = handle;
-						}
-					},
-					'.btn-navbar'
+						);
+					}
 				);
 			</aui:script>
 		</div>

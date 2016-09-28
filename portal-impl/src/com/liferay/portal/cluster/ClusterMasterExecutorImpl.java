@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.cluster.ClusterEventListener;
 import com.liferay.portal.kernel.cluster.ClusterExecutor;
 import com.liferay.portal.kernel.cluster.ClusterMasterExecutor;
 import com.liferay.portal.kernel.cluster.ClusterMasterTokenTransitionListener;
+import com.liferay.portal.kernel.cluster.ClusterNodeResponse;
 import com.liferay.portal.kernel.cluster.ClusterNodeResponses;
 import com.liferay.portal.kernel.cluster.ClusterRequest;
 import com.liferay.portal.kernel.cluster.FutureClusterResponses;
@@ -28,11 +29,13 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.MethodHandler;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Lock;
 import com.liferay.portal.service.LockLocalServiceUtil;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -128,8 +131,17 @@ public class ClusterMasterExecutorImpl implements ClusterMasterExecutor {
 	}
 
 	@Override
+	public boolean isEnabled() {
+		return _enabled;
+	}
+
+	@Override
 	public boolean isMaster() {
-		return _master;
+		if (isEnabled()) {
+			return _master;
+		}
+
+		return true;
 	}
 
 	@Override
@@ -191,10 +203,17 @@ public class ClusterMasterExecutorImpl implements ClusterMasterExecutor {
 			catch (Exception e) {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
-						"Unable to obtain the cluster master token. Trying " +
-							"again.",
-						e);
+						"Unable to acquire memory scheduler cluster lock", e);
 				}
+			}
+
+			if (_log.isInfoEnabled()) {
+				if (Validator.isNotNull(owner)) {
+					_log.info("Lock currently held by " + owner);
+				}
+
+				_log.info(
+					"Reattempting to acquire memory scheduler cluster lock");
 			}
 		}
 
@@ -319,21 +338,37 @@ public class ClusterMasterExecutorImpl implements ClusterMasterExecutor {
 		}
 
 		@Override
-		public T get() throws InterruptedException {
+		public T get() throws ExecutionException, InterruptedException {
 			ClusterNodeResponses clusterNodeResponses =
 				_futureClusterResponses.get();
 
-			return (T)clusterNodeResponses.getClusterResponse(_address);
+			ClusterNodeResponse clusterNodeResponse =
+				clusterNodeResponses.getClusterResponse(_address);
+
+			try {
+				return (T)clusterNodeResponse.getResult();
+			}
+			catch (Exception e) {
+				throw new ExecutionException(e);
+			}
 		}
 
 		@Override
 		public T get(long timeout, TimeUnit unit)
-			throws InterruptedException, TimeoutException {
+			throws ExecutionException, InterruptedException, TimeoutException {
 
 			ClusterNodeResponses clusterNodeResponses =
 				_futureClusterResponses.get(timeout, unit);
 
-			return (T)clusterNodeResponses.getClusterResponse(_address);
+			ClusterNodeResponse clusterNodeResponse =
+				clusterNodeResponses.getClusterResponse(_address);
+
+			try {
+				return (T)clusterNodeResponse.getResult();
+			}
+			catch (Exception e) {
+				throw new ExecutionException(e);
+			}
 		}
 
 		private final Address _address;

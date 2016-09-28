@@ -42,14 +42,19 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Organization;
+import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.Role;
+import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.model.Subscription;
 import com.liferay.portal.model.UserGroup;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.security.permission.ResourceActionsUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.OrganizationLocalServiceUtil;
+import com.liferay.portal.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.service.RoleLocalServiceUtil;
+import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.SubscriptionLocalServiceUtil;
 import com.liferay.portal.service.UserGroupLocalServiceUtil;
 import com.liferay.portal.service.UserGroupRoleLocalServiceUtil;
@@ -290,12 +295,12 @@ public class MBUtil {
 		sb.append(StringPool.SPACE);
 
 		for (MBCategory curCategory : categories) {
-			sb.append(StringPool.RAQUO);
+			sb.append("\u00bb");
 			sb.append(StringPool.SPACE);
 			sb.append(curCategory.getName());
 		}
 
-		sb.append(StringPool.RAQUO);
+		sb.append("\u00bb");
 		sb.append(StringPool.SPACE);
 		sb.append(mbCategory.getName());
 
@@ -328,6 +333,12 @@ public class MBUtil {
 		categoryId = ParamUtil.getLong(request, "mbCategoryId", categoryId);
 
 		return categoryId;
+	}
+
+	public static long getCategoryId(String messageIdString) {
+		String[] parts = _getMessageIdStringParts(messageIdString);
+
+		return GetterUtil.getLong(parts[0]);
 	}
 
 	public static Set<Long> getCategorySubscriptionClassPKs(long userId)
@@ -576,39 +587,34 @@ public class MBUtil {
 		return "html";
 	}
 
-	public static long getMessageId(String mailId) {
-		int x = mailId.indexOf(CharPool.LESS_THAN) + 1;
-		int y = mailId.indexOf(CharPool.AT);
+	public static long getMessageId(String messageIdString) {
+		String[] parts = _getMessageIdStringParts(messageIdString);
 
-		long messageId = 0;
+		return GetterUtil.getLong(parts[1]);
+	}
 
-		if ((x > 0 ) && (y != -1)) {
-			String temp = mailId.substring(x, y);
-
-			int z = temp.lastIndexOf(CharPool.PERIOD);
-
-			if (z != -1) {
-				messageId = GetterUtil.getLong(temp.substring(z + 1));
-			}
+	public static int getMessageIdStringOffset() {
+		if (PropsValues.POP_SERVER_SUBDOMAIN.length() == 0) {
+			return 1;
 		}
 
-		return messageId;
+		return 0;
 	}
 
 	public static long getParentMessageId(Message message) throws Exception {
 		long parentMessageId = -1;
 
-		String parentHeader = getParentMessageIdString(message);
+		String parentMessageIdString = getParentMessageIdString(message);
 
-		if (parentHeader != null) {
+		if (parentMessageIdString != null) {
 			if (_log.isDebugEnabled()) {
-				_log.debug("Parent header " + parentHeader);
+				_log.debug("Parent header " + parentMessageIdString);
 			}
 
-			parentMessageId = getMessageId(parentHeader);
+			parentMessageId = getMessageId(parentMessageIdString);
 
 			if (_log.isDebugEnabled()) {
-				_log.debug("Previous message id " + parentMessageId);
+				_log.debug("Parent message id " + parentMessageId);
 			}
 		}
 
@@ -630,12 +636,13 @@ public class MBUtil {
 		if (ArrayUtil.isNotEmpty(references)) {
 			String reference = references[0];
 
-			int x = reference.lastIndexOf("<mb.");
+			int x = reference.lastIndexOf(
+				StringPool.LESS_THAN + MESSAGE_POP_PORTLET_PREFIX);
 
 			if (x > -1) {
-				int y = reference.indexOf(">", x);
+				int y = reference.indexOf(StringPool.GREATER_THAN, x);
 
-				parentHeader = reference.substring(x, y);
+				parentHeader = reference.substring(x, y + 1);
 			}
 		}
 
@@ -676,6 +683,19 @@ public class MBUtil {
 		sb.append(mx);
 
 		return sb.toString();
+	}
+
+	public static String getSubjectForEmail(MBMessage message)
+		throws Exception {
+
+		String subject = message.getSubject();
+
+		if (subject.startsWith("RE:")) {
+			return subject;
+		}
+		else {
+			return "RE: " + message.getSubject();
+		}
 	}
 
 	public static String getSubjectWithoutMessageId(Message message)
@@ -910,6 +930,56 @@ public class MBUtil {
 		return true;
 	}
 
+	public static void propagatePermissions(
+			long companyId, long groupId, long parentMessageId,
+			ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		MBMessage parentMessage = MBMessageLocalServiceUtil.getMBMessage(
+			parentMessageId);
+
+		Role defaultGroupRole = RoleLocalServiceUtil.getDefaultGroupRole(
+			groupId);
+		Role guestRole = RoleLocalServiceUtil.getRole(
+			companyId, RoleConstants.GUEST);
+
+		long[] roleIds = {defaultGroupRole.getRoleId(), guestRole.getRoleId()};
+
+		List<String> actionIds = ResourceActionsUtil.getModelResourceActions(
+			MBMessage.class.getName());
+
+		Map<Long, Set<String>> roleIdsToActionIds =
+			ResourcePermissionLocalServiceUtil.
+				getAvailableResourcePermissionActionIds(
+					companyId, MBMessage.class.getName(),
+					ResourceConstants.SCOPE_INDIVIDUAL,
+					String.valueOf(parentMessage.getMessageId()), roleIds,
+					actionIds);
+
+		Set<String> defaultGroupActionIds = roleIdsToActionIds.get(
+			defaultGroupRole.getRoleId());
+
+		if (defaultGroupActionIds == null) {
+			serviceContext.setGroupPermissions(new String[]{});
+		}
+		else {
+			serviceContext.setGroupPermissions(
+				defaultGroupActionIds.toArray(
+					new String[defaultGroupActionIds.size()]));
+		}
+
+		Set<String> guestActionIds = roleIdsToActionIds.get(
+			guestRole.getRoleId());
+
+		if (guestActionIds == null) {
+			serviceContext.setGuestPermissions(new String[]{});
+		}
+		else {
+			serviceContext.setGuestPermissions(
+				guestActionIds.toArray(new String[guestActionIds.size()]));
+		}
+	}
+
 	public static String replaceMessageBodyPaths(
 		ThemeDisplay themeDisplay, String messageBody) {
 
@@ -1082,6 +1152,17 @@ public class MBUtil {
 		return MBMessageLocalServiceUtil.getCategoryMessagesCount(
 			category.getGroupId(), category.getCategoryId(),
 			WorkflowConstants.STATUS_APPROVED);
+	}
+
+	private static String[] _getMessageIdStringParts(String messageIdString) {
+		int pos = messageIdString.indexOf(CharPool.AT);
+
+		return StringUtil.split(
+			messageIdString.substring(
+				MBUtil.MESSAGE_POP_PORTLET_PREFIX.length() +
+					getMessageIdStringOffset(),
+				pos),
+			CharPool.PERIOD);
 	}
 
 	private static String _getParentMessageIdFromSubject(Message message)

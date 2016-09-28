@@ -31,6 +31,7 @@ import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.RepositoryServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
+import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
 import com.liferay.portlet.documentlibrary.model.DLFileVersion;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.service.DLAppHelperLocalServiceUtil;
@@ -148,7 +149,7 @@ public class DLFileEntryTrashHandler extends DLBaseTrashHandler {
 
 	@Override
 	public String getSystemEventClassName() {
-		return FileEntry.class.getName();
+		return DLFileEntryConstants.getClassName();
 	}
 
 	@Override
@@ -294,6 +295,19 @@ public class DLFileEntryTrashHandler extends DLBaseTrashHandler {
 
 		if (Validator.isNotNull(newName)) {
 			originalTitle = newName;
+		}
+
+		DLFolder duplicateDLFolder = DLFolderLocalServiceUtil.fetchFolder(
+			dlFileEntry.getGroupId(), containerModelId, originalTitle);
+
+		if (duplicateDLFolder != null) {
+			DuplicateEntryException dee = new DuplicateEntryException();
+
+			dee.setDuplicateEntryId(duplicateDLFolder.getFolderId());
+			dee.setOldName(duplicateDLFolder.getName());
+			dee.setTrashEntryId(entryId);
+
+			throw dee;
 		}
 
 		DLFileEntry duplicateDLFileEntry =

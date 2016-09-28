@@ -265,14 +265,26 @@ if (step == 1) {
 							<%
 							Map<String, Object> data = new HashMap<String, Object>();
 
-							data.put("groupdescriptivename", HtmlUtil.escapeAttribute(organization.getGroup().getDescriptiveName(locale)));
+							data.put("groupdescriptivename", organization.getGroup().getDescriptiveName(locale));
 							data.put("groupid", organization.getGroupId());
 							data.put("roleid", role.getRoleId());
-							data.put("roletitle", HtmlUtil.escapeAttribute(role.getTitle(locale)));
+							data.put("roletitle", role.getTitle(locale));
 							data.put("searchcontainername", "organizationRoles");
+
+							boolean disabled = false;
+
+							List<UserGroupRole> userGroupRoles = UserGroupRoleLocalServiceUtil.getUserGroupRoles(selUser.getUserId());
+
+							for (UserGroupRole userGroupRole : userGroupRoles) {
+								if ((organization.getGroupId() == userGroupRole.getGroupId()) && (userGroupRole.getRoleId() == role.getRoleId())) {
+									disabled = true;
+
+									break;
+								}
+							}
 							%>
 
-							<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />
+							<aui:button cssClass="selector-button" data="<%= data %>" disabled="<%= disabled %>" value="choose" />
 						</c:if>
 					</liferay-ui:search-container-column-text>
 				</liferay-ui:search-container-row>
@@ -286,15 +298,14 @@ if (step == 1) {
 <aui:script use="aui-base">
 	var Util = Liferay.Util;
 
-	A.one('#<portlet:namespace />selectOrganizationRoleFm').delegate(
-		'click',
-		function(event) {
-			var result = Util.getAttributes(event.currentTarget, 'data-');
+	var openingLiferay = Util.getOpener().Liferay;
 
-			Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
-
-			Util.getWindow().hide();
-		},
-		'.selector-button'
+	openingLiferay.fire(
+		'<portlet:namespace />syncOrganizationRoles',
+		{
+			selectors: A.all('.selector-button')
+		}
 	);
+
+	Util.selectEntityHandler('#<portlet:namespace />selectOrganizationRoleFm', '<%= HtmlUtil.escapeJS(eventName) %>');
 </aui:script>

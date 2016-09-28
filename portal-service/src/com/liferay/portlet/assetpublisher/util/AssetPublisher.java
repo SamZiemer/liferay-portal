@@ -73,6 +73,9 @@ public interface AssetPublisher {
 
 	public void checkAssetEntries() throws Exception;
 
+	public long[] getAssetCategoryIds(PortletPreferences portletPreferences)
+		throws Exception;
+
 	public List<AssetEntry> getAssetEntries(
 			PortletPreferences portletPreferences, Layout layout,
 			long scopeGroupId, int max, boolean checkPermission)
@@ -141,6 +144,9 @@ public interface AssetPublisher {
 		PortletRequest portletRequest, String className);
 
 	public String getScopeId(Group group, long scopeGroupId)
+		throws PortalException, SystemException;
+
+	long getSubscriptionClassPK(long plid, String portletId)
 		throws PortalException, SystemException;
 
 	public boolean isScopeIdSelectable(

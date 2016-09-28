@@ -17,8 +17,6 @@
 <%@ include file="/html/portlet/blogs_aggregator/init.jsp" %>
 
 <%
-String redirect = ParamUtil.getString(request, "redirect");
-
 String organizationName = StringPool.BLANK;
 
 Organization organization = null;
@@ -30,11 +28,13 @@ if (organizationId > 0) {
 }
 %>
 
-<liferay-portlet:actionURL portletConfiguration="true" var="configurationURL" />
+<liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL" />
 
-<aui:form action="<%= configurationURL %>" method="post" name="fm">
+<liferay-portlet:renderURL portletConfiguration="true" var="configurationRenderURL" />
+
+<aui:form action="<%= configurationActionURL %>" method="post" name="fm">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
-	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+	<aui:input name="redirect" type="hidden" value="<%= configurationRenderURL %>" />
 	<aui:input name="preferences--organizationId--" type="hidden" value="<%= organizationId %>" />
 
 	<aui:fieldset>
@@ -43,16 +43,12 @@ if (organizationId > 0) {
 			<aui:option label="scope" selected='<%= selectionMethod.equals("scope") %>' />
 		</aui:select>
 
-		<div id="<portlet:namespace />usersSelectionOptions">
-			<aui:field-wrapper label="organization">
-				<div class="input-append">
-					<liferay-ui:input-resource id="organizationName" url="<%= HtmlUtil.escape(organizationName) %>" />
+		<div class="control-group" id="<portlet:namespace />usersSelectionOptions">
+			<aui:input label="organization" name="organizationName" type="resource"  value="<%= organizationName %>" />
 
-					<aui:button name="selectOrganizationButton" value="select" />
+			<aui:button name="selectOrganizationButton" value="select" />
 
-					<aui:button disabled="<%= organizationId <= 0 %>" name="removeOrganizationButton" onClick='<%= renderResponse.getNamespace() + "removeOrganization();" %>' value="remove" />
-				</div>
-			</aui:field-wrapper>
+			<aui:button disabled="<%= organizationId <= 0 %>" name="removeOrganizationButton" onClick='<%= renderResponse.getNamespace() + "removeOrganization();" %>' value="remove" />
 		</div>
 
 		<aui:select name="preferences--displayStyle--">

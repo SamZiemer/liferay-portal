@@ -433,13 +433,9 @@ public class ResourceLocalServiceImpl extends ResourceLocalServiceBaseImpl {
 			String actionId, long[] roleIds)
 		throws PortalException, SystemException {
 
-		StopWatch stopWatch = null;
+		StopWatch stopWatch = new StopWatch();
 
-		if (_log.isDebugEnabled()) {
-			stopWatch = new StopWatch();
-
-			stopWatch.start();
-		}
+		stopWatch.start();
 
 		int block = 1;
 
@@ -784,9 +780,17 @@ public class ResourceLocalServiceImpl extends ResourceLocalServiceBaseImpl {
 
 		// Permissions
 
-		boolean flushEnabled = PermissionThreadLocal.isFlushEnabled();
+		boolean flushResourceBlockEnabled =
+			PermissionThreadLocal.isFlushResourceBlockEnabled(
+				companyId, groupId, name);
+		boolean flushResourcePermissionEnabled =
+			PermissionThreadLocal.isFlushResourcePermissionEnabled(
+				name, primKey);
 
-		PermissionThreadLocal.setIndexEnabled(false);
+		PermissionThreadLocal.setFlushResourceBlockEnabled(
+			companyId, groupId, name, false);
+		PermissionThreadLocal.setFlushResourcePermissionEnabled(
+			name, primKey, false);
 
 		try {
 			addModelResources(
@@ -794,9 +798,15 @@ public class ResourceLocalServiceImpl extends ResourceLocalServiceBaseImpl {
 				guestPermissions, permissionedModel);
 		}
 		finally {
-			PermissionThreadLocal.setIndexEnabled(flushEnabled);
+			PermissionThreadLocal.setFlushResourceBlockEnabled(
+				companyId, groupId, name, flushResourceBlockEnabled);
+			PermissionThreadLocal.setFlushResourcePermissionEnabled(
+				name, primKey, flushResourcePermissionEnabled);
 
-			PermissionCacheUtil.clearCache();
+			PermissionCacheUtil.clearResourceBlockCache(
+				companyId, groupId, name);
+			PermissionCacheUtil.clearResourcePermissionCache(
+				ResourceConstants.SCOPE_INDIVIDUAL, name, primKey);
 
 			SearchEngineUtil.updatePermissionFields(name, primKey);
 		}
@@ -867,9 +877,17 @@ public class ResourceLocalServiceImpl extends ResourceLocalServiceBaseImpl {
 
 		// Permissions
 
-		boolean flushEnabled = PermissionThreadLocal.isFlushEnabled();
+		boolean flushResourceBlockEnabled =
+			PermissionThreadLocal.isFlushResourceBlockEnabled(
+				companyId, groupId, name);
+		boolean flushResourcePermissionEnabled =
+			PermissionThreadLocal.isFlushResourcePermissionEnabled(
+				name, primKey);
 
-		PermissionThreadLocal.setIndexEnabled(false);
+		PermissionThreadLocal.setFlushResourceBlockEnabled(
+			companyId, groupId, name, false);
+		PermissionThreadLocal.setFlushResourcePermissionEnabled(
+			name, primKey, false);
 
 		List<ResourcePermission> resourcePermissions =
 			resourcePermissionPersistence.findByC_N_S_P(
@@ -906,9 +924,15 @@ public class ResourceLocalServiceImpl extends ResourceLocalServiceBaseImpl {
 		finally {
 			ResourcePermissionsThreadLocal.setResourcePermissions(null);
 
-			PermissionThreadLocal.setIndexEnabled(flushEnabled);
+			PermissionThreadLocal.setFlushResourceBlockEnabled(
+				companyId, groupId, name, flushResourceBlockEnabled);
+			PermissionThreadLocal.setFlushResourcePermissionEnabled(
+				name, primKey, flushResourcePermissionEnabled);
 
-			PermissionCacheUtil.clearCache();
+			PermissionCacheUtil.clearResourceBlockCache(
+				companyId, groupId, name);
+			PermissionCacheUtil.clearResourcePermissionCache(
+				ResourceConstants.SCOPE_INDIVIDUAL, name, primKey);
 
 			SearchEngineUtil.updatePermissionFields(name, primKey);
 		}

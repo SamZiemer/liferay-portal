@@ -18,6 +18,7 @@ import com.liferay.portal.NoSuchUserGroupRoleException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserGroupRole;
@@ -48,7 +49,13 @@ public class UserGroupRoleLocalServiceImpl
 			userGroupRoles.add(userGroupRole);
 		}
 
-		PermissionCacheUtil.clearCache();
+		Group group = groupPersistence.fetchByPrimaryKey(groupId);
+
+		if (group.isRegularSite()) {
+			groupPersistence.addUser(groupId, userId);
+		}
+
+		PermissionCacheUtil.clearCache(userId);
 
 		return userGroupRoles;
 	}
@@ -67,7 +74,13 @@ public class UserGroupRoleLocalServiceImpl
 			userGroupRoles.add(userGroupRole);
 		}
 
-		PermissionCacheUtil.clearCache();
+		Group group = groupPersistence.fetchByPrimaryKey(groupId);
+
+		if (group.isRegularSite()) {
+			groupPersistence.addUsers(groupId, userIds);
+		}
+
+		PermissionCacheUtil.clearCache(userIds);
 
 		return userGroupRoles;
 	}
@@ -78,7 +91,7 @@ public class UserGroupRoleLocalServiceImpl
 
 		userGroupRolePersistence.remove(userGroupRole);
 
-		PermissionCacheUtil.clearCache();
+		PermissionCacheUtil.clearCache(userGroupRole.getUserId());
 
 		return userGroupRole;
 	}
@@ -98,7 +111,7 @@ public class UserGroupRoleLocalServiceImpl
 			}
 		}
 
-		PermissionCacheUtil.clearCache();
+		PermissionCacheUtil.clearCache(userId);
 	}
 
 	@Override
@@ -109,7 +122,7 @@ public class UserGroupRoleLocalServiceImpl
 			userGroupRolePersistence.removeByU_G(userId, groupId);
 		}
 
-		PermissionCacheUtil.clearCache();
+		PermissionCacheUtil.clearCache(userId);
 	}
 
 	@Override
@@ -120,7 +133,7 @@ public class UserGroupRoleLocalServiceImpl
 			userGroupRolePersistence.removeByU_G(userId, groupId);
 		}
 
-		PermissionCacheUtil.clearCache();
+		PermissionCacheUtil.clearCache(userIds);
 	}
 
 	@Override
@@ -143,7 +156,7 @@ public class UserGroupRoleLocalServiceImpl
 			}
 		}
 
-		PermissionCacheUtil.clearCache();
+		PermissionCacheUtil.clearCache(userIds);
 	}
 
 	@Override
@@ -160,7 +173,7 @@ public class UserGroupRoleLocalServiceImpl
 			}
 		}
 
-		PermissionCacheUtil.clearCache();
+		PermissionCacheUtil.clearCache(userIds);
 	}
 
 	@Override
@@ -187,7 +200,7 @@ public class UserGroupRoleLocalServiceImpl
 
 		userGroupRolePersistence.removeByUserId(userId);
 
-		PermissionCacheUtil.clearCache();
+		PermissionCacheUtil.clearCache(userId);
 	}
 
 	@Override
@@ -275,11 +288,13 @@ public class UserGroupRoleLocalServiceImpl
 
 		long companyId = user.getCompanyId();
 
-		Role role = rolePersistence.findByC_N(companyId, roleName);
+		Role role = rolePersistence.fetchByC_N(companyId, roleName);
 
-		long roleId = role.getRoleId();
+		if (role == null) {
+			return false;
+		}
 
-		return hasUserGroupRole(userId, groupId, roleId, inherit);
+		return hasUserGroupRole(userId, groupId, role.getRoleId(), inherit);
 	}
 
 	protected UserGroupRole addUserGroupRole(

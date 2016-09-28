@@ -16,12 +16,15 @@ package com.liferay.portal.deploy.hot;
 
 import com.liferay.portal.captcha.CaptchaImpl;
 import com.liferay.portal.events.EventsProcessorUtil;
+import com.liferay.portal.kernel.bean.BeanLocatorException;
 import com.liferay.portal.kernel.bean.ClassLoaderBeanHandler;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.bean.PortletBeanLocatorUtil;
 import com.liferay.portal.kernel.captcha.Captcha;
 import com.liferay.portal.kernel.captcha.CaptchaUtil;
 import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
+import com.liferay.portal.kernel.deploy.DeployManagerUtil;
 import com.liferay.portal.kernel.deploy.auto.AutoDeployDir;
 import com.liferay.portal.kernel.deploy.auto.AutoDeployListener;
 import com.liferay.portal.kernel.deploy.auto.AutoDeployUtil;
@@ -44,6 +47,7 @@ import com.liferay.portal.kernel.lock.LockListener;
 import com.liferay.portal.kernel.lock.LockListenerRegistryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.log.SanitizerLogWrapper;
 import com.liferay.portal.kernel.plugin.PluginPackage;
 import com.liferay.portal.kernel.sanitizer.Sanitizer;
 import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
@@ -75,9 +79,11 @@ import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -86,7 +92,7 @@ import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
-import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.language.LanguageResources;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.LayoutConstants;
@@ -116,6 +122,7 @@ import com.liferay.portal.security.auth.FullNameGenerator;
 import com.liferay.portal.security.auth.FullNameGeneratorFactory;
 import com.liferay.portal.security.auth.FullNameValidator;
 import com.liferay.portal.security.auth.FullNameValidatorFactory;
+import com.liferay.portal.security.auth.InterruptedPortletRequestWhitelistUtil;
 import com.liferay.portal.security.auth.ScreenNameGenerator;
 import com.liferay.portal.security.auth.ScreenNameGeneratorFactory;
 import com.liferay.portal.security.auth.ScreenNameValidator;
@@ -139,6 +146,7 @@ import com.liferay.portal.security.pwd.PwdToolkitUtil;
 import com.liferay.portal.security.pwd.Toolkit;
 import com.liferay.portal.security.pwd.ToolkitWrapper;
 import com.liferay.portal.service.ReleaseLocalServiceUtil;
+import com.liferay.portal.service.ServiceWrapper;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.servlet.filters.autologin.AutoLoginFilter;
 import com.liferay.portal.servlet.filters.cache.CacheUtil;
@@ -267,7 +275,8 @@ public class HookHotDeployListener
 		"sites.form.update.advanced", "sites.form.update.main",
 		"sites.form.update.seo", "social.activity.sets.bundling.enabled",
 		"social.activity.sets.enabled", "social.activity.sets.selector",
-		"social.bookmark.*", "terms.of.use.required", "theme.css.fast.load",
+		"social.bookmark.*", "staging.xstream.class.whitelist",
+		"terms.of.use.required", "theme.css.fast.load",
 		"theme.images.fast.load", "theme.jsp.override.enabled",
 		"theme.loader.new.theme.id.on.import", "theme.portlet.decorate.default",
 		"theme.portlet.sharing.default", "theme.shortcut.icon", "time.zones",
@@ -683,13 +692,26 @@ public class HookHotDeployListener
 			return;
 		}
 
+		if (isRTLHook(hotDeployEvent.getPluginPackage())) {
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					"Skipping RTL hook since it is now part of the portal");
+			}
+
+			HotDeployUtil.fireUndeployEvent(
+				new HotDeployEvent(
+					servletContext, hotDeployEvent.getContextClassLoader()));
+
+			return;
+		}
+
 		if (_log.isInfoEnabled()) {
 			_log.info("Registering hook for " + servletContextName);
 		}
 
 		_servletContextNames.add(servletContextName);
 
-		Document document = SAXReaderUtil.read(xml, true);
+		Document document = UnsecureSAXReaderUtil.read(xml, true);
 
 		Element rootElement = document.getRootElement();
 
@@ -701,9 +723,23 @@ public class HookHotDeployListener
 		initLanguageProperties(
 			servletContextName, portletClassLoader, rootElement);
 
-		initCustomJspDir(
-			servletContext, servletContextName, portletClassLoader,
-			hotDeployEvent.getPluginPackage(), rootElement);
+		try {
+			initCustomJspDir(
+				servletContext, servletContextName, portletClassLoader,
+				hotDeployEvent.getPluginPackage(), rootElement);
+		}
+		catch (DuplicateCustomJspException dcje) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(servletContextName + " will be undeployed");
+			}
+
+			HotDeployUtil.fireUndeployEvent(
+				new HotDeployEvent(servletContext, portletClassLoader));
+
+			DeployManagerUtil.undeploy(servletContextName);
+
+			return;
+		}
 
 		initIndexerPostProcessors(
 			servletContextName, portletClassLoader, rootElement);
@@ -772,7 +808,8 @@ public class HookHotDeployListener
 				"model-listener-class");
 
 			ModelListener<BaseModel<?>> modelListener = initModelListener(
-				modelName, modelListenerClassName, portletClassLoader);
+				servletContextName, portletClassLoader, modelName,
+				modelListenerClassName);
 
 			if (modelListener != null) {
 				modelListenersContainer.registerModelListener(
@@ -912,7 +949,8 @@ public class HookHotDeployListener
 			_modelListenersContainerMap.remove(servletContextName);
 
 		if (modelListenersContainer != null) {
-			modelListenersContainer.unregisterModelListeners();
+			modelListenersContainer.unregisterModelListeners(
+				servletContextName);
 		}
 
 		Properties portalProperties = _portalPropertiesMap.remove(
@@ -987,7 +1025,9 @@ public class HookHotDeployListener
 		return locale;
 	}
 
-	protected BasePersistence<?> getPersistence(String modelName) {
+	protected BasePersistence<?> getPersistence(
+		String servletContextName, String modelName) {
+
 		int pos = modelName.lastIndexOf(CharPool.PERIOD);
 
 		String entityName = modelName.substring(pos + 1);
@@ -996,8 +1036,26 @@ public class HookHotDeployListener
 
 		String packagePath = modelName.substring(0, pos);
 
-		return (BasePersistence<?>)PortalBeanLocatorUtil.locate(
-			packagePath + ".service.persistence." + entityName + "Persistence");
+		String beanName =
+			packagePath + ".service.persistence." + entityName + "Persistence";
+
+		try {
+			return (BasePersistence<?>)PortalBeanLocatorUtil.locate(beanName);
+		}
+		catch (BeanLocatorException ble) {
+			return (BasePersistence<?>)PortletBeanLocatorUtil.locate(
+				servletContextName, beanName);
+		}
+	}
+
+	protected String getPortalJsp(String customJsp, String customJspDir) {
+		if (Validator.isNull(customJsp) || Validator.isNull(customJspDir)) {
+			return null;
+		}
+
+		int pos = customJsp.indexOf(customJspDir);
+
+		return customJsp.substring(pos + customJspDir.length());
 	}
 
 	protected File getPortalJspBackupFile(File portalJspFile) {
@@ -1211,9 +1269,7 @@ public class HookHotDeployListener
 		String portalWebDir = PortalUtil.getPortalWebDir();
 
 		for (String customJsp : customJsps) {
-			int pos = customJsp.indexOf(customJspDir);
-
-			String portalJsp = customJsp.substring(pos + customJspDir.length());
+			String portalJsp = getPortalJsp(customJsp, customJspDir);
 
 			if (customJspGlobal) {
 				File portalJspFile = new File(portalWebDir + portalJsp);
@@ -1278,18 +1334,30 @@ public class HookHotDeployListener
 			customJspDir, customJspGlobal, customJsps);
 
 		if (_log.isDebugEnabled()) {
-			StringBundler sb = new StringBundler(customJsps.size() * 2 + 1);
+			StringBundler sb = new StringBundler(customJsps.size() * 2);
 
 			sb.append("Custom JSP files:\n");
 
-			for (String customJsp : customJsps) {
+			for (int i = 0; i < customJsps.size(); i++) {
+				String customJsp = customJsps.get(0);
+
 				sb.append(customJsp);
-				sb.append(StringPool.NEW_LINE);
+
+				if ((i + 1) < customJsps.size()) {
+					sb.append(StringPool.NEW_LINE);
+				}
 			}
 
-			sb.setIndex(sb.index() - 1);
+			Log log = SanitizerLogWrapper.allowCRLF(_log);
 
-			_log.debug(sb.toString());
+			log.debug(sb.toString());
+		}
+
+		if (PropsValues.HOT_DEPLOY_HOOK_CUSTOM_JSP_VERIFICATION_ENABLED &&
+			customJspGlobal && !_customJspBagsMap.isEmpty() &&
+			!_customJspBagsMap.containsKey(servletContextName)) {
+
+			verifyCustomJsps(servletContextName, customJspBag);
 		}
 
 		_customJspBagsMap.put(servletContextName, customJspBag);
@@ -1563,8 +1631,8 @@ public class HookHotDeployListener
 
 	@SuppressWarnings("rawtypes")
 	protected ModelListener<BaseModel<?>> initModelListener(
-			String modelName, String modelListenerClassName,
-			ClassLoader portletClassLoader)
+			String servletContextName, ClassLoader portletClassLoader,
+			String modelName, String modelListenerClassName)
 		throws Exception {
 
 		ModelListener<BaseModel<?>> modelListener =
@@ -1572,7 +1640,8 @@ public class HookHotDeployListener
 				portletClassLoader, ModelListener.class,
 				modelListenerClassName);
 
-		BasePersistence persistence = getPersistence(modelName);
+		BasePersistence persistence = getPersistence(
+			servletContextName, modelName);
 
 		persistence.registerListener(modelListener);
 
@@ -1604,7 +1673,8 @@ public class HookHotDeployListener
 
 			for (String modelListenerClassName : modelListenerClassNames) {
 				ModelListener<BaseModel<?>> modelListener = initModelListener(
-					modelName, modelListenerClassName, portletClassLoader);
+					servletContextName, portletClassLoader, modelName,
+					modelListenerClassName);
 
 				if (modelListener != null) {
 					modelListenersContainer.registerModelListener(
@@ -1822,8 +1892,14 @@ public class HookHotDeployListener
 				servletContextName, dlFileEntryProcessorContainer);
 
 			for (String dlProcessorClassName : dlProcessorClassNames) {
-				DLProcessor dlProcessor = (DLProcessor)newInstance(
-					portletClassLoader, DLProcessor.class,
+				DLProcessor dlProcessor =
+					(DLProcessor)InstanceFactory.newInstance(
+						portletClassLoader, dlProcessorClassName);
+
+				dlProcessor = (DLProcessor)newInstance(
+					portletClassLoader,
+					ReflectionUtil.getInterfaces(
+						dlProcessor, portletClassLoader),
 					dlProcessorClassName);
 
 				dlFileEntryProcessorContainer.registerDLProcessor(dlProcessor);
@@ -2202,6 +2278,15 @@ public class HookHotDeployListener
 			}
 		}
 
+		if (!(previousService instanceof ServiceWrapper)) {
+			ClassLoader portalClassLoader =
+				PortalClassLoaderUtil.getClassLoader();
+
+			previousService = ProxyUtil.newProxyInstance(
+				portalClassLoader, new Class<?>[] {serviceTypeClass},
+				new ClassLoaderBeanHandler(previousService, portalClassLoader));
+		}
+
 		Object nextService = serviceImplConstructor.newInstance(
 			previousService);
 
@@ -2428,6 +2513,32 @@ public class HookHotDeployListener
 		}
 	}
 
+	protected boolean isRTLHook(PluginPackage pluginPackage) {
+		String moduleGroupId = pluginPackage.getGroupId();
+
+		if (!moduleGroupId.equals(_RTL_HOOK_MODULE_GROUP_ID)) {
+			return false;
+		}
+
+		// LRDCOM-9735
+
+		List<String> tags = pluginPackage.getTags();
+
+		if (tags.contains(_RTL_HOOK_TAG)) {
+			return true;
+		}
+
+		// LPS-43009
+
+		String name = pluginPackage.getName();
+
+		if (name.startsWith(_RTL_HOOK_NAME)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	protected void resetPortalProperties(
 			String servletContextName, Properties portalProperties,
 			boolean initPhase)
@@ -2571,6 +2682,21 @@ public class HookHotDeployListener
 				PORTLET_ADD_DEFAULT_RESOURCE_CHECK_WHITELIST_ACTIONS)) {
 
 			AuthTokenWhitelistUtil.resetPortletInvocationWhitelistActions();
+		}
+
+		if (containsKey(
+				portalProperties, PORTLET_INTERRUPTED_REQUEST_WHITELIST)) {
+
+			InterruptedPortletRequestWhitelistUtil.
+				resetPortletInvocationWhitelist();
+		}
+
+		if (containsKey(
+				portalProperties,
+				PORTLET_INTERRUPTED_REQUEST_WHITELIST_ACTIONS)) {
+
+			InterruptedPortletRequestWhitelistUtil.
+				resetPortletInvocationWhitelistActions();
 		}
 
 		CacheUtil.clearCache();
@@ -2736,6 +2862,91 @@ public class HookHotDeployListener
 			release.getReleaseId(), buildNumber, null, true);
 	}
 
+	protected void verifyCustomJsps(
+			String servletContextName, CustomJspBag customJspBag)
+		throws DuplicateCustomJspException {
+
+		Set<String> customJsps = new HashSet<String>();
+
+		for (String customJsp : customJspBag.getCustomJsps()) {
+			String portalJsp = getPortalJsp(
+				customJsp, customJspBag.getCustomJspDir());
+
+			customJsps.add(portalJsp);
+		}
+
+		Map<String, String> conflictingCustomJsps =
+			new HashMap<String, String>();
+
+		for (Map.Entry<String, CustomJspBag> entry :
+				_customJspBagsMap.entrySet()) {
+
+			CustomJspBag currentCustomJspBag = entry.getValue();
+
+			if (!currentCustomJspBag.isCustomJspGlobal()) {
+				continue;
+			}
+
+			String currentServletContextName = entry.getKey();
+
+			List<String> currentCustomJsps =
+				currentCustomJspBag.getCustomJsps();
+
+			for (String currentCustomJsp : currentCustomJsps) {
+				String currentPortalJsp = getPortalJsp(
+					currentCustomJsp, currentCustomJspBag.getCustomJspDir());
+
+				if (customJsps.contains(currentPortalJsp)) {
+					conflictingCustomJsps.put(
+						currentPortalJsp, currentServletContextName);
+				}
+			}
+		}
+
+		if (conflictingCustomJsps.isEmpty()) {
+			return;
+		}
+
+		_log.error(servletContextName + " conflicts with the installed hooks");
+
+		if (_log.isDebugEnabled()) {
+			Log log = SanitizerLogWrapper.allowCRLF(_log);
+
+			StringBundler sb = new StringBundler(
+				conflictingCustomJsps.size() * 4 + 2);
+
+			sb.append("Colliding JSP files in ");
+			sb.append(servletContextName);
+			sb.append(StringPool.NEW_LINE);
+
+			int i = 0;
+
+			for (Map.Entry<String, String> entry :
+					conflictingCustomJsps.entrySet()) {
+
+				sb.append(entry.getKey());
+				sb.append(" with ");
+				sb.append(entry.getValue());
+
+				if ((i + 1) < conflictingCustomJsps.size()) {
+					sb.append(StringPool.NEW_LINE);
+				}
+
+				i++;
+			}
+
+			log.debug(sb.toString());
+		}
+
+		throw new DuplicateCustomJspException();
+	}
+
+	private static final String _RTL_HOOK_MODULE_GROUP_ID = "liferay";
+
+	private static final String _RTL_HOOK_NAME = "RTL";
+
+	private static final String _RTL_HOOK_TAG = "rtl";
+
 	private static final String[] _PROPS_KEYS_EVENTS = {
 		LOGIN_EVENTS_POST, LOGIN_EVENTS_PRE, LOGOUT_EVENTS_POST,
 		LOGOUT_EVENTS_PRE, SERVLET_SERVICE_EVENTS_POST,
@@ -2801,13 +3012,15 @@ public class HookHotDeployListener
 		"organizations.form.add.miscellaneous",
 		"portlet.add.default.resource.check.whitelist",
 		"portlet.add.default.resource.check.whitelist.actions",
+		"portlet.interrupted.request.whitelist",
+		"portlet.interrupted.request.whitelist.actions",
 		"session.phishing.protected.attributes", "sites.form.add.advanced",
 		"sites.form.add.main", "sites.form.add.seo",
 		"sites.form.update.advanced", "sites.form.update.main",
-		"sites.form.update.seo", "users.form.add.identification",
-		"users.form.add.main", "users.form.add.miscellaneous",
-		"users.form.my.account.identification", "users.form.my.account.main",
-		"users.form.my.account.miscellaneous",
+		"sites.form.update.seo", "staging.xstream.class.whitelist",
+		"users.form.add.identification", "users.form.add.main",
+		"users.form.add.miscellaneous", "users.form.my.account.identification",
+		"users.form.my.account.main", "users.form.my.account.miscellaneous",
 		"users.form.update.identification", "users.form.update.main",
 		"users.form.update.miscellaneous"
 	};
@@ -3336,7 +3549,7 @@ public class HookHotDeployListener
 		}
 
 		@SuppressWarnings("rawtypes")
-		public void unregisterModelListeners() {
+		public void unregisterModelListeners(String servletContextName) {
 			for (Map.Entry<String, List<ModelListener<BaseModel<?>>>> entry :
 					_modelListenersMap.entrySet()) {
 
@@ -3344,7 +3557,8 @@ public class HookHotDeployListener
 				List<ModelListener<BaseModel<?>>> modelListeners =
 					entry.getValue();
 
-				BasePersistence persistence = getPersistence(modelName);
+				BasePersistence persistence = getPersistence(
+					servletContextName, modelName);
 
 				for (ModelListener<BaseModel<?>> modelListener :
 						modelListeners) {
@@ -3486,6 +3700,20 @@ public class HookHotDeployListener
 					portletClassLoader, new Class<?>[] {serviceTypeClass},
 					new ClassLoaderBeanHandler(
 						customService, portletClassLoader));
+			}
+
+			if ((customService == _originalService) &&
+				ProxyUtil.isProxyClass(customService.getClass())) {
+
+				InvocationHandler invocationHandler =
+					ProxyUtil.getInvocationHandler(customService);
+
+				if (invocationHandler instanceof ClassLoaderBeanHandler) {
+					ClassLoaderBeanHandler classLoaderBeanHandler =
+						(ClassLoaderBeanHandler)invocationHandler;
+
+					customService = classLoaderBeanHandler.getBean();
+				}
 			}
 
 			return customService;

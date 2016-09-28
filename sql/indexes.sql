@@ -243,6 +243,7 @@ create unique index IX_ED5CA615 on DLFileEntry (groupId, folderId, title);
 create index IX_43261870 on DLFileEntry (groupId, userId);
 create index IX_D20C434D on DLFileEntry (groupId, userId, folderId);
 create index IX_D9492CF6 on DLFileEntry (mimeType);
+create index IX_1B352F4A on DLFileEntry (repositoryId, folderId);
 create index IX_64F0FE40 on DLFileEntry (uuid_);
 create index IX_31079DE8 on DLFileEntry (uuid_, companyId);
 create unique index IX_BC2E7E6A on DLFileEntry (uuid_, groupId);
@@ -367,6 +368,7 @@ create index IX_3B69160F on Groups_UserGroups (userGroupId);
 
 create index IX_6A925A4D on Image (size_);
 
+create index IX_FF0E7A72 on JournalArticle (classNameId, templateId);
 create index IX_DFF98523 on JournalArticle (companyId);
 create index IX_323DF109 on JournalArticle (companyId, status);
 create index IX_3D070845 on JournalArticle (companyId, version);
@@ -784,6 +786,7 @@ create unique index IX_FC46FE16 on ShoppingCart (groupId, userId);
 create index IX_54101CC8 on ShoppingCart (userId);
 
 create index IX_5F615D3E on ShoppingCategory (groupId);
+create index IX_6A84467D on ShoppingCategory (groupId, name);
 create index IX_1E6464F5 on ShoppingCategory (groupId, parentCategoryId);
 
 create unique index IX_DC60CFAE on ShoppingCoupon (code_);
@@ -887,6 +890,7 @@ create index IX_A19C89FF on SystemEvent (groupId, systemEventSetKey);
 create index IX_AE6E9907 on Team (groupId);
 create unique index IX_143DC786 on Team (groupId, name);
 
+create index IX_1E8DFB2E on Ticket (classNameId, classPK, type_);
 create index IX_B2468446 on Ticket (key_);
 
 create unique index IX_B35F73D5 on TrashEntry (classNameId, classPK);
@@ -1005,6 +1009,7 @@ create index IX_C8A9C476 on WikiPage (nodeId);
 create index IX_E7F635CA on WikiPage (nodeId, head);
 create index IX_65E84AF4 on WikiPage (nodeId, head, parentTitle);
 create index IX_9F7655DA on WikiPage (nodeId, head, parentTitle, status);
+create index IX_64CCB282 on WikiPage (nodeId, head, redirectTitle);
 create index IX_40F94F68 on WikiPage (nodeId, head, redirectTitle, status);
 create index IX_432F0AB0 on WikiPage (nodeId, head, status);
 create index IX_46EEF3C8 on WikiPage (nodeId, parentTitle);

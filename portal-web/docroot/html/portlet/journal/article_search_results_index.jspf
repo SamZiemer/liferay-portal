@@ -18,6 +18,7 @@
 LinkedHashMap<String, Object> journalParams = new LinkedHashMap<String, Object>();
 
 journalParams.put("expandoAttributes", searchTerms.getKeywords());
+journalParams.put("showNonindexable", showNonindexable);
 
 Sort sort = SortFactoryUtil.getSort(JournalArticle.class, searchContainer.getOrderByCol(), searchContainer.getOrderByType());
 

@@ -16,6 +16,9 @@
 
 <%@ include file="/html/taglib/aui/form/init.jsp" %>
 
+	<c:if test="<%= Validator.isNotNull(onSubmit) %>">
+		</fieldset>
+	</c:if>
 </form>
 
 <aui:script use="liferay-form">
@@ -40,8 +43,9 @@
 							{
 								body: <%= validatorTag.getBody() %>,
 								custom: <%= validatorTag.isCustom() %>,
+								customValidatorRequired: <%= validatorTag.isCustomValidatorRequired() %>,
 								errorMessage: '<%= UnicodeLanguageUtil.get(pageContext, validatorTag.getErrorMessage()) %>',
-								fieldName: '<%= namespace + fieldName %>',
+								fieldName: '<%= namespace + HtmlUtil.escapeJS(fieldName) %>',
 								validatorName: '<%= validatorTag.getName() %>'
 							}
 
@@ -61,4 +65,8 @@
 			</c:if>
 		}
 	);
+
+	<c:if test="<%= Validator.isNotNull(onSubmit) %>">
+		A.all('#<%= namespace + name %> .input-container').removeAttribute('disabled');
+	</c:if>
 </aui:script>

@@ -5,6 +5,8 @@ AUI.add(
 		var Lang = A.Lang;
 		var FormBuilderField = A.FormBuilderField;
 
+		var BODY = A.getBody();
+
 		var instanceOf = A.instanceOf;
 		var isObject = Lang.isObject;
 
@@ -14,6 +16,8 @@ AUI.add(
 
 		var MAP_HIDDEN_FIELD_ATTRS = {
 			checkbox: ['readOnly', 'required'],
+
+			separator: ['readOnly', 'required', 'predefinedValue', 'indexType'],
 
 			DEFAULT: ['readOnly']
 		};
@@ -36,6 +40,7 @@ AUI.add(
 		var XML_ATTRIBUTES_FIELD_ATTRS = {
 			dataType: 1,
 			indexType: 1,
+			localizable: 1,
 			multiple: 1,
 			name: 1,
 			options: 1,
@@ -130,6 +135,7 @@ AUI.add(
 							editMessage: Liferay.Language.get('edit'),
 							label: Liferay.Language.get('field-label'),
 							large: Liferay.Language.get('large'),
+							localizable: Liferay.Language.get('localizable'),
 							medium: Liferay.Language.get('medium'),
 							multiple: Liferay.Language.get('multiple'),
 							name: Liferay.Language.get('name'),
@@ -174,6 +180,8 @@ AUI.add(
 						);
 
 						instance.addTarget(Liferay.Util.getOpener().Liferay);
+
+						instance._toggleInputDirection(translationManager.get('defaultLocale'));
 					},
 
 					bindUI: function() {
@@ -181,6 +189,7 @@ AUI.add(
 
 						LiferayFormBuilder.superclass.bindUI.apply(instance, arguments);
 
+						instance.translationManager.after('defaultLocaleChange', instance._onDefaultLocaleChange, instance);
 						instance.translationManager.after('editingLocaleChange', instance._afterEditingLocaleChange, instance);
 					},
 
@@ -265,6 +274,8 @@ AUI.add(
 						instance._updateFieldsLocalizationMap(event.prevVal);
 
 						instance._syncFieldsLocaleUI(event.newVal);
+
+						instance._toggleInputDirection(event.newVal);
 					},
 
 					_appendStructureChildren: function(field, buffer) {
@@ -357,6 +368,7 @@ AUI.add(
 								dataType: field.get('dataType'),
 								fieldNamespace: field.get('fieldNamespace'),
 								indexType: field.get('indexType'),
+								localizable: field.get('localizable'),
 								multiple: field.get('multiple'),
 								name: field.get('name'),
 								readOnly: field.get('readOnly'),
@@ -475,6 +487,30 @@ AUI.add(
 						}
 
 						return readOnlyAttributes;
+					},
+
+					_onDefaultLocaleChange: function(event) {
+						var instance = this;
+
+						var fields = instance.get('fields');
+
+						var newVal = event.newVal;
+
+						var translationManager = instance.translationManager;
+
+						var availableLanguageIds = translationManager.get('availableLocales');
+
+						if (availableLanguageIds.indexOf(newVal) < 0) {
+							var config = {
+								fields: fields,
+								newVal: newVal,
+								prevVal: event.prevVal
+							};
+
+							translationManager.addAvailableLocale(newVal);
+
+							instance._updateLocalizationMaps(config);
+						}
 					},
 
 					_onPropertyModelChange: function(event) {
@@ -606,6 +642,13 @@ AUI.add(
 						);
 					},
 
+					_toggleInputDirection: function(locale) {
+						var rtl = (Liferay.Language.direction[locale] === 'rtl');
+
+						BODY.toggleClass('form-builder-ltr-inputs', !rtl);
+						BODY.toggleClass('form-builder-rtl-inputs', rtl);
+					},
+
 					_updateFieldOptionsLocalizationMap: function(field, locale) {
 						var instance = this;
 
@@ -655,6 +698,32 @@ AUI.add(
 								}
 
 								instance._updateFieldsLocalizationMap(locale, item.get('fields'));
+							}
+						);
+					},
+
+					_updateLocalizationMaps: function(config) {
+						var instance = this;
+
+						var fields = config.fields;
+						var newVal = config.newVal;
+						var prevVal = config.prevVal;
+
+						AArray.each(
+							fields._items,
+							function(field) {
+								var childFields = field.get('fields');
+								var localizationMap = field.get('localizationMap');
+
+								var config = {
+									fields: childFields,
+									newVal: newVal,
+									prevVal: prevVal
+								};
+
+								localizationMap[newVal] = localizationMap[prevVal];
+
+								instance._updateLocalizationMaps(config);
 							}
 						);
 					}
@@ -825,6 +894,12 @@ AUI.add(
 					iconClass: 'icon-picture',
 					label: Liferay.Language.get('image'),
 					type: 'wcm-image'
+				},
+				{
+					hiddenAttributes: MAP_HIDDEN_FIELD_ATTRS.separator,
+					iconClass: 'icon-fb-separator',
+					label: Liferay.Language.get('separator'),
+					type: 'ddm-separator'
 				}
 			]
 		};
@@ -837,6 +912,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-form-builder', 'aui-form-validator', 'aui-text-unicode', 'json', 'liferay-menu', 'liferay-translation-manager', 'text']
+		requires: ['arraysort', 'aui-form-builder', 'aui-form-validator', 'aui-text-unicode', 'json', 'liferay-menu', 'liferay-translation-manager', 'liferay-util-window', 'text']
 	}
 );

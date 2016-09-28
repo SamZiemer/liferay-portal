@@ -225,7 +225,9 @@ AUI.add(
 					_bindTagsSelector: function() {
 						var instance = this;
 
-						instance._submitFormListener = A.Do.before(instance._addEntries, window, 'submitForm', instance);
+						var form = instance.inputNode.get('form');
+
+						instance._submitFormListener = A.Do.before(instance._addEntries, form, 'submit', instance);
 
 						instance.get('boundingBox').on('keypress', instance._onKeyPress, instance);
 					},
@@ -407,13 +409,15 @@ AUI.add(
 
 						var charCode = event.charCode;
 
-						if (charCode == '44') {
-							event.preventDefault();
+						if (!A.UA.gecko || event._event.charCode) {
+							if (charCode == '44') {
+								event.preventDefault();
 
-							instance._addEntries();
-						}
-						else if (MAP_INVALID_CHARACTERS[String.fromCharCode(charCode)]) {
-							event.halt();
+								instance._addEntries();
+							}
+							else if (MAP_INVALID_CHARACTERS[String.fromCharCode(charCode)]) {
+								event.halt();
+							}
 						}
 					},
 

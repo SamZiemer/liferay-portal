@@ -56,6 +56,7 @@ public class OrganizationIndexer extends BaseIndexer {
 	public static final String PORTLET_ID = PortletKeys.USERS_ADMIN;
 
 	public OrganizationIndexer() {
+		setCommitImmediately(true);
 		setIndexerEnabled(PropsValues.ORGANIZATIONS_INDEXER_ENABLED);
 		setPermissionAware(true);
 		setStagingAware(false);
@@ -217,14 +218,7 @@ public class OrganizationIndexer extends BaseIndexer {
 
 	@Override
 	protected void doReindex(Object obj) throws Exception {
-		if (obj instanceof List<?>) {
-			List<Organization> organizations = (List<Organization>)obj;
-
-			for (Organization organization : organizations) {
-				doReindex(organization);
-			}
-		}
-		else if (obj instanceof Long) {
+		if (obj instanceof Long) {
 			long organizationId = (Long)obj;
 
 			Organization organization =
@@ -269,7 +263,8 @@ public class OrganizationIndexer extends BaseIndexer {
 				Collection<Document> documents = entry.getValue();
 
 				SearchEngineUtil.updateDocuments(
-					getSearchEngineId(), companyId, documents);
+					getSearchEngineId(), companyId, documents,
+					isCommitImmediately());
 			}
 		}
 		else if (obj instanceof Organization) {
@@ -278,7 +273,8 @@ public class OrganizationIndexer extends BaseIndexer {
 			Document document = getDocument(organization);
 
 			SearchEngineUtil.updateDocument(
-				getSearchEngineId(), organization.getCompanyId(), document);
+				getSearchEngineId(), organization.getCompanyId(), document,
+				isCommitImmediately());
 		}
 	}
 

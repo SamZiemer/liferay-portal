@@ -75,17 +75,13 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 		<aui:row>
 			<aui:col width="<%= 60 %>">
 				<div class="lfr-asset-status">
-					<aui:field-wrapper label="state">
-						<liferay-ui:input-resource url="<%= LanguageUtil.get(pageContext, workflowInstance.getState()) %>" />
-					</aui:field-wrapper>
+					<aui:input name="state" type="resource" value="<%= LanguageUtil.get(pageContext, workflowInstance.getState()) %>" />
 				</div>
 			</aui:col>
 
 			<aui:col width="<%= 33 %>">
 				<div class="lfr-asset-date">
-					<aui:field-wrapper label="end-date">
-						<liferay-ui:input-resource url='<%= (workflowInstance.getEndDate() == null) ? LanguageUtil.get(pageContext, "never") : dateFormatDateTime.format(workflowInstance.getEndDate()) %>' />
-					</aui:field-wrapper>
+					<aui:input name="endDate" type="resource" value='<%= (workflowInstance.getEndDate() == null) ? LanguageUtil.get(pageContext, "never") : dateFormatDateTime.format(workflowInstance.getEndDate()) %>' />
 				</div>
 			</aui:col>
 		</aui:row>
@@ -115,7 +111,7 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 
 					<c:choose>
 						<c:when test="<%= path == null %>">
-							<%= workflowHandler.getSummary(classPK, locale) %>
+							<%= HtmlUtil.escape(workflowHandler.getSummary(classPK, locale)) %>
 						</c:when>
 						<c:otherwise>
 							<liferay-util:include page="<%= path %>" portletId="<%= assetRendererFactory.getPortletId() %>" />
@@ -177,7 +173,7 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 								buffer.append("<span class=\"task-name\" id=\"");
 								buffer.append(workflowTask.getWorkflowTaskId());
 								buffer.append("\">");
-								buffer.append(LanguageUtil.get(pageContext, workflowTask.getName()));
+								buffer.append(LanguageUtil.get(pageContext, HtmlUtil.escape(workflowTask.getName())));
 								buffer.append("</span>");
 								%>
 
@@ -257,7 +253,7 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 			/>
 
 			<div class="lfr-asset-name">
-				<%= workflowInstance.getWorkflowDefinitionName() %>
+				<%= HtmlUtil.escape(workflowInstance.getWorkflowDefinitionName()) %>
 			</div>
 		</div>
 

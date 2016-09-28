@@ -80,9 +80,11 @@ public class ExpandoValueServiceImpl extends ExpandoValueServiceBaseImpl {
 		for (Map.Entry<String, Serializable> entry :
 				attributeValues.entrySet()) {
 
-			addValue(
-				companyId, className, tableName, entry.getKey(), classPK,
-				entry.getValue());
+			if (entry.getValue() != null) {
+				addValue(
+					companyId, className, tableName, entry.getKey(), classPK,
+					entry.getValue());
+			}
 		}
 	}
 
@@ -139,28 +141,30 @@ public class ExpandoValueServiceImpl extends ExpandoValueServiceBaseImpl {
 		ExpandoColumn column = expandoColumnLocalService.getColumn(
 			companyId, className, tableName, columnName);
 
-		if (ExpandoColumnPermissionUtil.contains(
+		if (!ExpandoColumnPermissionUtil.contains(
 				getPermissionChecker(), column, ActionKeys.VIEW)) {
 
-			Serializable dataSerializable = expandoValueLocalService.getData(
-				companyId, className, tableName, columnName, classPK);
-
-			String data = dataSerializable.toString();
-
-			if (Validator.isNotNull(data)) {
-				if (!data.startsWith(StringPool.OPEN_CURLY_BRACE)) {
-					data = "{data:".concat(data).concat("}");
-				}
-
-				return JSONFactoryUtil.createJSONObject(data);
-			}
-			else {
-				return null;
-			}
-		}
-		else {
 			return null;
 		}
+
+		Serializable dataSerializable = expandoValueLocalService.getData(
+			companyId, className, tableName, columnName, classPK);
+
+		String data = dataSerializable.toString();
+
+		if (Validator.isNull(data)) {
+			return null;
+		}
+
+		if (data.startsWith(StringPool.OPEN_CURLY_BRACE)) {
+			return JSONFactoryUtil.createJSONObject(data);
+		}
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+		jsonObject.put("data", data);
+
+		return jsonObject;
 	}
 
 }

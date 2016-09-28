@@ -211,9 +211,9 @@ portletURL.setParameter("target", target);
 				<%
 				Map<String, Object> data = new HashMap<String, Object>();
 
-				data.put("groupdescriptivename", HtmlUtil.escape(group.getDescriptiveName(locale)));
+				data.put("groupdescriptivename", group.getDescriptiveName(locale));
 				data.put("groupid", group.getGroupId());
-				data.put("scopeid", HtmlUtil.escape(AssetPublisherUtil.getScopeId(group, scopeGroupId)));
+				data.put("scopeid", AssetPublisherUtil.getScopeId(group, scopeGroupId));
 				data.put("target", target);
 				%>
 
@@ -241,17 +241,5 @@ private List<Group> _filterGroups(List<Group> groups, String filter) throws Exce
 %>
 
 <aui:script use="aui-base">
-	var Util = Liferay.Util;
-
-	A.one('#<portlet:namespace />selectSiteFm').delegate(
-		'click',
-		function(event) {
-			var result = Util.getAttributes(event.currentTarget, 'data-');
-
-			Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
-
-			Util.getWindow().hide();
-		},
-		'.selector-button'
-	);
+	Liferay.Util.selectEntityHandler('#<portlet:namespace />selectSiteFm', '<%= HtmlUtil.escapeJS(eventName) %>');
 </aui:script>

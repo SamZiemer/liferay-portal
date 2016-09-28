@@ -19,10 +19,13 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.BaseUpgradePortletPreferences;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.Company;
 import com.liferay.portal.upgrade.v6_2_0.util.JournalFeedTable;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
@@ -35,7 +38,7 @@ import com.liferay.portlet.dynamicdatamapping.model.DDMTemplateConstants;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalStructure;
 import com.liferay.portlet.journal.model.JournalTemplate;
-import com.liferay.portlet.journal.util.JournalConverterUtil;
+import com.liferay.portlet.journal.util.JournalConverterImpl;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -44,6 +47,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.portlet.PortletPreferences;
@@ -96,7 +100,9 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 			ps.setString(11, ddmStructureKey);
 			ps.setString(12, name);
 			ps.setString(13, description);
-			ps.setString(14, JournalConverterUtil.getDDMXSD(xsd));
+			ps.setString(
+				14,
+				JournalConverterImpl.getDDMXSD(xsd, getDefaultLocale(name)));
 			ps.setString(15, storageType);
 			ps.setInt(16, type);
 
@@ -127,13 +133,18 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 			parentDDMStructureId = updateStructure(parentStructureId);
 		}
 
-		addDDMStructure(
-			uuid_, ddmStructureId, groupId, companyId, userId, userName,
-			createDate, modifiedDate, parentDDMStructureId,
-			PortalUtil.getClassNameId(JournalArticle.class.getName()),
-			ddmStructureKey, name, description, xsd,
-			PropsValues.JOURNAL_ARTICLE_STORAGE_TYPE,
-			DDMStructureConstants.TYPE_DEFAULT);
+		long insertedDDMStructureId = getDDMStructureId(
+			groupId, ddmStructureKey, false);
+
+		if (insertedDDMStructureId == 0) {
+			addDDMStructure(
+				uuid_, ddmStructureId, groupId, companyId, userId, userName,
+				createDate, modifiedDate, parentDDMStructureId,
+				PortalUtil.getClassNameId(JournalArticle.class.getName()),
+				ddmStructureKey, name, description, xsd,
+				PropsValues.JOURNAL_ARTICLE_STORAGE_TYPE,
+				DDMStructureConstants.TYPE_DEFAULT);
+		}
 	}
 
 	protected void addDDMTemplate(
@@ -217,27 +228,92 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 		updateStructures();
 		updateTemplates();
 
+		updateAssetEntryClassTypeId();
+
 		super.doUpgrade();
 	}
 
-	protected long getDDMStructureId(long groupId, String structureId) {
+	protected long getCompanyGroupId(long companyId) throws Exception {
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection();
+
+			ps = con.prepareStatement(
+				"select groupId from Group_ where classNameId = ? and " +
+					"classPK = ?");
+
+			ps.setLong(1, PortalUtil.getClassNameId(Company.class.getName()));
+			ps.setLong(2, companyId);
+
+			rs = ps.executeQuery();
+
+			if (rs.next()) {
+				return rs.getLong("groupId");
+			}
+
+			return 0;
+		}
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
+		}
+	}
+
+	protected long getDDMStructureId(
+		long groupId, long companyGroupId, String structureId) {
+
+		return getDDMStructureId(groupId, companyGroupId, structureId, true);
+	}
+
+	protected long getDDMStructureId(
+		long groupId, long companyGroupId, String structureId, boolean warn) {
+
 		if (Validator.isNull(structureId)) {
 			return 0;
 		}
 
 		Long ddmStructureId = _ddmStructureIds.get(groupId + "#" + structureId);
 
-		if (ddmStructureId == null) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Unable to get the DDM structure ID for group " +
-						groupId + " and journal structure ID " + structureId);
-			}
-
-			return 0;
+		if ((ddmStructureId == null) && (companyGroupId != 0)) {
+			ddmStructureId = _ddmStructureIds.get(
+				companyGroupId + "#" + structureId);
 		}
 
-		return ddmStructureId;
+		if (ddmStructureId != null) {
+			return ddmStructureId;
+		}
+
+		if (warn && _log.isWarnEnabled()) {
+			StringBundler sb = new StringBundler();
+
+			sb.append("Unable to get the DDM structure ID for group ");
+			sb.append(groupId);
+
+			if (companyGroupId != 0) {
+				sb.append(" or global group");
+			}
+
+			sb.append(" and journal structure ID ");
+			sb.append(structureId);
+
+			_log.warn(sb.toString());
+		}
+
+		return 0;
+	}
+
+	protected long getDDMStructureId(
+		long groupId, String structureId, boolean warn) {
+
+		return getDDMStructureId(groupId, 0, structureId, warn);
+	}
+
+	protected Locale getDefaultLocale(String xml) {
+		String defaultLanguageId = LocalizationUtil.getDefaultLanguageId(xml);
+
+		return LocaleUtil.fromLanguageId(defaultLanguageId);
 	}
 
 	@Override
@@ -245,6 +321,39 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 		return new String[] {
 			"56_INSTANCE_%", "62_INSTANCE_%", "101_INSTANCE_%"
 		};
+	}
+
+	protected void updateAssetEntryClassTypeId() throws Exception {
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection();
+
+			ps = con.prepareStatement(
+				"select companyId, groupId, resourcePrimKey, structureId " +
+					"from JournalArticle where structureId != ''");
+
+			rs = ps.executeQuery();
+
+			while (rs.next()) {
+				long groupId = rs.getLong("groupId");
+				long companyId = rs.getLong("companyId");
+				long resourcePrimKey = rs.getLong("resourcePrimKey");
+				String structureId = rs.getString("structureId");
+
+				long ddmStructureId = getDDMStructureId(
+					groupId, getCompanyGroupId(companyId), structureId);
+
+				runSQL(
+					"update AssetEntry set classTypeId = " +
+						ddmStructureId + " where classPK = " + resourcePrimKey);
+			}
+		}
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
+		}
 	}
 
 	protected void updatePreferencesClassPKs(
@@ -317,8 +426,9 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
-				"select * from JournalStructure where structureId = " +
-					structureId);
+				"select * from JournalStructure where structureId = ?");
+
+			ps.setString(1, structureId);
 
 			rs = ps.executeQuery();
 
@@ -356,6 +466,8 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 
 				_ddmStructureIds.put(
 					groupId + "#" + structureId, ddmStructureId);
+
+				return ddmStructureId;
 			}
 
 			return 0;
@@ -410,8 +522,11 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 					companyId, JournalStructure.class.getName(),
 					DDMStructure.class.getName(), id_, ddmStructureId);
 
-				_ddmStructureIds.put(
-					groupId + "#" + structureId, ddmStructureId);
+				if (_ddmStructureIds.get(groupId + "#" + structureId) == null) {
+					_ddmStructureIds.put(
+						groupId + "#" + structureId, ddmStructureId);
+				}
+
 				_ddmStructurePKs.put(id_, ddmStructureId);
 			}
 		}
@@ -459,7 +574,8 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 				long classNameId = PortalUtil.getClassNameId(
 					DDMStructure.class.getName());
 
-				long classPK = getDDMStructureId(groupId, structureId);
+				long classPK = getDDMStructureId(
+					groupId, getCompanyGroupId(companyId), structureId);
 
 				addDDMTemplate(
 					uuid_, ddmTemplateId, groupId, companyId, userId, userName,

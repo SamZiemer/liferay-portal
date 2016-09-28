@@ -112,17 +112,26 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 	<liferay-util:buffer var="searchInfo">
 		<div class="search-info">
 			<span class="keywords">
-				<%= (folder != null) ? LanguageUtil.format(pageContext, "searched-for-x-in-x", new Object[] {HtmlUtil.escape(keywords), folder.getName()}) : LanguageUtil.format(pageContext, "searched-for-x-everywhere", HtmlUtil.escape(keywords)) %>
+
+				<%
+				boolean searchEverywhere = false;
+
+				if ((folder == null) || (folder.getFolderId() == rootFolderId)) {
+					searchEverywhere = true;
+				}
+				%>
+
+				<%= !searchEverywhere ? LanguageUtil.format(pageContext, "searched-for-x-in-x", new Object[] {HtmlUtil.escape(keywords), HtmlUtil.escape(folder.getName())}) : LanguageUtil.format(pageContext, "searched-for-x-everywhere", HtmlUtil.escape(keywords)) %>
 			</span>
 
-			<c:if test="<%= folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID %>">
+			<c:if test="<%= folderId != rootFolderId %>">
 				<span class="change-search-folder">
 
 					<%
-					String taglibOnClick = "Liferay.fire('" + liferayPortletResponse.getNamespace() + "changeSearchFolder', {searchEverywhere: " + (folder != null) + "});";
+					String taglibOnClick = "Liferay.fire('" + liferayPortletResponse.getNamespace() + "changeSearchFolder', {searchEverywhere: " + !searchEverywhere + "});";
 					%>
 
-					<aui:button onClick="<%= taglibOnClick %>" value='<%= (folder != null) ? "search-everywhere" : "search-in-the-current-folder" %>' />
+					<aui:button onClick="<%= taglibOnClick %>" value='<%= !searchEverywhere ? "search-everywhere" : "search-in-the-current-folder" %>' />
 				</span>
 			</c:if>
 
@@ -147,6 +156,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 								'<portlet:namespace />folderId': '<%= String.valueOf(folderId) %>',
 								'<portlet:namespace />viewEntries': <%= Boolean.TRUE.toString() %>
 							},
+							resetPagination: true,
 							src: Liferay.DL_SEARCH_END
 						}
 					);
@@ -241,7 +251,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 
 							FileVersion latestFileVersion = fileEntry.getFileVersion();
 
-							if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGroupId) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE)) {
+							if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE)) {
 								latestFileVersion = fileEntry.getLatestFileVersion();
 							}
 
@@ -252,7 +262,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 								actionJsp="/html/portlet/document_library/file_entry_action.jsp"
 								containerName="<%= DLUtil.getAbsolutePath(liferayPortletRequest, fileEntry.getFolderId()) %>"
 								cssClass='<%= MathUtil.isEven(i) ? "alt" : StringPool.BLANK %>'
-								description="<%= (summary != null) ? HtmlUtil.escape(summary.getContent()) : fileEntry.getDescription() %>"
+								description="<%= (summary != null) ? summary.getContent() : fileEntry.getDescription() %>"
 								locked="<%= fileEntry.isCheckedOut() %>"
 								mbMessages="<%= searchResult.getMBMessages() %>"
 								queryTerms="<%= hits.getQueryTerms() %>"
@@ -261,7 +271,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 								showCheckbox="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DELETE) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE) %>"
 								status="<%= latestFileVersion.getStatus() %>"
 								thumbnailSrc="<%= DLUtil.getThumbnailSrc(fileEntry, null, themeDisplay) %>"
-								title="<%= (summary != null) ? HtmlUtil.escape(summary.getTitle()) : fileEntry.getTitle() %>"
+								title="<%= (summary != null) ? summary.getTitle() : fileEntry.getTitle() %>"
 								url="<%= tempRowURL.toString() %>"
 							/>
 						</c:when>
@@ -271,7 +281,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 							<%
 							int status = WorkflowConstants.STATUS_APPROVED;
 
-							if (permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(curFolder.getGroupId())) {
+							if (permissionChecker.isContentReviewer(user.getCompanyId(), curFolder.getGroupId())) {
 								status = WorkflowConstants.STATUS_ANY;
 							}
 
@@ -296,20 +306,20 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 								actionJsp="/html/portlet/document_library/folder_action.jsp"
 								containerName="<%= DLUtil.getAbsolutePath(liferayPortletRequest, curFolder.getParentFolderId()) %>"
 								cssClass='<%= MathUtil.isEven(i) ? "alt" : StringPool.BLANK %>'
-								description="<%= (summary != null) ? HtmlUtil.escape(summary.getContent()) : curFolder.getDescription() %>"
+								description="<%= (summary != null) ? summary.getContent() : curFolder.getDescription() %>"
 								queryTerms="<%= hits.getQueryTerms() %>"
 								rowCheckerId="<%= String.valueOf(curFolder.getFolderId()) %>"
 								rowCheckerName="<%= Folder.class.getSimpleName() %>"
 								showCheckbox="<%= DLFolderPermission.contains(permissionChecker, curFolder, ActionKeys.DELETE) || DLFolderPermission.contains(permissionChecker, curFolder, ActionKeys.UPDATE) %>"
 								thumbnailSrc='<%= themeDisplay.getPathThemeImages() + "/file_system/large/" + folderImage + ".png" %>'
-								title="<%= (summary != null) ? HtmlUtil.escape(summary.getTitle()) : curFolder.getName() %>"
+								title="<%= (summary != null) ? summary.getTitle() : curFolder.getName() %>"
 								url="<%= tempRowURL.toString() %>"
 							/>
 						</c:when>
 
 						<c:otherwise>
 							<div style="float: left; margin: 100px 10px 0px;">
-								<img alt="<liferay-ui:message key="image" />" border="no" src="<%= themeDisplay.getPathThemeImages() %>/application/forbidden_action.png" />
+								<img alt="<liferay-ui:message key="error" />" border="no" src="<%= themeDisplay.getPathThemeImages() %>/application/forbidden_action.png" />
 							</div>
 						</c:otherwise>
 					</c:choose>
@@ -363,14 +373,14 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 
 			for (Folder mountFolder : mountFolders) {
 				if (mountFolder.getRepositoryId() == searchRepositoryId) {
-					selectedTab = mountFolder.getName();
+					selectedTab = HtmlUtil.escape(mountFolder.getName());
 				}
 			}
 			%>
 
 				<div class="search-results-container" id="<portlet:namespace />searchResultsContainer">
 					<liferay-ui:tabs
-						names='<%= LanguageUtil.get(pageContext, "local") + "," + ListUtil.toString(mountFolders, "name") %>'
+						names='<%= LanguageUtil.get(pageContext, "local") + "," + HtmlUtil.escape(ListUtil.toString(mountFolders, "name")) %>'
 						refresh="<%= false %>"
 						value="<%= selectedTab %>"
 					>

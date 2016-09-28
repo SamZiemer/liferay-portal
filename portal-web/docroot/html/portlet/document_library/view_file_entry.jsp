@@ -48,7 +48,7 @@ boolean versionSpecific = false;
 if (fileVersion != null) {
 	versionSpecific = true;
 }
-else if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGroupId) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE)) {
+else if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE)) {
 	fileVersion = fileEntry.getLatestFileVersion();
 }
 else {
@@ -82,10 +82,10 @@ else {
 	assetClassPK = fileEntry.getFileEntryId();
 }
 
-String webDavUrl = StringPool.BLANK;
+String webDavURL = StringPool.BLANK;
 
 if (portletDisplay.isWebDAVEnabled()) {
-	webDavUrl = DLUtil.getWebDavURL(themeDisplay, folder, fileEntry);
+	webDavURL = DLUtil.getWebDavURL(themeDisplay, folder, fileEntry);
 }
 
 boolean hasAudio = AudioProcessorUtil.hasAudio(fileVersion);
@@ -166,15 +166,15 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 				<%= fileVersion.getTitle() %>
 
 				<c:if test="<%= versionSpecific %>">
-					(<liferay-ui:message key="version" /> <%= HtmlUtil.escape(fileVersion.getVersion()) %>)
+					(<liferay-ui:message key="version" /> <%= fileVersion.getVersion() %>)
 				</c:if>
 			</liferay-util:buffer>
 
 			<div class="body-row">
 				<div class="document-info">
 					<c:if test="<%= showAssetMetadata %>">
-						<h2 class="document-title" title="<%= documentTitle %>">
-							<%= documentTitle %>
+						<h2 class="document-title" title="<%= HtmlUtil.escapeAttribute(documentTitle) %>">
+							<%= HtmlUtil.escape(documentTitle) %>
 						</h2>
 
 						<span class="document-thumbnail">
@@ -191,7 +191,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 							}
 							%>
 
-							<img alt="" border="no" class="thumbnail" src="<%= thumbnailSrc %>" style="max-height: <%= PropsValues.DL_FILE_ENTRY_THUMBNAIL_MAX_HEIGHT %>px; max-width: <%= PropsValues.DL_FILE_ENTRY_THUMBNAIL_MAX_WIDTH %>px;" />
+							<img alt="<liferay-ui:message key="thumbnail" />" border="no" class="thumbnail" src="<%= thumbnailSrc %>" style="max-height: <%= PropsValues.DL_FILE_ENTRY_THUMBNAIL_MAX_HEIGHT %>px; max-width: <%= PropsValues.DL_FILE_ENTRY_THUMBNAIL_MAX_WIDTH %>px;" />
 						</span>
 
 						<span class="user-date">
@@ -255,6 +255,8 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 					<div>
 
 						<%
+						String randomNamespace = PortalUtil.generateRandomKey(request, "portlet_document_library_view_file_entry_preview_previewId") + StringPool.UNDERLINE;
+
 						int previewFileCount = 0;
 						String previewFileURL = null;
 						String[] previewFileURLs = null;
@@ -316,6 +318,8 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 							}
 						}
 
+						request.setAttribute("view_file_entry.jsp-randomNamespace", randomNamespace);
+
 						request.setAttribute("view_file_entry.jsp-supportedAudio", String.valueOf(hasAudio));
 						request.setAttribute("view_file_entry.jsp-supportedVideo", String.valueOf(hasVideo));
 
@@ -341,15 +345,15 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 							<c:otherwise>
 								<c:choose>
 									<c:when test="<%= hasAudio %>">
-										<div class="lfr-preview-audio" id="<portlet:namespace />previewFile">
-											<div class="lfr-preview-audio-content" id="<portlet:namespace />previewFileContent"></div>
+										<div class="lfr-preview-audio" id="<portlet:namespace /><%= randomNamespace %>previewFile">
+											<div class="lfr-preview-audio-content" id="<portlet:namespace /><%= randomNamespace %>previewFileContent"></div>
 										</div>
 
 										<liferay-util:include page="/html/portlet/document_library/player.jsp" />
 									</c:when>
 									<c:when test="<%= hasImages %>">
-										<div class="lfr-preview-file lfr-preview-image" id="<portlet:namespace />previewFile">
-											<div class="lfr-preview-file-content lfr-preview-image-content" id="<portlet:namespace />previewFileContent">
+										<div class="lfr-preview-file lfr-preview-image" id="<portlet:namespace /><%= randomNamespace %>previewFile">
+											<div class="lfr-preview-file-content lfr-preview-image-content" id="<portlet:namespace /><%= randomNamespace %>previewFileContent">
 												<div class="lfr-preview-file-image-current-column">
 													<div class="lfr-preview-file-image-container">
 														<img class="lfr-preview-file-image-current" src="<%= previewFileURL %>" />
@@ -359,10 +363,10 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 										</div>
 									</c:when>
 									<c:when test="<%= hasVideo %>">
-										<div class="lfr-preview-file lfr-preview-video" id="<portlet:namespace />previewFile">
+										<div class="lfr-preview-file lfr-preview-video" id="<portlet:namespace /><%= randomNamespace %>previewFile">
 											<div class="lfr-preview-file-content lfr-preview-video-content">
 												<div class="lfr-preview-file-video-current-column">
-													<div id="<portlet:namespace />previewFileContent"></div>
+													<div id="<portlet:namespace /><%= randomNamespace %>previewFileContent"></div>
 												</div>
 											</div>
 										</div>
@@ -370,22 +374,22 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 										<liferay-util:include page="/html/portlet/document_library/player.jsp" />
 									</c:when>
 									<c:otherwise>
-										<div class="lfr-preview-file" id="<portlet:namespace />previewFile">
-											<div class="lfr-preview-file-content" id="<portlet:namespace />previewFileContent">
+										<div class="lfr-preview-file" id="<portlet:namespace /><%= randomNamespace %>previewFile">
+											<div class="lfr-preview-file-content" id="<portlet:namespace /><%= randomNamespace %>previewFileContent">
 												<div class="lfr-preview-file-image-current-column">
 													<div class="lfr-preview-file-image-container">
-														<img class="lfr-preview-file-image-current" id="<portlet:namespace />previewFileImage" src="<%= previewFileURL + "1" %>" />
+														<img class="lfr-preview-file-image-current" id="<portlet:namespace /><%= randomNamespace %>previewFileImage" src="<%= previewFileURL + "1" %>" />
 													</div>
-													<span class="lfr-preview-file-actions hide" id="<portlet:namespace />previewFileActions">
-														<span class="lfr-preview-file-toolbar" id="<portlet:namespace />previewToolbar"></span>
+													<span class="lfr-preview-file-actions hide" id="<portlet:namespace /><%= randomNamespace %>previewFileActions">
+														<span class="lfr-preview-file-toolbar" id="<portlet:namespace /><%= randomNamespace %>previewToolbar"></span>
 
 														<span class="lfr-preview-file-info">
-															<span class="lfr-preview-file-index" id="<portlet:namespace />previewFileIndex">1</span> of <span class="lfr-preview-file-count"><%= previewFileCount %></span>
+															<span class="lfr-preview-file-index" id="<portlet:namespace /><%= randomNamespace %>previewFileIndex">1</span> <liferay-ui:message key="of" /> <span class="lfr-preview-file-count"><%= previewFileCount %></span>
 														</span>
 													</span>
 												</div>
 
-												<div class="lfr-preview-file-images" id="<portlet:namespace />previewImagesContent">
+												<div class="lfr-preview-file-images" id="<portlet:namespace /><%= randomNamespace %>previewImagesContent">
 													<div class="lfr-preview-file-images-content"></div>
 												</div>
 											</div>
@@ -394,15 +398,15 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 										<aui:script use="liferay-preview">
 											new Liferay.Preview(
 												{
-													actionContent: '#<portlet:namespace />previewFileActions',
+													actionContent: '#<portlet:namespace /><%= randomNamespace %>previewFileActions',
 													baseImageURL: '<%= previewFileURL %>',
-													boundingBox: '#<portlet:namespace />previewFile',
-													contentBox: '#<portlet:namespace />previewFileContent',
-													currentPreviewImage: '#<portlet:namespace />previewFileImage',
-													imageListContent: '#<portlet:namespace />previewImagesContent',
+													boundingBox: '#<portlet:namespace /><%= randomNamespace %>previewFile',
+													contentBox: '#<portlet:namespace /><%= randomNamespace %>previewFileContent',
+													currentPreviewImage: '#<portlet:namespace /><%= randomNamespace %>previewFileImage',
+													imageListContent: '#<portlet:namespace /><%= randomNamespace %>previewImagesContent',
 													maxIndex: <%= previewFileCount %>,
-													previewFileIndexNode: '#<portlet:namespace />previewFileIndex',
-													toolbar: '#<portlet:namespace />previewToolbar'
+													previewFileIndexNode: '#<portlet:namespace /><%= randomNamespace %>previewFileIndex',
+													toolbar: '#<portlet:namespace /><%= randomNamespace %>previewToolbar'
 												}
 											).render();
 										</aui:script>
@@ -413,7 +417,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 					</div>
 				</c:if>
 
-				<c:if test="<%= showAssetMetadata && PropsValues.DL_FILE_ENTRY_COMMENTS_ENABLED %>">
+				<c:if test="<%= showAssetMetadata && PropsValues.DL_FILE_ENTRY_COMMENTS_ENABLED && showComments %>">
 					<liferay-ui:panel collapsible="<%= true %>" cssClass="lfr-document-library-comments" extended="<%= true %>" persistState="<%= true %>" title="comments">
 						<portlet:actionURL var="discussionURL">
 							<portlet:param name="struts_action" value="/document_library/edit_file_entry_discussion" />
@@ -433,19 +437,19 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 			</div>
 		</aui:col>
 
-		<aui:col cssClass="lfr-asset-column-details context-pane" last="<%= true %>" width="<%= 30 %>">
-			<div class="body-row asset-details">
+		<aui:col cssClass="context-pane lfr-asset-column-details" last="<%= true %>" width="<%= 30 %>">
+			<div class="asset-details body-row">
 				<c:if test="<%= showAssetMetadata %>">
 					<div class="asset-details-content">
 						<h3 class="version <%= fileEntry.isCheckedOut() ? "document-locked" : StringPool.BLANK %>">
 							<liferay-ui:message key="version" /> <%= HtmlUtil.escape(fileVersion.getVersion()) %>
 						</h3>
 
-						<div class="lfr-asset-icon lfr-asset-author">
+						<div class="lfr-asset-author lfr-asset-icon">
 							<liferay-ui:message arguments="<%= HtmlUtil.escape(fileVersion.getStatusByUserName()) %>" key="last-updated-by-x" />
 						</div>
 
-						<div class="lfr-asset-icon lfr-asset-date">
+						<div class="lfr-asset-date lfr-asset-icon">
 							<%= dateFormatDateTime.format(fileVersion.getModifiedDate()) %>
 						</div>
 
@@ -463,11 +467,18 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 
 						<span class="download-document">
 							<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.VIEW) %>">
+
+								<%
+								String previewURL = DLUtil.getPreviewURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK);
+
+								String downloadURL = HttpUtil.addParameter(previewURL, "download", true);
+								%>
+
 								<liferay-ui:icon
 									image="download"
 									label="<%= true %>"
 									message='<%= LanguageUtil.get(pageContext, "download") + " (" + TextFormatter.formatStorageSize(fileVersion.getSize(), locale) + ")" %>'
-									url="<%= DLUtil.getPreviewURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK) %>"
+									url="<%= downloadURL %>"
 								/>
 							</c:if>
 						</span>
@@ -504,17 +515,12 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 							</c:choose>
 						</span>
 
-						<div class="lfr-asset-field url-file-container hide">
-							<aui:field-wrapper name="url">
-								<liferay-ui:input-resource
-									id="url"
-									url="<%= DLUtil.getPreviewURL(fileEntry, fileEntry.getFileVersion(), themeDisplay, StringPool.BLANK, false, true) %>"
-								/>
-							</aui:field-wrapper>
+						<div class="hide lfr-asset-field url-file-container">
+							<aui:input name="url" type="resource" value="<%= DLUtil.getPreviewURL(fileEntry, fileEntry.getFileVersion(), themeDisplay, StringPool.BLANK, false, true) %>" />
 						</div>
 
 						<c:if test="<%= portletDisplay.isWebDAVEnabled() && fileEntry.isSupportsSocial() %>">
-							<div class="lfr-asset-field webdav-url-file-container hide">
+							<div class="hide lfr-asset-field webdav-url-file-container">
 
 								<%
 								String webDavHelpMessage = null;
@@ -527,12 +533,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 								}
 								%>
 
-								<aui:field-wrapper helpMessage="<%= webDavHelpMessage %>" name="webdavUrl">
-									<liferay-ui:input-resource
-										id="webdavUrl"
-										url="<%= webDavUrl %>"
-									/>
-								</aui:field-wrapper>
+								<aui:input helpMessage="<%= webDavHelpMessage %>" name="webDavURL"  type="resource" value="<%= webDavURL %>" />
 							</div>
 						</c:if>
 					</div>
@@ -643,7 +644,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 								boolean comparableFileEntry = DocumentConversionUtil.isComparableVersion(fileVersion.getExtension());
 								boolean showNonApprovedDocuments = false;
 
-								if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGroupId)) {
+								if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId)) {
 									showNonApprovedDocuments = true;
 								}
 
@@ -863,7 +864,14 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 					label: '<%= UnicodeLanguageUtil.get(pageContext, "download") %>',
 					on: {
 						click: function(event) {
-							location.href = '<%= DLUtil.getPreviewURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK) %>';
+
+							<%
+							String previewURL = DLUtil.getPreviewURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK);
+
+							String downloadURL = HttpUtil.addParameter(previewURL, "download", true);
+							%>
+
+							location.href = '<%= downloadURL %>';
 						}
 					}
 				}
@@ -988,7 +996,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 							Liferay.Util.openWindow(
 								{
 									title: '<%= UnicodeLanguageUtil.get(pageContext, "permissions") %>',
-									uri: '<%= permissionsURL.toString() %>',
+									uri: '<%= permissionsURL.toString() %>'
 								}
 							);
 						}

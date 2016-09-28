@@ -634,6 +634,13 @@ public class LayoutServiceUtil {
 			incomplete, start, end);
 	}
 
+	public static int getLayoutsCount(long groupId, boolean privateLayout,
+		long parentLayoutId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getLayoutsCount(groupId, privateLayout, parentLayoutId);
+	}
+
 	public static java.lang.String[] getTempFileEntryNames(long groupId,
 		java.lang.String tempFolderName)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -1259,6 +1266,14 @@ public class LayoutServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().updateParentLayoutId(plid, parentPlid);
+	}
+
+	public static com.liferay.portal.model.Layout updateParentLayoutIdAndPriority(
+		long plid, long parentPlid, int priority)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .updateParentLayoutIdAndPriority(plid, parentPlid, priority);
 	}
 
 	/**

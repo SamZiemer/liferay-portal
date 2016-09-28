@@ -105,8 +105,8 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 		BrowseRequest browseRequest = null;
 
 		try {
-			indexSearcher = LuceneHelperUtil.getSearcher(
-				searchContext.getCompanyId(), true);
+			indexSearcher = LuceneHelperUtil.getIndexSearcher(
+				searchContext.getCompanyId());
 
 			List<FacetHandler<?>> facetHandlers =
 				new ArrayList<FacetHandler<?>>();
@@ -217,7 +217,16 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 				browseRequest.setFacetSpec(facet.getFieldName(), facetSpec);
 			}
 
-			browseRequest.setCount(PropsValues.INDEX_SEARCH_LIMIT);
+			int end = searchContext.getEnd();
+
+			if ((end == QueryUtil.ALL_POS) ||
+				(end > PropsValues.INDEX_SEARCH_LIMIT)) {
+
+				end = PropsValues.INDEX_SEARCH_LIMIT;
+			}
+
+			browseRequest.setCount(end);
+
 			browseRequest.setOffset(0);
 			browseRequest.setQuery(
 				(org.apache.lucene.search.Query)QueryTranslatorUtil.translate(
@@ -230,14 +239,12 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 
 			BrowseResult browseResult = boboBrowser.browse(browseRequest);
 
-			BrowseHit[] browseHits = browseResult.getHits();
-
 			long endTime = System.currentTimeMillis();
 
 			float searchTime = (float)(endTime - startTime) / Time.SECOND;
 
 			hits = toHits(
-				indexSearcher, new HitDocs(browseHits), query, startTime,
+				indexSearcher, new HitDocs(browseResult), query, startTime,
 				searchTime, searchContext.getStart(), searchContext.getEnd());
 
 			Map<String, FacetAccessible> facetMap = browseResult.getFacetMap();
@@ -265,14 +272,12 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 
 				BrowseResult browseResult = boboBrowser.browse(browseRequest);
 
-				BrowseHit[] browseHits = browseResult.getHits();
-
 				long endTime = System.currentTimeMillis();
 
 				float searchTime = (float)(endTime - startTime) / Time.SECOND;
 
 				hits = toHits(
-					indexSearcher, new HitDocs(browseHits), query, startTime,
+					indexSearcher, new HitDocs(browseResult), query, startTime,
 					searchTime, searchContext.getStart(),
 					searchContext.getEnd());
 
@@ -310,7 +315,13 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 		finally {
 			cleanUp(boboBrowser);
 
-			LuceneHelperUtil.cleanUp(indexSearcher);
+			try {
+				LuceneHelperUtil.releaseIndexSearcher(
+					searchContext.getCompanyId(), indexSearcher);
+			}
+			catch (IOException ioe) {
+				_log.error("Unable to release searcher", ioe);
+			}
 		}
 
 		if (_log.isDebugEnabled()) {
@@ -585,6 +596,10 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 
 		int total = hitDocs.getTotalHits();
 
+		if (total > PropsValues.INDEX_SEARCH_LIMIT) {
+			total = PropsValues.INDEX_SEARCH_LIMIT;
+		}
+
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS)) {
 			start = 0;
 			end = total;
@@ -607,8 +622,7 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 			(org.apache.lucene.search.Query)QueryTranslatorUtil.translate(
 				query);
 
-		int scoredFieldNamesCount = LuceneHelperUtil.countScoredFieldNames(
-			luceneQuery, ArrayUtil.toStringArray(indexedFieldNames.toArray()));
+		int scoredFieldNamesCount = -1;
 
 		Hits hits = new HitsImpl();
 
@@ -618,8 +632,8 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 
 		int subsetTotal = end - start;
 
-		if (subsetTotal > PropsValues.INDEX_SEARCH_LIMIT) {
-			subsetTotal = PropsValues.INDEX_SEARCH_LIMIT;
+		if (subsetTotal > hitDocs.getSize()) {
+			subsetTotal = hitDocs.getSize();
 		}
 
 		List<Document> subsetDocs = new ArrayList<Document>(subsetTotal);
@@ -635,26 +649,38 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 
 			Document subsetDocument = getDocument(document);
 
-			if (queryConfig.isHighlightEnabled()) {
-				Locale locale = queryConfig.getLocale();
+			getSnippet(
+				document, query, Field.ASSET_CATEGORY_TITLES,
+				queryConfig.getLocale(), subsetDocument, queryTerms);
 
+			if (queryConfig.isHighlightEnabled()) {
 				getSnippet(
-					document, query, Field.CONTENT, locale, subsetDocument,
-					queryTerms);
+					document, query, Field.CONTENT, queryConfig.getLocale(),
+					subsetDocument, queryTerms);
 				getSnippet(
-					document, query, Field.DESCRIPTION, locale, subsetDocument,
-					queryTerms);
+					document, query, Field.DESCRIPTION, queryConfig.getLocale(),
+					subsetDocument, queryTerms);
 				getSnippet(
-					document, query, Field.TITLE, locale, subsetDocument,
-					queryTerms);
+					document, query, Field.TITLE, queryConfig.getLocale(),
+					subsetDocument, queryTerms);
 			}
 
 			subsetDocs.add(subsetDocument);
 
 			Float subsetScore = hitDocs.getScore(i);
 
-			if (scoredFieldNamesCount > 0) {
-				subsetScore = subsetScore / scoredFieldNamesCount;
+			if (subsetScore > 0) {
+				if (scoredFieldNamesCount == -1) {
+					scoredFieldNamesCount =
+						LuceneHelperUtil.countScoredFieldNames(
+							luceneQuery,
+							ArrayUtil.toStringArray(
+								indexedFieldNames.toArray()));
+				}
+
+				if (scoredFieldNamesCount > 0) {
+					subsetScore = subsetScore / scoredFieldNamesCount;
+				}
 			}
 
 			subsetScores.add(subsetScore);
@@ -705,8 +731,9 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 
 	private class HitDocs {
 
-		public HitDocs(BrowseHit[] browseHits) {
-			_browseHits = browseHits;
+		public HitDocs(BrowseResult browseResult) {
+			_browseHits = browseResult.getHits();
+			_browseResult = browseResult;
 		}
 
 		public HitDocs(TopFieldDocs topFieldDocs) {
@@ -743,6 +770,17 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 			if (_topFieldDocs != null) {
 				return _topFieldDocs.totalHits;
 			}
+			else if (_browseResult != null) {
+				return _browseResult.getNumHits();
+			}
+
+			throw new IllegalStateException();
+		}
+
+		public int getSize() {
+			if (_topFieldDocs != null) {
+				return _topFieldDocs.scoreDocs.length;
+			}
 			else if (_browseHits != null) {
 				return _browseHits.length;
 			}
@@ -751,6 +789,7 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 		}
 
 		private BrowseHit[] _browseHits;
+		private BrowseResult _browseResult;
 		private TopFieldDocs _topFieldDocs;
 
 	}

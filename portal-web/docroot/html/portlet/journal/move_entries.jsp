@@ -96,7 +96,7 @@ for (JournalArticle curArticle : articles) {
 
 					<li class="move-folder">
 						<span class="folder-title">
-							<%= folder.getName() %>
+							<%= HtmlUtil.escape(folder.getName()) %>
 						</span>
 					</li>
 
@@ -120,9 +120,9 @@ for (JournalArticle curArticle : articles) {
 				for (JournalFolder folder : invalidMoveFolders) {
 				%>
 
-					<li class="move-folder move-error">
+					<li class="move-error move-folder">
 						<span class="folder-title">
-							<%= folder.getName() %>
+							<%= HtmlUtil.escape(folder.getName()) %>
 						</span>
 
 						<span class="error-message">
@@ -153,8 +153,8 @@ for (JournalArticle curArticle : articles) {
 				%>
 
 					<li class="move-article">
-						<span class="article-title" title="<%= validMoveArticle.getTitle(locale) %>">
-							<%= validMoveArticle.getTitle(locale) %>
+						<span class="article-title" title="<%= HtmlUtil.escapeAttribute(validMoveArticle.getTitle(locale)) %>">
+							<%= HtmlUtil.escape(validMoveArticle.getTitle(locale)) %>
 						</span>
 					</li>
 
@@ -179,8 +179,8 @@ for (JournalArticle curArticle : articles) {
 				%>
 
 					<li class="move-article move-error">
-						<span class="article-title" title="<%= invalidMoveArticle.getTitle() %>">
-							<%= invalidMoveArticle.getTitle() %>
+						<span class="article-title" title="<%= HtmlUtil.escapeAttribute(invalidMoveArticle.getTitle()) %>">
+							<%= HtmlUtil.escape(invalidMoveArticle.getTitle()) %>
 						</span>
 
 						<span class="error-message">
@@ -206,8 +206,6 @@ for (JournalArticle curArticle : articles) {
 		if (newFolderId > 0) {
 			JournalFolder folder = JournalFolderLocalServiceUtil.getFolder(newFolderId);
 
-			folder = folder.toEscapedModel();
-
 			folderName = folder.getName();
 		}
 		else {
@@ -215,13 +213,11 @@ for (JournalArticle curArticle : articles) {
 		}
 		%>
 
-		<aui:field-wrapper label="new-folder">
-			<div class="input-append">
-				<liferay-ui:input-resource id="folderName" url="<%= folderName %>" />
+		<div class="control-group">
+			<aui:input label="new-folder" name="folderName" title="new-folder" type="resource" value="<%= folderName %>" />
 
-				<aui:button name="selectFolderButton" value="select" />
-			</div>
-		</aui:field-wrapper>
+			<aui:button name="selectFolderButton" value="select" />
+		</div>
 
 		<aui:button-row>
 			<aui:button type="submit" value="move" />

@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MethodParameter;
 import com.liferay.portal.kernel.util.SortedArrayList;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.service.ServiceContextThreadLocal;
 import com.liferay.portal.spring.context.PortalContextLoaderListener;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
@@ -110,6 +111,11 @@ public class JSONWebServiceActionsManagerImpl
 
 		jsonWebServiceActionParameters.collectAll(
 			request, parameterPath, jsonRPCRequest, null);
+
+		if (jsonWebServiceActionParameters.getServiceContext() != null) {
+			ServiceContextThreadLocal.pushServiceContext(
+				jsonWebServiceActionParameters.getServiceContext());
+		}
 
 		String[] paths = _resolvePaths(request, path);
 
@@ -285,9 +291,11 @@ public class JSONWebServiceActionsManagerImpl
 
 	@Override
 	public int registerServletContext(ServletContext servletContext) {
-		String contextPath = ContextPathUtil.getContextPath(servletContext);
+		String contextPath = servletContext.getServletContextName();
 
-		return registerServletContext(contextPath);
+		int count = registerServletContext(contextPath);
+
+		return count;
 	}
 
 	@Override
@@ -303,8 +311,8 @@ public class JSONWebServiceActionsManagerImpl
 		else {
 			String contextName = contextPath;
 
-			if (contextName.startsWith(StringPool.SLASH)) {
-				contextName = contextName.substring(1);
+			if (!contextPath.startsWith(StringPool.SLASH)) {
+				contextPath = StringPool.SLASH.concat(contextPath);
 			}
 
 			beanLocator = PortletBeanLocatorUtil.getBeanLocator(contextName);

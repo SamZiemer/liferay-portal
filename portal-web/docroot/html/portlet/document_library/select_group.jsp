@@ -93,10 +93,10 @@ String eventName = ParamUtil.getString(request, "eventName", liferayPortletRespo
 			List<Group> sites = null;
 
 			if (searchTerms.isAdvancedSearch()) {
-				sites = GroupLocalServiceUtil.search(company.getCompanyId(), null, searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator(), start, end, searchContainer.getOrderByComparator());
+				sites = GroupServiceUtil.search(company.getCompanyId(), null, searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator(), start, end, searchContainer.getOrderByComparator());
 			}
 			else {
-				sites = GroupLocalServiceUtil.search(company.getCompanyId(), null, searchTerms.getKeywords(), groupParams, start, end, searchContainer.getOrderByComparator());
+				sites = GroupServiceUtil.search(company.getCompanyId(), null, searchTerms.getKeywords(), groupParams, start, end, searchContainer.getOrderByComparator());
 			}
 
 			results.addAll(sites);
@@ -137,7 +137,7 @@ String eventName = ParamUtil.getString(request, "eventName", liferayPortletRespo
 				<%
 				Map<String, Object> data = new HashMap<String, Object>();
 
-				data.put("groupdescriptivename", HtmlUtil.escape(groupDescriptiveName));
+				data.put("groupdescriptivename", groupDescriptiveName);
 				data.put("groupid", group.getGroupId());
 				%>
 
@@ -150,17 +150,5 @@ String eventName = ParamUtil.getString(request, "eventName", liferayPortletRespo
 </aui:form>
 
 <aui:script use="aui-base">
-	var Util = Liferay.Util;
-
-	A.one('#<portlet:namespace />selectGroupFm').delegate(
-		'click',
-		function(event) {
-			var result = Util.getAttributes(event.currentTarget, 'data-');
-
-			Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
-
-			Util.getWindow().hide();
-		},
-		'.selector-button'
-	);
+	Liferay.Util.selectEntityHandler('#<portlet:namespace />selectGroupFm', '<%= HtmlUtil.escapeJS(eventName) %>');
 </aui:script>

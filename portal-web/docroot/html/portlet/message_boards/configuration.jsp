@@ -19,8 +19,6 @@
 <%
 String tabs2 = ParamUtil.getString(request, "tabs2", "general");
 
-String redirect = ParamUtil.getString(request, "redirect");
-
 String emailFromName = ParamUtil.getString(request, "preferences--emailFromName--", MBUtil.getEmailFromName(portletPreferences, company.getCompanyId()));
 String emailFromAddress = ParamUtil.getString(request, "preferences--emailFromAddress--", MBUtil.getEmailFromAddress(portletPreferences, company.getCompanyId()));
 
@@ -56,15 +54,18 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 
 <liferay-portlet:renderURL portletConfiguration="<%= true %>" var="portletURL">
 	<portlet:param name="tabs2" value="<%= tabs2 %>" />
-	<portlet:param name="redirect" value="<%= redirect %>" />
 </liferay-portlet:renderURL>
 
-<liferay-portlet:actionURL portletConfiguration="<%= true %>" var="configurationURL" />
+<liferay-portlet:actionURL portletConfiguration="<%= true %>" var="configurationActionURL" />
 
-<aui:form action="<%= configurationURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
+<liferay-portlet:renderURL portletConfiguration="<%= true %>" var="configurationRenderURL">
+	<portlet:param name="tabs2" value="<%= tabs2 %>" />
+</liferay-portlet:renderURL>
+
+<aui:form action="<%= configurationActionURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
 	<aui:input name="tabs2" type="hidden" value="<%= tabs2 %>" />
-	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+	<aui:input name="redirect" type="hidden" value="<%= configurationRenderURL %>" />
 
 	<%
 	String tabs2Names = "general,email-from,message-added-email,message-updated-email,thread-priorities,user-ranks";
@@ -184,7 +185,7 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 						[$PORTLET_NAME$]
 					</dt>
 					<dd>
-						<%= PortalUtil.getPortletTitle(renderResponse) %>
+						<%= HtmlUtil.escape(PortalUtil.getPortletTitle(renderResponse)) %>
 					</dd>
 					<dt>
 						[$SITE_NAME$]
@@ -309,7 +310,7 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 						[$PORTLET_NAME$]
 					</dt>
 					<dd>
-						<%= PortalUtil.getPortletTitle(renderResponse) %>
+						<%= HtmlUtil.escape(PortalUtil.getPortletTitle(renderResponse)) %>
 					</dd>
 					<dt>
 						[$SITE_NAME$]
@@ -345,9 +346,7 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 			<table class="lfr-table">
 			<tr>
 				<td>
-					<aui:field-wrapper label="default-language">
-						<liferay-ui:input-resource url="<%= defaultLocale.getDisplayName(defaultLocale) %>" />
-					</aui:field-wrapper>
+					<aui:input name="defaultLanguage" type="resource" value="<%= defaultLocale.getDisplayName(defaultLocale) %>" />
 				</td>
 				<td>
 					<aui:select label="localized-language" name="languageId" onClick='<%= renderResponse.getNamespace() + "updateLanguage();" %>' showEmptyOption="<%= true %>">
@@ -415,13 +414,13 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 
 						<tr>
 							<td>
-								<aui:input label="" name='<%= "priorityName" + i + "_" + defaultLanguageId %>' size="15" value="<%= name %>" />
+								<aui:input label="" name='<%= "priorityName" + i + "_" + defaultLanguageId %>' size="15" title="priority-name" value="<%= name %>" />
 							</td>
 							<td>
-								<aui:input label="" name='<%= "priorityImage" + i + "_" + defaultLanguageId %>' size="40" value="<%= image %>" />
+								<aui:input label="" name='<%= "priorityImage" + i + "_" + defaultLanguageId %>' size="40" title="priority-image" value="<%= image %>" />
 							</td>
 							<td>
-								<aui:input label="" name='<%= "priorityValue" + i + "_" + defaultLanguageId %>' size="4" value="<%= value %>" />
+								<aui:input label="" name='<%= "priorityValue" + i + "_" + defaultLanguageId %>' size="4" title="priority-value" value="<%= value %>" />
 							</td>
 						</tr>
 
@@ -451,13 +450,13 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 
 						<tr>
 							<td>
-								<aui:input label="" name='<%= "priorityName" + i + "_temp" %>' onChange='<%= renderResponse.getNamespace() + "onChanged();" %>' size="15" />
+								<aui:input label="" name='<%= "priorityName" + i + "_temp" %>' onChange='<%= renderResponse.getNamespace() + "onChanged();" %>' size="15" title="priority-name" />
 							</td>
 							<td>
-								<aui:input label="" name='<%= "priorityImage" + i + "_temp" %>' onChange='<%= renderResponse.getNamespace() + "onChanged();" %>' size="40" />
+								<aui:input label="" name='<%= "priorityImage" + i + "_temp" %>' onChange='<%= renderResponse.getNamespace() + "onChanged();" %>' size="40" title="priority-image" />
 							</td>
 							<td>
-								<aui:input label="" name='<%= "priorityValue" + i + "_temp" %>' onChange='<%= renderResponse.getNamespace() + "onChanged();" %>' size="4" />
+								<aui:input label="" name='<%= "priorityValue" + i + "_temp" %>' onChange='<%= renderResponse.getNamespace() + "onChanged();" %>' size="4" title="priority-value" />
 							</td>
 						</tr>
 
@@ -601,9 +600,7 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 				<table class="lfr-table">
 				<tr>
 					<td class="lfr-label">
-						<aui:field-wrapper label="default-language">
-							<liferay-ui:input-resource url="<%= defaultLocale.getDisplayName(defaultLocale) %>" />
-						</aui:field-wrapper>
+						<aui:input name="defaultLanguage" type="resource" value="<%= defaultLocale.getDisplayName(defaultLocale) %>" />
 					</td>
 					<td class="lfr-label">
 						<aui:select label="localized-language" name="languageId" onChange='<%= renderResponse.getNamespace() + "updateLanguage();" %>' showEmptyOption="<%= true %>">
@@ -626,7 +623,7 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 				</tr>
 				<tr>
 					<td>
-						<aui:input cssClass="lfr-textarea-container" label="" name='<%= "ranks_" + defaultLanguageId %>' type="textarea" value='<%= StringUtil.merge(LocalizationUtil.getPreferencesValues(portletPreferences, "ranks", defaultLanguageId), StringPool.NEW_LINE) %>' />
+						<aui:input cssClass="lfr-textarea-container" label="" name='<%= "ranks_" + defaultLanguageId %>' title="ranks" type="textarea" value='<%= StringUtil.merge(LocalizationUtil.getPreferencesValues(portletPreferences, "ranks", defaultLanguageId), StringPool.NEW_LINE) %>' />
 					</td>
 					<td>
 
@@ -643,7 +640,7 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 						}
 						%>
 
-						<aui:input cssClass="lfr-textarea-container" label="" name="ranks_temp" onChange='<%= renderResponse.getNamespace() + "onRanksChanged();" %>' type="textarea" />
+						<aui:input cssClass="lfr-textarea-container" label="" name="ranks_temp" onChange='<%= renderResponse.getNamespace() + "onRanksChanged();" %>' title="ranks" type="textarea" />
 					</td>
 				</tr>
 				</table>

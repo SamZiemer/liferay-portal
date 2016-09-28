@@ -411,13 +411,9 @@ public class PDFProcessorImpl
 		throws Exception {
 
 		if (_isGeneratePreview(fileVersion)) {
-			StopWatch stopWatch = null;
+			StopWatch stopWatch = new StopWatch();
 
-			if (_log.isInfoEnabled()) {
-				stopWatch = new StopWatch();
-
-				stopWatch.start();
-			}
+			stopWatch.start();
 
 			_generateImagesGS(fileVersion, file, false);
 
@@ -427,25 +423,22 @@ public class PDFProcessorImpl
 				_log.info(
 					"Ghostscript generated " + previewFileCount +
 						" preview pages for " + fileVersion.getTitle() +
-							" in " + stopWatch);
+							" in " + stopWatch.getTime() + " ms");
 			}
 		}
 
 		if (_isGenerateThumbnail(fileVersion)) {
-			StopWatch stopWatch = null;
+			StopWatch stopWatch = new StopWatch();
 
-			if (_log.isInfoEnabled()) {
-				stopWatch = new StopWatch();
-
-				stopWatch.start();
-			}
+			stopWatch.start();
 
 			_generateImagesGS(fileVersion, file, true);
 
 			if (_log.isInfoEnabled()) {
 				_log.info(
 					"Ghostscript generated a thumbnail for " +
-						fileVersion.getTitle() + " in " + stopWatch);
+						fileVersion.getTitle() + " in " + stopWatch.getTime() +
+							" ms");
 			}
 		}
 	}
@@ -481,13 +474,13 @@ public class PDFProcessorImpl
 
 		if (PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_WIDTH != 0) {
 			arguments.add(
-				"-dDEVICEWIDTH" +
+				"-dDEVICEWIDTH=" +
 					PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_WIDTH);
 		}
 
 		if (PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_HEIGHT != 0) {
 			arguments.add(
-				"-dDEVICEHEIGHT" +
+				"-dDEVICEHEIGHT=" +
 					PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_HEIGHT);
 		}
 
@@ -497,7 +490,13 @@ public class PDFProcessorImpl
 
 		String processIdentity = String.valueOf(fileVersion.getFileVersionId());
 
-		futures.put(processIdentity, future);
+		while (!future.isCancelled()) {
+			if (future.isDone()) {
+				futures.put(processIdentity, future);
+
+				break;
+			}
+		}
 
 		future.get();
 
@@ -760,7 +759,7 @@ public class PDFProcessorImpl
 			Map<String, String> customLogSettings, File inputFile,
 			File thumbnailFile, File[] previewFiles, String extension,
 			String thumbnailExtension, int dpi, int height, int width,
-			boolean generateThumbnail, boolean generatePreview) {
+			boolean generatePreview, boolean generateThumbnail) {
 
 			_serverId = serverId;
 			_liferayHome = liferayHome;
@@ -773,8 +772,8 @@ public class PDFProcessorImpl
 			_dpi = dpi;
 			_height = height;
 			_width = width;
-			_generateThumbnail = generateThumbnail;
 			_generatePreview = generatePreview;
+			_generateThumbnail = generateThumbnail;
 		}
 
 		@Override

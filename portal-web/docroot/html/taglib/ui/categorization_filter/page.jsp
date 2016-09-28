@@ -33,17 +33,19 @@ String assetCategoryTitle = null;
 String assetVocabularyTitle = null;
 
 if (assetCategoryId != 0) {
-	AssetCategory assetCategory = AssetCategoryLocalServiceUtil.getAssetCategory(assetCategoryId);
+	AssetCategory assetCategory = AssetCategoryLocalServiceUtil.fetchAssetCategory(assetCategoryId);
 
-	assetCategory = assetCategory.toEscapedModel();
+	if (assetCategory != null) {
+		assetCategory = assetCategory.toEscapedModel();
 
-	assetCategoryTitle = assetCategory.getTitle(locale);
+		assetCategoryTitle = assetCategory.getTitle(locale);
 
-	AssetVocabulary assetVocabulary = AssetVocabularyLocalServiceUtil.getAssetVocabulary(assetCategory.getVocabularyId());
+		AssetVocabulary assetVocabulary = AssetVocabularyLocalServiceUtil.getAssetVocabulary(assetCategory.getVocabularyId());
 
-	assetVocabulary = assetVocabulary.toEscapedModel();
+		assetVocabulary = assetVocabulary.toEscapedModel();
 
-	assetVocabularyTitle = assetVocabulary.getTitle(locale);
+		assetVocabularyTitle = assetVocabulary.getTitle(locale);
+	}
 }
 %>
 
@@ -57,7 +59,7 @@ if (assetCategoryId != 0) {
 			</portlet:renderURL>
 
 			<a href="<%= viewURLWithoutCategory %>" title="<liferay-ui:message key="remove" />">
-				<span class="icon icon-close textboxlistentry-close"></span>
+				<span class="icon icon-remove textboxlistentry-remove"></span>
 			</a>
 		</span>
 	</c:if>
@@ -73,7 +75,7 @@ if (assetCategoryId != 0) {
 			</liferay-portlet:renderURL>
 
 			<a href="<%= viewURLWithoutTag %>" title="<liferay-ui:message key="remove" />">
-				<span class="icon icon-close textboxlistentry-close"></span>
+				<span class="icon icon-remove textboxlistentry-remove"></span>
 			</a>
 		</span>
 	</c:if>

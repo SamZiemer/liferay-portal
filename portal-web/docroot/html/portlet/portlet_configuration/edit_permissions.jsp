@@ -103,10 +103,6 @@ if (Validator.isNotNull(roleTypesParam)) {
 	roleTypes = StringUtil.split(roleTypesParam, 0);
 }
 
-if (group.isCompany()) {
-	roleTypes = new int[] {RoleConstants.TYPE_REGULAR};
-}
-
 PortletURL actionPortletURL = renderResponse.createActionURL();
 
 actionPortletURL.setParameter("struts_action", "/portlet_configuration/edit_permissions");
@@ -141,6 +137,7 @@ definePermissionsURL.setParameter("struts_action", "/roles_admin/edit_role_permi
 definePermissionsURL.setParameter(Constants.CMD, Constants.VIEW);
 definePermissionsURL.setPortletMode(PortletMode.VIEW);
 definePermissionsURL.setRefererPlid(plid);
+definePermissionsURL.setWindowState(LiferayWindowState.POP_UP);
 %>
 
 <div class="edit-permissions">
@@ -164,6 +161,8 @@ definePermissionsURL.setRefererPlid(plid);
 		</c:choose>
 
 		<%
+		boolean filterGroupRoles = !ResourceActionsUtil.isPortalModelResource(modelResource);
+
 		List<String> actions = ResourceActionsUtil.getResourceActions(portletResource, modelResource);
 
 		if (modelResource.equals(Group.class.getName())) {
@@ -204,6 +203,10 @@ definePermissionsURL.setRefererPlid(plid);
 				actions.remove(ActionKeys.UPDATE);
 				actions.remove(ActionKeys.VIEW);
 			}
+
+			if ((modelResourceRole.getType() == RoleConstants.TYPE_ORGANIZATION) || (modelResourceRole.getType() == RoleConstants.TYPE_SITE)) {
+				filterGroupRoles = true;
+			}
 		}
 
 		List<Role> roles = ListUtil.copy(ResourceActionsUtil.getRoles(company.getCompanyId(), group, modelResource, roleTypes));
@@ -212,7 +215,7 @@ definePermissionsURL.setRefererPlid(plid);
 
 		roles.remove(administratorRole);
 
-		if (!ResourceActionsUtil.isPortalModelResource(modelResource)) {
+		if (filterGroupRoles) {
 			Role organizationAdministratorRole = RoleLocalServiceUtil.getRole(company.getCompanyId(), RoleConstants.ORGANIZATION_ADMINISTRATOR);
 
 			roles.remove(organizationAdministratorRole);
@@ -234,10 +237,6 @@ definePermissionsURL.setRefererPlid(plid);
 
 		if (modelResource.equals(Role.class.getName())) {
 			modelResourceRoleId = GetterUtil.getLong(resourcePrimKey);
-
-			Role role = RoleLocalServiceUtil.getRole(modelResourceRoleId);
-
-			roles.remove(role);
 		}
 
 		roles.addAll(RoleLocalServiceUtil.getTeamRoles(groupId, new long[] {modelResourceRoleId}));
@@ -373,44 +372,47 @@ definePermissionsURL.setRefererPlid(plid);
 					>
 
 						<%
+						String actionSeparator = Validator.isNotNull(preselectedMsg) ? ActionUtil.PRESELECTED : ActionUtil.ACTION;
+
+						if (checked && disabled) {
+							buffer.append("<input ");
+
+							buffer.append("name=\"");
+							buffer.append(renderResponse.getNamespace());
+							buffer.append(role.getRoleId());
+							buffer.append(actionSeparator);
+							buffer.append(action);
+							buffer.append("\" ");
+
+							buffer.append("type=\"hidden\" ");
+
+							buffer.append("value=\"true\" />");
+						}
+
 						buffer.append("<input ");
 
 						if (checked) {
 							buffer.append("checked ");
 						}
 
-						if (Validator.isNotNull(preselectedMsg)) {
-							buffer.append("class=\"lfr-checkbox-preselected\" ");
-						}
-
 						if (disabled) {
 							buffer.append("disabled ");
 						}
 
+						if (Validator.isNotNull(preselectedMsg)) {
+							buffer.append("class=\"lfr-checkbox-preselected\" ");
+						}
+
 						buffer.append("id=\"");
 						buffer.append(FriendlyURLNormalizerUtil.normalize(role.getName()));
-
-						if (Validator.isNotNull(preselectedMsg)) {
-							buffer.append(ActionUtil.PRESELECTED);
-						}
-						else {
-							buffer.append(ActionUtil.ACTION);
-						}
-
+						buffer.append(actionSeparator);
 						buffer.append(action);
 						buffer.append("\" ");
 
 						buffer.append("name=\"");
 						buffer.append(renderResponse.getNamespace());
 						buffer.append(role.getRoleId());
-
-						if (Validator.isNotNull(preselectedMsg)) {
-							buffer.append(ActionUtil.PRESELECTED);
-						}
-						else {
-							buffer.append(ActionUtil.ACTION);
-						}
-
+						buffer.append(actionSeparator);
 						buffer.append(action);
 						buffer.append("\" ");
 

@@ -76,7 +76,7 @@ public class SitemapImpl implements Sitemap {
 		document.setXMLEncoding(StringPool.UTF8);
 
 		Element rootElement = document.addElement(
-			"urlset", "http://www.google.com/schemas/sitemap/0.9");
+			"urlset", "http://www.sitemaps.org/schemas/sitemap/0.9");
 
 		rootElement.addAttribute("xmlns:xhtml", "http://www.w3.org/1999/xhtml");
 
@@ -167,7 +167,8 @@ public class SitemapImpl implements Sitemap {
 				Locale locale = entry.getKey();
 				String href = entry.getValue();
 
-				Element alternateURLElement = urlElement.addElement("link");
+				Element alternateURLElement = urlElement.addElement(
+					"xhtml:link", "http://www.w3.org/1999/xhtml");
 
 				alternateURLElement.addAttribute("href", href);
 				alternateURLElement.addAttribute(
@@ -175,7 +176,8 @@ public class SitemapImpl implements Sitemap {
 				alternateURLElement.addAttribute("rel", "alternate");
 			}
 
-			Element alternateURLElement = urlElement.addElement("link");
+			Element alternateURLElement = urlElement.addElement(
+				"xhtml:link", "http://www.w3.org/1999/xhtml");
 
 			alternateURLElement.addAttribute("rel", "alternate");
 			alternateURLElement.addAttribute("hreflang", "x-default");

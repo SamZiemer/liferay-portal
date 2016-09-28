@@ -290,7 +290,7 @@ AUI.add(
 
 						if (event.searchEverywhere) {
 							searchData[SEARCH_REPOSITORY_ID] = instance._config.repositories[0].id;
-							searchData[STR_SEARCH_FOLDER_ID] = DEFAULT_FOLDER_ID;
+							searchData[STR_SEARCH_FOLDER_ID] = instance._config.folders.rootFolderId;
 							searchData[STR_SHOW_REPOSITORY_TABS] = true;
 						}
 						else {
@@ -437,8 +437,6 @@ AUI.add(
 					_searchFileEntry: function(searchData) {
 						var instance = this;
 
-						instance._documentLibraryContainer.all('.document-entries-pagination').hide();
-
 						var requestParams = {};
 
 						requestParams[instance.ns(STRUTS_ACTION)] = '/document_library/search';
@@ -455,6 +453,7 @@ AUI.add(
 							instance._eventDataRequest,
 							{
 								requestParams: requestParams,
+								resetPagination: true,
 								src: Liferay.DL_SEARCH
 							}
 						);

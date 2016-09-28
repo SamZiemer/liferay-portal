@@ -138,7 +138,7 @@ public class RepositoryLocalServiceImpl extends RepositoryLocalServiceBaseImpl {
 			repositoryPersistence.findByPrimaryKey(repositoryId);
 		}
 		catch (NoSuchRepositoryException nsre) {
-			throw new RepositoryException(nsre.getMessage());
+			throw new InvalidRepositoryIdException(nsre.getMessage());
 		}
 	}
 
@@ -190,6 +190,10 @@ public class RepositoryLocalServiceImpl extends RepositoryLocalServiceBaseImpl {
 				repositoryId, repository.getUuid(), null,
 				SystemEventConstants.TYPE_DELETE, StringPool.BLANK);
 		}
+
+		_localRepositoriesByRepositoryId.remove(repositoryId);
+
+		_repositoriesByRepositoryId.remove(repositoryId);
 
 		return repository;
 	}

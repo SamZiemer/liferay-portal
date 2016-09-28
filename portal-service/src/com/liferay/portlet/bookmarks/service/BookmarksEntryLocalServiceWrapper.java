@@ -412,6 +412,15 @@ public class BookmarksEntryLocalServiceWrapper
 
 	@Override
 	public java.util.List<com.liferay.portlet.bookmarks.model.BookmarksEntry> getEntries(
+		long groupId, long folderId, int status, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _bookmarksEntryLocalService.getEntries(groupId, folderId,
+			status, start, end, orderByComparator);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.bookmarks.model.BookmarksEntry> getEntries(
 		long groupId, long folderId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -531,7 +540,8 @@ public class BookmarksEntryLocalServiceWrapper
 
 	@Override
 	public void rebuildTree(long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		_bookmarksEntryLocalService.rebuildTree(companyId);
 	}
 
@@ -550,6 +560,14 @@ public class BookmarksEntryLocalServiceWrapper
 			com.liferay.portal.kernel.exception.SystemException {
 		return _bookmarksEntryLocalService.search(groupId, userId,
 			creatorUserId, status, start, end);
+	}
+
+	@Override
+	public void setTreePaths(long folderId, java.lang.String treePath,
+		boolean reindex)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_bookmarksEntryLocalService.setTreePaths(folderId, treePath, reindex);
 	}
 
 	@Override

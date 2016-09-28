@@ -117,7 +117,7 @@ boolean showAddAction = ParamUtil.getBoolean(request, "showAddAction", true);
 
 <aui:nav-bar>
 	<aui:nav id="layoutsNav">
-		<c:if test="<%= LayoutPermissionUtil.contains(permissionChecker, selPlid, ActionKeys.ADD_LAYOUT) && showAddAction %>">
+		<c:if test="<%= LayoutPermissionUtil.contains(permissionChecker, selPlid, ActionKeys.ADD_LAYOUT) && showAddAction && PortalUtil.isLayoutParentable(selLayout) %>">
 			<aui:nav-item data-value="add-child-page" iconCssClass="icon-plus" label="add-child-page" />
 		</c:if>
 		<c:if test="<%= LayoutPermissionUtil.contains(permissionChecker, selPlid, ActionKeys.PERMISSIONS) %>">
@@ -146,6 +146,7 @@ boolean showAddAction = ParamUtil.getBoolean(request, "showAddAction", true);
 	<aui:input name="selPlid" type="hidden" value="<%= selPlid %>" />
 	<aui:input name="privateLayout" type="hidden" value="<%= privateLayout %>" />
 	<aui:input name="layoutId" type="hidden" value="<%= layoutId %>" />
+	<aui:input name="devices" type="hidden" value='<%= PropsValues.MOBILE_DEVICE_STYLING_WAP_ENABLED ? "regular,wap" : "regular" %>' />
 	<aui:input name="<%= PortletDataHandlerKeys.SELECTED_LAYOUTS %>" type="hidden" />
 
 	<c:if test="<%= layoutRevision != null && !incomplete %>">
@@ -226,38 +227,43 @@ boolean showAddAction = ParamUtil.getBoolean(request, "showAddAction", true);
 
 				<aui:script use="liferay-util-window">
 					var content;
-					var popup;
+					var popUp;
 
 					var clickHandler = function(event) {
 						var target = event.target;
 
 						var dataValue = target.ancestor('li').attr('data-value') || target.attr('data-value');
 
+						processDataValue(dataValue);
+					};
+
+					var processDataValue = function(dataValue) {
 						if (dataValue === 'add-child-page') {
 							content = A.one('#<portlet:namespace />addLayout');
 
-							if (!popup) {
-								popup = Liferay.Util.Window.getWindow(
+							if (!popUp) {
+								popUp = Liferay.Util.Window.getWindow(
 									{
 										dialog: {
 											bodyContent: content.show(),
 											cssClass: 'lfr-add-dialog',
-											width: 600
+											destroyOnHide: true,
+											width: 800
 										},
 										title: '<%= UnicodeLanguageUtil.get(pageContext, "add-child-page") %>'
 									}
 								);
 							}
 
-							popup.show();
+							popUp.show();
 
-							var cancelButton = popup.get('contentBox').one('#<portlet:namespace />cancelAddOperation');
+							var cancelButton = popUp.get('contentBox').one('#<portlet:namespace />cancelAddOperation');
 
 							if (cancelButton) {
 								cancelButton.on(
 									'click',
 									function(event) {
-										popup.hide();
+										popUp.hide();
 									}
 								);
 							}
@@ -276,7 +282,7 @@ boolean showAddAction = ParamUtil.getBoolean(request, "showAddAction", true);
 							Liferay.Util.openWindow(
 								{
 									cache: false,
-									id: '<portlet:namespace /><%= selLayout.getFriendlyURL().substring(1) %>_permissions',
+									id: '<portlet:namespace /><%= HtmlUtil.escapeJS(selLayout.getFriendlyURL().substring(1)) %>_permissions',
 									title: '<%= UnicodeLanguageUtil.get(pageContext, "permissions") %>',
 									uri: '<%= permissionURL %>'
 								}
@@ -321,16 +327,22 @@ boolean showAddAction = ParamUtil.getBoolean(request, "showAddAction", true);
 					};
 
 					A.one('#<portlet:namespace />layoutsNav').delegate('click', clickHandler, 'li a');
+
+					<c:if test='<%= layout.isTypeControlPanel() && (SessionMessages.get(liferayPortletRequest, portletDisplay.getId() + "addError") != null) %>'>
+						processDataValue('add-page');
+					</c:if>
 				</aui:script>
 			</c:if>
 
-			<liferay-ui:form-navigator
-				categoryNames="<%= _CATEGORY_NAMES %>"
-				categorySections="<%= categorySections %>"
-				displayStyle="<%= displayStyle %>"
-				jspPath="/html/portlet/layouts_admin/layout/"
-				showButtons="<%= (selLayout.getGroupId() == groupId) && SitesUtil.isLayoutUpdateable(selLayout) && LayoutPermissionUtil.contains(permissionChecker, selPlid, ActionKeys.UPDATE) %>"
-			/>
+			<c:if test="<%= !selGroup.hasLocalOrRemoteStagingGroup() || selGroup.isStagingGroup() %>">
+				<liferay-ui:form-navigator
+					categoryNames="<%= _CATEGORY_NAMES %>"
+					categorySections="<%= categorySections %>"
+					displayStyle="<%= displayStyle %>"
+					jspPath="/html/portlet/layouts_admin/layout/"
+					showButtons="<%= (selLayout.getGroupId() == groupId) && SitesUtil.isLayoutUpdateable(selLayout) && LayoutPermissionUtil.contains(permissionChecker, selPlid, ActionKeys.UPDATE) %>"
+				/>
+			</c:if>
 		</c:otherwise>
 	</c:choose>
 </aui:form>
@@ -340,8 +352,6 @@ boolean showAddAction = ParamUtil.getBoolean(request, "showAddAction", true);
 		window,
 		'<portlet:namespace />saveLayout',
 		function(action) {
-			var A = AUI();
-
 			action = action || '<%= Constants.UPDATE %>';
 
 			if (action == '<%= Constants.DELETE %>') {

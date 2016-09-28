@@ -37,16 +37,9 @@ else {
 	passwordPolicy = selUser.getPasswordPolicy();
 }
 
-String groupIds = ParamUtil.getString(request, "groupsSearchContainerPrimaryKeys");
-
 List<Group> groups = Collections.emptyList();
 
-if (Validator.isNotNull(groupIds)) {
-	long[] groupIdsArray = StringUtil.split(groupIds, 0L);
-
-	groups = GroupLocalServiceUtil.getGroups(groupIdsArray);
-}
-else if (selUser != null) {
+if (selUser != null) {
 	groups = selUser.getGroups();
 
 	if (filterManageableGroups) {
@@ -54,35 +47,28 @@ else if (selUser != null) {
 	}
 }
 
-String organizationIds = ParamUtil.getString(request, "organizationsSearchContainerPrimaryKeys");
-
 List<Organization> organizations = Collections.emptyList();
 
-if (Validator.isNotNull(organizationIds)) {
-	long[] organizationIdsArray = StringUtil.split(organizationIds, 0L);
-
-	organizations = OrganizationLocalServiceUtil.getOrganizations(organizationIdsArray);
-}
-else {
-	if (selUser != null) {
-		organizations = selUser.getOrganizations();
-	}
+if (selUser != null) {
+	organizations = selUser.getOrganizations();
 
 	if (filterManageableOrganizations) {
 		organizations = UsersAdminUtil.filterOrganizations(permissionChecker, organizations);
 	}
 }
+else {
+	String organizationIdsString = ParamUtil.getString(request, "organizationsSearchContainerPrimaryKeys");
 
-String roleIds = ParamUtil.getString(request, "rolesSearchContainerPrimaryKeys");
+	if (Validator.isNotNull(organizationIdsString)) {
+		long[] organizationIds = StringUtil.split(organizationIdsString, 0L);
+
+		organizations = OrganizationLocalServiceUtil.getOrganizations(organizationIds);
+	}
+}
 
 List<Role> roles = Collections.emptyList();
 
-if (Validator.isNotNull(roleIds)) {
-	long[] roleIdsArray = StringUtil.split(roleIds, 0L);
-
-	roles = RoleLocalServiceUtil.getRoles(roleIdsArray);
-}
-else if (selUser != null) {
+if (selUser != null) {
 	roles = selUser.getRoles();
 
 	if (filterManageableRoles) {
@@ -93,9 +79,9 @@ else if (selUser != null) {
 List<UserGroupRole> organizationRoles = new ArrayList<UserGroupRole>();
 List<UserGroupRole> siteRoles = new ArrayList<UserGroupRole>();
 
-List<UserGroupRole> userGroupRoles = UsersAdminUtil.getUserGroupRoles(renderRequest);
+List<UserGroupRole> userGroupRoles = Collections.emptyList();
 
-if (userGroupRoles.isEmpty() && (selUser != null)) {
+if (selUser != null) {
 	userGroupRoles = UserGroupRoleLocalServiceUtil.getUserGroupRoles(selUser.getUserId());
 
 	if (filterManageableUserGroupRoles) {
@@ -114,16 +100,9 @@ for (UserGroupRole userGroupRole : userGroupRoles) {
 	}
 }
 
-String userGroupIds = ParamUtil.getString(request, "userGroupsSearchContainerPrimaryKeys");
-
 List<UserGroup> userGroups = Collections.emptyList();
 
-if (Validator.isNotNull(userGroupIds)) {
-	long[] userGroupIdsArray = StringUtil.split(userGroupIds, 0L);
-
-	userGroups = UserGroupLocalServiceUtil.getUserGroups(userGroupIdsArray);
-}
-else if (selUser != null) {
+if (selUser != null) {
 	userGroups = selUser.getUserGroups();
 
 	if (filterManageableUserGroups) {
@@ -131,13 +110,40 @@ else if (selUser != null) {
 	}
 }
 
+List<UserGroupGroupRole> inheritedSiteRoles = Collections.emptyList();
+
+if (selUser != null) {
+	inheritedSiteRoles = UserGroupGroupRoleLocalServiceUtil.getUserGroupGroupRolesByUser(selUser.getUserId());
+}
+
+List<Group> inheritedSites = GroupLocalServiceUtil.getUserGroupsRelatedGroups(userGroups);
+List<Group> organizationsRelatedGroups = Collections.emptyList();
+
+if (!organizations.isEmpty()) {
+	organizationsRelatedGroups = GroupLocalServiceUtil.getOrganizationsRelatedGroups(organizations);
+
+	for (Group group : organizationsRelatedGroups) {
+		if (!inheritedSites.contains(group)) {
+			inheritedSites.add(group);
+		}
+	}
+}
+
 List<Group> allGroups = new ArrayList<Group>();
 
 allGroups.addAll(groups);
+allGroups.addAll(inheritedSites);
+allGroups.addAll(organizationsRelatedGroups);
 allGroups.addAll(GroupLocalServiceUtil.getOrganizationsGroups(organizations));
-allGroups.addAll(GroupLocalServiceUtil.getOrganizationsRelatedGroups(organizations));
 allGroups.addAll(GroupLocalServiceUtil.getUserGroupsGroups(userGroups));
-allGroups.addAll(GroupLocalServiceUtil.getUserGroupsRelatedGroups(userGroups));
+
+List<Group> roleGroups = new ArrayList<Group>();
+
+for (Group group : allGroups) {
+	if (RoleLocalServiceUtil.hasGroupRoles(group.getGroupId())) {
+		roleGroups.add(group);
+	}
+}
 
 String[] mainSections = PropsValues.USERS_FORM_ADD_MAIN;
 String[] identificationSections = PropsValues.USERS_FORM_ADD_IDENTIFICATION;
@@ -210,12 +216,15 @@ if (selUser != null) {
 	request.setAttribute("user.selContact", selContact);
 	request.setAttribute("user.passwordPolicy", passwordPolicy);
 	request.setAttribute("user.groups", groups);
+	request.setAttribute("user.inheritedSites", inheritedSites);
 	request.setAttribute("user.organizations", organizations);
 	request.setAttribute("user.roles", roles);
 	request.setAttribute("user.organizationRoles", organizationRoles);
 	request.setAttribute("user.siteRoles", siteRoles);
+	request.setAttribute("user.inheritedSiteRoles", inheritedSiteRoles);
 	request.setAttribute("user.userGroups", userGroups);
 	request.setAttribute("user.allGroups", allGroups);
+	request.setAttribute("user.roleGroups", roleGroups);
 
 	request.setAttribute("addresses.className", Contact.class.getName());
 	request.setAttribute("emailAddresses.className", Contact.class.getName());
@@ -249,7 +258,21 @@ if (selUser != null) {
 	</liferay-util:buffer>
 
 	<liferay-util:buffer var="htmlBottom">
-		<c:if test="<%= (selUser != null) && (passwordPolicy != null) && selUser.getLockout() %>">
+
+		<%
+		boolean lockedOut = false;
+
+		if ((selUser != null) && (passwordPolicy != null)) {
+			try {
+				UserLocalServiceUtil.checkLockout(selUser);
+			}
+			catch (UserLockoutException ule) {
+				lockedOut = true;
+			}
+		}
+		%>
+
+		<c:if test="<%= lockedOut %>">
 			<aui:button-row>
 				<div class="alert alert-block"><liferay-ui:message key="this-user-account-has-been-locked-due-to-excessive-failed-login-attempts" /></div>
 

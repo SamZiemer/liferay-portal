@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.model.CompanyConstants;
 import com.liferay.portal.model.ResourceConstants;
+import com.liferay.portal.model.ResourcePermission;
 import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.util.PortalUtil;
@@ -378,7 +379,8 @@ public abstract class BaseUpgradeAttachments extends UpgradeProcess {
 		PreparedStatement ps = null;
 
 		try {
-			long resourcePermissionId = increment();
+			long resourcePermissionId = increment(
+				ResourcePermission.class.getName());
 
 			con = DataAccess.getUpgradeOptimizedConnection();
 
@@ -549,7 +551,7 @@ public abstract class BaseUpgradeAttachments extends UpgradeProcess {
 			rs = ps.executeQuery();
 
 			while (rs.next()) {
-				int folderId = rs.getInt(1);
+				long folderId = rs.getLong(1);
 
 				return folderId;
 			}
@@ -588,7 +590,7 @@ public abstract class BaseUpgradeAttachments extends UpgradeProcess {
 			rs = ps.executeQuery();
 
 			while (rs.next()) {
-				int repositoryId = rs.getInt(1);
+				long repositoryId = rs.getLong(1);
 
 				return repositoryId;
 			}

@@ -360,7 +360,7 @@
 
 				while (length--) {
 					var attr = attrs[length];
-					var name = attr.nodeName;
+					var name = attr.nodeName.toLowerCase();
 					var value = attr.nodeValue;
 
 					if (isGetterString) {
@@ -781,7 +781,7 @@
 			Liferay.Util.openWindow(
 				{
 					cache: false,
-					title: event.title,
+					title: Liferay.Util.escapeHTML(event.title),
 					uri: event.uri
 				}
 			);
@@ -830,9 +830,31 @@
 					Util._submitLocked = true;
 				}
 
-				if (action !== null) {
-					form.attr('action', action);
+				if (action == null) {
+					action = form.attr('action');
 				}
+
+				var x = action.indexOf('?p_auth=');
+
+				if (x < 0) {
+					x = action.indexOf('&p_auth=');
+				}
+
+				if (x >= 0) {
+					var y = action.indexOf('&', x);
+
+					if (y < 0) {
+						y = action.length();
+					}
+
+					var authToken = action.substring(x + 8, y);
+
+					form.append('<input name="p_auth" type="hidden" value="' + authToken + '" />');
+
+					action = action.substring(0, x + 1) + action.substring(y + 1);
+				}
+
+				form.attr('action', action);
 
 				form.submit();
 
@@ -1401,6 +1423,12 @@
 			ddmURL.setParameter('classPK', config.classPK);
 			ddmURL.setParameter('eventName', config.eventName);
 			ddmURL.setParameter('groupId', config.groupId);
+			ddmURL.setParameter('mode', config.mode);
+			ddmURL.setParameter('portletResourceNamespace', config.portletResourceNamespace);
+
+			if ('redirect' in config) {
+				ddmURL.setParameter('redirect', config.redirect);
+			}
 
 			if ('refererPortletName' in config) {
 				ddmURL.setParameter('refererPortletName', config.refererPortletName);
@@ -1411,6 +1439,10 @@
 			}
 
 			ddmURL.setParameter('scopeTitle', config.title);
+
+			if ('showBackURL' in config) {
+				ddmURL.setParameter('showBackURL', config.showBackURL);
+			}
 
 			if ('showGlobalScope' in config) {
 				ddmURL.setParameter('showGlobalScope', config.showGlobalScope);
@@ -1427,6 +1459,8 @@
 			if ('showToolbar' in config) {
 				ddmURL.setParameter('showToolbar', config.showToolbar);
 			}
+
+			ddmURL.setParameter('structureAvailableFields', config.structureAvailableFields);
 
 			if (config.struts_action) {
 				ddmURL.setParameter('struts_action', config.struts_action);
@@ -1775,11 +1809,40 @@
 
 	Liferay.provide(
 		Util,
+		'selectEntityHandler',
+		function(container, selectEventName, disableButton) {
+			var openingLiferay = Util.getOpener().Liferay;
+
+			A.one(container).delegate(
+				'click',
+				function(event) {
+					var currentTarget = event.currentTarget;
+
+					if (disableButton !== false) {
+						currentTarget.attr('disabled', true);
+					}
+
+					var result = Util.getAttributes(currentTarget, 'data-');
+
+					openingLiferay.fire(selectEventName, result);
+
+					Util.getWindow().hide();
+				},
+				'.selector-button'
+			);
+		},
+		['aui-base']
+	);
+
+	Liferay.provide(
+		Util,
 		'selectFolder',
 		function(folderData, namespace) {
 			A.byIdNS(namespace, folderData.idString).val(folderData.idValue);
 
-			A.byIdNS(namespace, folderData.nameString).val(folderData.nameValue);
+			var name = AString.unescapeEntities(folderData.nameValue);
+
+			A.byIdNS(namespace, folderData.nameString).val(name);
 
 			var button = A.byIdNS(namespace, 'removeFolderButton');
 
@@ -1932,6 +1995,13 @@
 
 				docBody.addClass(currentClass);
 
+				Liferay.fire(
+					'toggleControls',
+					{
+						enabled: (Liferay._editControlsState === 'visible')
+					}
+				);
+
 				trigger.on(
 					EVENT_CLICK,
 					function(event) {
@@ -1944,6 +2014,14 @@
 						Liferay._editControlsState = (docBody.hasClass(visibleClass) ? 'visible' : 'hidden');
 
 						Liferay.Store('liferay_toggle_controls', Liferay._editControlsState);
+
+						Liferay.fire(
+							'toggleControls',
+							{
+								enabled: (Liferay._editControlsState === 'visible'),
+								src: 'ui'
+							}
+						);
 					}
 				);
 			}

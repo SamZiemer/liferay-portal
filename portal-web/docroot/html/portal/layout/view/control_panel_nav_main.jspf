@@ -30,6 +30,10 @@
 
 				String urlControlPanelSitesPortlet = HttpUtil.setParameter(themeDisplay.getURLControlPanel(), "p_p_id", curPortletId);
 
+				if (controlPanelCategory.equals(PortletCategoryKeys.MY)) {
+					urlControlPanelSitesPortlet = HttpUtil.setParameter(urlControlPanelSitesPortlet, "doAsGroupId", group.getGroupId());
+				}
+
 				urlControlPanelSitesPortlet = HttpUtil.setParameter(urlControlPanelSitesPortlet, "controlPanelCategory", controlPanelCategory);
 
 				boolean selected = curPortletId.equals(ppid);

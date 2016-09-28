@@ -33,7 +33,7 @@ import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
-import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.layoutconfiguration.util.velocity.InitColumnProcessor;
 import com.liferay.portal.model.LayoutTemplate;
 import com.liferay.portal.model.LayoutTemplateConstants;
@@ -348,10 +348,14 @@ public class LayoutTemplateLocalServiceImpl
 
 			layoutTemplateModel.setStandard(standard);
 			layoutTemplateModel.setThemeId(themeId);
-			layoutTemplateModel.setName(
-				GetterUtil.getString(
-					layoutTemplateElement.attributeValue("name"),
-					layoutTemplateModel.getName()));
+
+			String templateName = GetterUtil.getString(
+				layoutTemplateElement.attributeValue("name"));
+
+			if (Validator.isNotNull(templateName)) {
+				layoutTemplateModel.setName(templateName);
+			}
+
 			layoutTemplateModel.setTemplatePath(
 				GetterUtil.getString(
 					layoutTemplateElement.elementText("template-path"),
@@ -606,7 +610,7 @@ public class LayoutTemplateLocalServiceImpl
 			return layoutTemplates;
 		}
 
-		Document document = SAXReaderUtil.read(xml, true);
+		Document document = UnsecureSAXReaderUtil.read(xml, true);
 
 		Element rootElement = document.getRootElement();
 

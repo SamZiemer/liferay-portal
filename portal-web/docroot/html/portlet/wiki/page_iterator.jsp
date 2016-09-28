@@ -41,7 +41,7 @@ else if (type.equals("categorized_pages")) {
 	portletURL.setParameter("struts_action", "/wiki/view_categorized_pages");
 	portletURL.setParameter("categoryId", String.valueOf(categoryId));
 }
-else if (type.equals("draft_pages") && type.equals("pending_pages")) {
+else if (type.equals("draft_pages")) {
 	portletURL.setParameter("struts_action", "/wiki/view_draft_pages");
 
 	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "draft-pages"), portletURL.toString());
@@ -170,11 +170,11 @@ if (type.equals("all_pages")) {
 	orderableHeaders.put("page", "title");
 	orderableHeaders.put("date", "modifiedDate");
 
-	total = WikiPageServiceUtil.getPagesCount(themeDisplay.getScopeGroupId(), node.getNodeId(), true);
+	total = WikiPageServiceUtil.getPagesCount(themeDisplay.getScopeGroupId(), node.getNodeId(), true, themeDisplay.getUserId(), true, WorkflowConstants.STATUS_APPROVED);
 
 	searchContainer.setTotal(total);
 
-	results = WikiPageServiceUtil.getPages(themeDisplay.getScopeGroupId(), node.getNodeId(), true, WorkflowConstants.STATUS_APPROVED, searchContainer.getStart(), searchContainer.getEnd(), orderByComparator);
+	results = WikiPageServiceUtil.getPages(themeDisplay.getScopeGroupId(), node.getNodeId(), true, themeDisplay.getUserId(), true, WorkflowConstants.STATUS_APPROVED, searchContainer.getStart(), searchContainer.getEnd(), orderByComparator);
 }
 else if (type.equals("categorized_pages") || type.equals("tagged_pages")) {
 	orderableHeaders.put("page", "title");
@@ -206,7 +206,7 @@ else if (type.equals("categorized_pages") || type.equals("tagged_pages")) {
 else if (type.equals("draft_pages") || type.equals("pending_pages")) {
 	long draftUserId = user.getUserId();
 
-	if (permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGroupId)) {
+	if (permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId)) {
 		draftUserId = 0;
 	}
 

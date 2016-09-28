@@ -39,6 +39,8 @@ import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileVersion;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFolder;
 import com.liferay.portal.util.PortalInstances;
+import com.liferay.portlet.documentlibrary.DuplicateFileException;
+import com.liferay.portlet.documentlibrary.DuplicateFolderNameException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryTypeConstants;
@@ -47,7 +49,6 @@ import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.service.DLAppHelperLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryTypeLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.service.DLFileShortcutLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileVersionLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.persistence.DLFileEntryActionableDynamicQuery;
@@ -138,6 +139,52 @@ public class VerifyDocumentLibrary extends VerifyProcess {
 		DLFileEntryTypeLocalServiceUtil.updateDLFileEntryType(dlFileEntryType);
 	}
 
+	protected void checkDuplicateTitles() throws Exception {
+		ActionableDynamicQuery actionableDynamicQuery =
+			new DLFileEntryActionableDynamicQuery() {
+
+				@Override
+				public void performAction(Object object) {
+					DLFileEntry dlFileEntry = (DLFileEntry)object;
+
+					if (dlFileEntry.isInTrash()) {
+						return;
+					}
+
+					try {
+						DLFileEntryLocalServiceUtil.validateFile(
+							dlFileEntry.getGroupId(), dlFileEntry.getFolderId(),
+							dlFileEntry.getFileEntryId(),
+							dlFileEntry.getTitle(), dlFileEntry.getExtension());
+					}
+					catch (Exception e1) {
+						if (!(e1 instanceof DuplicateFileException) &&
+							!(e1 instanceof DuplicateFolderNameException)) {
+
+							return;
+						}
+
+						try {
+							renameDuplicateTitle(dlFileEntry);
+						}
+						catch (Exception e2) {
+							if (_log.isWarnEnabled()) {
+								_log.warn(
+									"Unable to rename duplicate title for " +
+										"file entry " +
+											dlFileEntry.getFileEntryId() +
+												": " + e2.getMessage(),
+									e2);
+							}
+						}
+					}
+				}
+
+			};
+
+		actionableDynamicQuery.performActions();
+	}
+
 	protected void checkFileEntryMimeTypes(final String originalMimeType)
 		throws Exception {
 
@@ -154,8 +201,8 @@ public class VerifyDocumentLibrary extends VerifyProcess {
 
 				try {
 					inputStream = DLFileEntryLocalServiceUtil.getFileAsStream(
-						dlFileEntry.getUserId(), dlFileEntry.getFileEntryId(),
-						dlFileEntry.getVersion(), false);
+						dlFileEntry.getFileEntryId(), dlFileEntry.getVersion(),
+						false);
 				}
 				catch (Exception e) {
 					if (_log.isWarnEnabled()) {
@@ -208,7 +255,6 @@ public class VerifyDocumentLibrary extends VerifyProcess {
 
 				try {
 					inputStream = DLFileEntryLocalServiceUtil.getFileAsStream(
-						dlFileVersion.getUserId(),
 						dlFileVersion.getFileEntryId(),
 						dlFileVersion.getVersion(), false);
 				}
@@ -321,22 +367,10 @@ public class VerifyDocumentLibrary extends VerifyProcess {
 			newTitle = newTitle.replace(
 				StringPool.BACK_SLASH, StringPool.UNDERLINE);
 
-			dlFileEntry.setTitle(newTitle);
-
-			DLFileEntryLocalServiceUtil.updateDLFileEntry(dlFileEntry);
-
-			DLFileVersion dlFileVersion = dlFileEntry.getFileVersion();
-
-			dlFileVersion.setTitle(newTitle);
-
-			DLFileVersionLocalServiceUtil.updateDLFileVersion(dlFileVersion);
-
-			if (_log.isDebugEnabled()) {
-				_log.debug(
-					"Invalid document title " + title + "renamed to " +
-						newTitle);
-			}
+			renameTitle(dlFileEntry, newTitle);
 		}
+
+		checkDuplicateTitles();
 	}
 
 	protected void copyDLFileEntry(DLFileEntry dlFileEntry)
@@ -387,6 +421,7 @@ public class VerifyDocumentLibrary extends VerifyProcess {
 		checkMimeTypes();
 		checkTitles();
 		removeOrphanedDLFileEntries();
+		updateClassNameId();
 		updateFileEntryAssets();
 		updateFolderAssets();
 		verifyTree();
@@ -403,6 +438,21 @@ public class VerifyDocumentLibrary extends VerifyProcess {
 		}
 
 		return mimeType;
+	}
+
+	protected void updateClassNameId() {
+		try {
+			runSQL(
+				"update DLFileEntry set classNameId = 0 where classNameId is " +
+					"null");
+		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Unable to fix file entries where class name ID is null",
+					e);
+			}
+		}
 	}
 
 	protected void removeOrphanedDLFileEntries() throws Exception {
@@ -432,6 +482,39 @@ public class VerifyDocumentLibrary extends VerifyProcess {
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Removed orphaned file entries");
+		}
+	}
+
+	protected void renameDuplicateTitle(DLFileEntry dlFileEntry)
+		throws PortalException, SystemException {
+
+		String uniqueTitle = DLFileEntryLocalServiceUtil.getUniqueTitle(
+			dlFileEntry.getGroupId(), dlFileEntry.getFolderId(),
+			dlFileEntry.getFileEntryId(), dlFileEntry.getTitle(),
+			dlFileEntry.getExtension());
+
+		renameTitle(dlFileEntry, uniqueTitle);
+	}
+
+	protected void renameTitle(DLFileEntry dlFileEntry, String newTitle)
+		throws PortalException, SystemException {
+
+		String title = dlFileEntry.getTitle();
+
+		dlFileEntry.setTitle(newTitle);
+
+		DLFileEntryLocalServiceUtil.updateDLFileEntry(dlFileEntry);
+
+		DLFileVersion dlFileVersion = dlFileEntry.getFileVersion();
+
+		dlFileVersion.setTitle(newTitle);
+
+		DLFileVersionLocalServiceUtil.updateDLFileVersion(dlFileVersion);
+
+		if (_log.isDebugEnabled()) {
+			_log.debug(
+				"Invalid title " + title + " renamed to " + newTitle +
+					" for file entry " + dlFileEntry.getFileEntryId());
 		}
 	}
 
@@ -503,9 +586,6 @@ public class VerifyDocumentLibrary extends VerifyProcess {
 		long[] companyIds = PortalInstances.getCompanyIdsBySQL();
 
 		for (long companyId : companyIds) {
-			DLFileEntryLocalServiceUtil.rebuildTree(companyId);
-			DLFileShortcutLocalServiceUtil.rebuildTree(companyId);
-			DLFileVersionLocalServiceUtil.rebuildTree(companyId);
 			DLFolderLocalServiceUtil.rebuildTree(companyId);
 		}
 	}

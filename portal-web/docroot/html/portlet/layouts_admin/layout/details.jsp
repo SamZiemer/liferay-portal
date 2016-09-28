@@ -52,48 +52,41 @@ StringBuilder friendlyURLBase = new StringBuilder();
 	}
 	%>
 
-	<liferay-ui:error exception="<%= LayoutFriendlyURLException.class %>">
+	<liferay-ui:error exception="<%= LayoutFriendlyURLException.class %>" focusField="friendlyURL">
 
 		<%
+		Locale exceptionLocale = null;
 		LayoutFriendlyURLException lfurle = (LayoutFriendlyURLException)errorException;
 		%>
 
-		<c:if test="<%= lfurle.getType() == LayoutFriendlyURLException.ADJACENT_SLASHES %>">
-			<liferay-ui:message key="please-enter-a-friendly-url-that-does-not-have-adjacent-slashes" />
-		</c:if>
-
-		<c:if test="<%= lfurle.getType() == LayoutFriendlyURLException.DOES_NOT_START_WITH_SLASH %>">
-			<liferay-ui:message key="please-enter-a-friendly-url-that-begins-with-a-slash" />
-		</c:if>
-
-		<c:if test="<%= lfurle.getType() == LayoutFriendlyURLException.DUPLICATE %>">
-			<liferay-ui:message key="please-enter-a-unique-friendly-url" />
-		</c:if>
-
-		<c:if test="<%= lfurle.getType() == LayoutFriendlyURLException.ENDS_WITH_SLASH %>">
-			<liferay-ui:message key="please-enter-a-friendly-url-that-does-not-end-with-a-slash" />
-		</c:if>
-
-		<c:if test="<%= lfurle.getType() == LayoutFriendlyURLException.INVALID_CHARACTERS %>">
-			<liferay-ui:message key="please-enter-a-friendly-url-with-valid-characters" />
-		</c:if>
-
-		<c:if test="<%= lfurle.getType() == LayoutFriendlyURLException.KEYWORD_CONFLICT %>">
-			<%= LanguageUtil.format(pageContext, "please-enter-a-friendly-url-that-does-not-conflict-with-the-keyword-x", lfurle.getKeywordConflict()) %>
-		</c:if>
-
-		<c:if test="<%= lfurle.getType() == LayoutFriendlyURLException.POSSIBLE_DUPLICATE %>">
-			<liferay-ui:message key="the-friendly-url-may-conflict-with-another-page" />
-		</c:if>
-
-		<c:if test="<%= lfurle.getType() == LayoutFriendlyURLException.TOO_DEEP %>">
-			<liferay-ui:message key="the-friendly-url-has-too-many-slashes" />
-		</c:if>
-
-		<c:if test="<%= lfurle.getType() == LayoutFriendlyURLException.TOO_SHORT %>">
-			<liferay-ui:message key="please-enter-a-friendly-url-that-is-at-least-two-characters-long" />
-		</c:if>
+		<%@ include file="/html/portlet/layouts_admin/error_friendly_url_exception.jspf" %>
 	</liferay-ui:error>
+
+	<liferay-ui:error exception="<%= LayoutFriendlyURLsException.class %>" focusField="friendlyURL">
+
+		<%
+		LayoutFriendlyURLsException lfurlse = (LayoutFriendlyURLsException)errorException;
+
+		Map<Locale, Exception> localizedExceptionsMap = lfurlse.getLocalizedExceptionsMap();
+
+		for (Map.Entry<Locale, Exception> entry : localizedExceptionsMap.entrySet()) {
+			Locale exceptionLocale = entry.getKey();
+			LayoutFriendlyURLException lfurle = (LayoutFriendlyURLException)entry.getValue();
+		%>
+
+			<%@ include file="/html/portlet/layouts_admin/error_friendly_url_exception.jspf" %>
+
+		<%
+		}
+		%>
+
+	</liferay-ui:error>
+
+	<c:if test="<%= portletName.equals(PortletKeys.DOCKBAR) %>">
+		<liferay-ui:error exception="<%= LayoutTypeException.class %>">
+			<%@ include file="/html/portlet/layouts_admin/error_layout_type_exception.jspf" %>
+		</liferay-ui:error>
+	</c:if>
 </c:if>
 
 <liferay-ui:error key="resetMergeFailCountAndMerge" message="unable-to-reset-the-failure-counter-and-propagate-the-changes" />
@@ -112,7 +105,7 @@ StringBuilder friendlyURLBase = new StringBuilder();
 					<aui:field-wrapper cssClass="input-append input-flex-add-on input-prepend" helpMessage='<%= LanguageUtil.format(pageContext, "for-example-x", "<em>/news</em>") %>' label="friendly-url" name="friendlyURL">
 						<span class="add-on" id="<portlet:namespace />urlBase"><liferay-ui:message key="<%= StringUtil.shorten(friendlyURLBase.toString(), 40) %>" /></span>
 
-						<liferay-ui:input-localized availableLocales="<%= LanguageUtil.getAvailableLocales(themeDisplay.getSiteGroupId()) %>" cssClass="input-medium" name="friendlyURL" xml="<%= selLayout.getFriendlyURLsXML() %>" />
+						<liferay-ui:input-localized cssClass="form-control" defaultLanguageId="<%= LocaleUtil.toLanguageId(themeDisplay.getSiteDefaultLocale()) %>" name="friendlyURL" xml="<%= selLayout.getFriendlyURLsXML() %>" />
 					</aui:field-wrapper>
 				</c:when>
 				<c:otherwise>
@@ -238,7 +231,7 @@ StringBuilder friendlyURLBase = new StringBuilder();
 		}
 	}
 
-	toggleLayoutTypeFields('<%= selLayout.getType() %>');
+	toggleLayoutTypeFields('<%= HtmlUtil.escapeJS(selLayout.getType()) %>');
 
 	var typeSelector = A.one('#<portlet:namespace />type');
 

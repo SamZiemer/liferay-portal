@@ -105,6 +105,16 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 	<liferay-ui:error exception="<%= DuplicateFileException.class %>" message="the-folder-you-selected-already-has-an-entry-with-this-name.-please-select-a-different-folder" />
 	<liferay-ui:error exception="<%= DuplicateFolderNameException.class %>" message="the-folder-you-selected-already-has-an-entry-with-this-name.-please-select-a-different-folder" />
+
+	<liferay-ui:error exception="<%= InvalidFolderException.class %>">
+
+		<%
+		InvalidFolderException ife = (InvalidFolderException)errorException;
+		%>
+
+		<liferay-ui:message arguments="<%= ife.getMessageArgument(locale) %>" key="<%= ife.getMessageKey() %>" translateArguments="<%= false %>" />
+	</liferay-ui:error>
+
 	<liferay-ui:error exception="<%= NoSuchFolderException.class %>" message="please-enter-a-valid-folder" />
 
 	<c:if test="<%= !validMoveFolders.isEmpty() %>">
@@ -121,7 +131,7 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 					<li class="move-folder">
 						<span class="folder-title">
-							<%= folder.getName() %>
+							<%= HtmlUtil.escape(folder.getName()) %>
 						</span>
 					</li>
 
@@ -145,9 +155,9 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 				for (Folder folder : invalidMoveFolders) {
 				%>
 
-					<li class="move-folder move-error">
+					<li class="move-error move-folder">
 						<span class="folder-title">
-							<%= folder.getName() %>
+							<%= HtmlUtil.escape(folder.getName()) %>
 						</span>
 
 						<span class="error-message">
@@ -185,8 +195,8 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 				%>
 
 					<li class="move-file">
-						<span class="file-title" title="<%= validMoveFileEntry.getTitle() %>">
-							<%= validMoveFileEntry.getTitle() %>
+						<span class="file-title" title="<%= HtmlUtil.escapeAttribute(validMoveFileEntry.getTitle()) %>">
+							<%= HtmlUtil.escape(validMoveFileEntry.getTitle()) %>
 						</span>
 					</li>
 
@@ -211,9 +221,9 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 					Lock lock = invalidMoveFileEntry.getLock();
 				%>
 
-					<li class="move-file move-error">
-						<span class="file-title" title="<%= invalidMoveFileEntry.getTitle() %>">
-							<%= invalidMoveFileEntry.getTitle() %>
+					<li class="move-error move-file">
+						<span class="file-title" title="<%= HtmlUtil.escapeAttribute(invalidMoveFileEntry.getTitle()) %>">
+							<%= HtmlUtil.escape(invalidMoveFileEntry.getTitle()) %>
 						</span>
 
 						<span class="error-message">
@@ -276,7 +286,7 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 				for (DLFileShortcut fileShortcut : invalidShortcutEntries) {
 				%>
 
-					<li class="move-file move-error">
+					<li class="move-error move-file">
 						<span class="file-title">
 							<%= fileShortcut.getToTitle() + " (" + LanguageUtil.get(themeDisplay.getLocale(), "shortcut") + ")" %>
 						</span>
@@ -313,13 +323,11 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 		}
 		%>
 
-		<aui:field-wrapper label="new-folder">
-			<div class="input-append">
-				<liferay-ui:input-resource id="folderName" url="<%= folderName %>" />
+		<div class="control-group">
+			<aui:input label="new-folder" name="folderName" type="resource" value="<%= folderName %>" />
 
-				<aui:button name="selectFolderButton" value="select" />
-			</div>
-		</aui:field-wrapper>
+			<aui:button name="selectFolderButton" value="select" />
+		</div>
 
 		<aui:button-row>
 			<aui:button type="submit" value="move" />

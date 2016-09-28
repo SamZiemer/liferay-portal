@@ -18,20 +18,25 @@ import com.liferay.portal.LayoutFriendlyURLException;
 import com.liferay.portal.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.CookieKeys;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ColorScheme;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.LayoutFriendlyURL;
@@ -280,6 +285,26 @@ public class LayoutImpl extends LayoutBaseImpl {
 		String friendlyURL = layout.getFriendlyURL();
 
 		try {
+			Group group = layout.getGroup();
+
+			UnicodeProperties typeSettingsProperties =
+				group.getTypeSettingsProperties();
+
+			if (!GetterUtil.getBoolean(
+					typeSettingsProperties.getProperty(
+						GroupConstants.TYPE_SETTINGS_KEY_INHERIT_LOCALES),
+					true)) {
+
+				String[] locales = StringUtil.split(
+					typeSettingsProperties.getProperty(PropsKeys.LOCALES));
+
+				if (!ArrayUtil.contains(
+						locales, LanguageUtil.getLanguageId(locale))) {
+
+					return friendlyURL;
+				}
+			}
+
 			LayoutFriendlyURL layoutFriendlyURL =
 				LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURL(
 					layout.getPlid(), LocaleUtil.toLanguageId(locale));
@@ -305,6 +330,21 @@ public class LayoutImpl extends LayoutBaseImpl {
 				layoutFriendlyURL.getFriendlyURL());
 		}
 
+		// If the site/portal default language changes, there may not exist a
+		// value for the new default language. In this situation, we will use
+		// the value from the previous default language.
+
+		Locale defaultSiteLocale = LocaleUtil.getSiteDefault();
+
+		if (Validator.isNull(friendlyURLMap.get(defaultSiteLocale))) {
+			Locale defaultLocale = LocaleUtil.fromLanguageId(
+				getDefaultLanguageId());
+
+			String defaultFriendlyURL = friendlyURLMap.get(defaultLocale);
+
+			friendlyURLMap.put(defaultSiteLocale, defaultFriendlyURL);
+		}
+
 		return friendlyURLMap;
 	}
 
@@ -314,7 +354,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 
 		return LocalizationUtil.updateLocalization(
 			friendlyURLMap, StringPool.BLANK, "FriendlyURL",
-			LocaleUtil.toLanguageId(LocaleUtil.getDefault()));
+			LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault()));
 	}
 
 	@Override

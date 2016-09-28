@@ -8,6 +8,23 @@
 
 	var PATH_JAVASCRIPT = LiferayAUI.getJavaScriptRootPath();
 
+	var testTouch = function(A) {
+		return A.UA.touch;
+	};
+
+	var testTouchMobile = function(A) {
+		return testTouch(A) && A.UA.mobile;
+	};
+
+	var filterConfig = null;
+
+	if (!COMBINE) {
+		filterConfig = {
+			replaceStr: '.js' + LiferayAUI.getStaticResourceURLParams(),
+			searchExp: '\\.js$'
+		};
+	}
+
 	window.YUI_config = {
 		base: PATH_JAVASCRIPT + '/aui/',
 		combine: COMBINE,
@@ -28,7 +45,19 @@
 			liferay: {
 				base: PATH_JAVASCRIPT + '/liferay/',
 				combine: COMBINE,
+				filter: filterConfig,
 				modules: {
+					'liferay-ajax-session': {
+						condition: {
+							trigger: 'aui-io-request'
+						},
+						path: 'ajax_session.js',
+						requires: [
+							'aui-io-request',
+							'liferay-session'
+						]
+					},
+
 					'liferay-app-view-folders': {
 						path: 'app_view_folders.js',
 						requires: [
@@ -43,6 +72,15 @@
 					},
 					'liferay-app-view-move': {
 						path: 'app_view_move.js',
+						plugins: {
+							'liferay-app-view-move-touch': {
+								condition: {
+									name: 'liferay-app-view-move-touch',
+									test: testTouch,
+									trigger: 'liferay-app-view-move'
+								}
+							}
+						},
 						requires: [
 							'aui-base',
 							'dd-constrain',
@@ -53,6 +91,12 @@
 							'liferay-history-manager',
 							'liferay-portlet-base',
 							'liferay-util-list-fields'
+						]
+					},
+					'liferay-app-view-move-touch': {
+						path: 'app_view_move_touch.js',
+						requires: [
+							'aui-base'
 						]
 					},
 					'liferay-app-view-paginator': {
@@ -283,7 +327,6 @@
 						]
 					},
 					'liferay-history-html5': {
-						path: 'history_html5.js',
 						condition: {
 							name: 'liferay-history-html5',
 							test: function(A) {
@@ -298,9 +341,10 @@
 							},
 							trigger: 'liferay-history'
 						},
+						path: 'history_html5.js',
 						requires: [
-							'liferay-history',
 							'history-html5',
+							'liferay-history',
 							'querystring-stringify-simple'
 						]
 					},
@@ -343,9 +387,27 @@
 					},
 					'liferay-input-move-boxes': {
 						path: 'input_move_boxes.js',
+						plugins: {
+							'liferay-input-move-boxes-touch': {
+								condition: {
+									name: 'liferay-input-move-boxes-touch',
+									test: testTouchMobile,
+									trigger: 'liferay-input-move-boxes'
+								}
+							}
+						},
 						requires: [
 							'aui-base',
 							'aui-toolbar'
+						]
+					},
+					'liferay-input-move-boxes-touch': {
+						path: 'input_move_boxes_touch.js',
+						requires: [
+							'aui-base',
+							'aui-template-deprecated',
+							'liferay-input-move-boxes',
+							'sortable'
 						]
 					},
 					'liferay-layout': {
@@ -415,6 +477,15 @@
 							'aui-node'
 						]
 					},
+					'liferay-menu-toggle': {
+						path: 'menu_toggle.js',
+						requires: [
+							'aui-node',
+							'event-move',
+							'event-outside',
+							'liferay-store'
+						]
+					},
 					'liferay-message': {
 						path: 'message.js',
 						requires: [
@@ -428,9 +499,7 @@
 							'liferay-navigation-touch': {
 								condition: {
 									name: 'liferay-navigation-touch',
-									test: function(A) {
-										return A.UA.touch;
-									},
+									test: testTouch,
 									trigger: 'liferay-navigation'
 								}
 							}
@@ -442,9 +511,7 @@
 							'liferay-navigation-interaction-touch': {
 								condition: {
 									name: 'liferay-navigation-interaction-touch',
-									test: function(A) {
-										return A.UA.touch;
-									},
+									test: testTouch,
 									trigger: 'liferay-navigation-interaction'
 								}
 							}
@@ -457,6 +524,7 @@
 					'liferay-navigation-interaction-touch': {
 						path: 'navigation_interaction_touch.js',
 						requires: [
+							'event-tap',
 							'event-touch',
 							'liferay-navigation-interaction'
 						]
@@ -532,6 +600,15 @@
 							'aui-rating'
 						]
 					},
+					'liferay-resize-rtl': {
+						path: 'resize_rtl.js',
+						condition: {
+							test: function(A) {
+								return document.documentElement.dir === 'rtl';
+							},
+							trigger: 'resize-base'
+						}
+					},
 					'liferay-restore-entry': {
 						path: 'restore_entry.js',
 						requires: [
@@ -572,6 +649,7 @@
 							'aui-component',
 							'aui-io-request',
 							'aui-parse-content',
+							'liferay-form',
 							'liferay-portlet-url',
 							'liferay-util-window',
 							'plugin'

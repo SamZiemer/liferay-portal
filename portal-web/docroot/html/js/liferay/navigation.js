@@ -167,6 +167,12 @@ AUI.add(
 						}
 					},
 
+					_afterMakeSortable: function(sortable) {
+						var instance = this;
+
+						sortable.delegate.dd.removeInvalid('a');
+					},
+
 					_cancelPage: function(event) {
 						var instance = this;
 
@@ -213,8 +219,8 @@ AUI.add(
 						var tempLink = Lang.sub(
 							tpl,
 							{
-								url: '#',
-								pageTitle: STR_EMPTY
+								pageTitle: STR_EMPTY,
+								url: '#'
 							}
 						);
 
@@ -258,7 +264,9 @@ AUI.add(
 					_handleKeyDown: function(event) {
 						var instance = this;
 
-						if (event.isKey('DELETE') && !event.currentTarget.ancestor('li.selected')) {
+						var currentTarget = event.currentTarget;
+
+						if (event.isKey('DELETE') && !currentTarget.hasClass('selected') && !currentTarget.ancestor('li.selected')) {
 							instance._removePage(event);
 						}
 					},
@@ -326,7 +334,7 @@ AUI.add(
 										currentSpan.on(
 											'click',
 											function(event) {
-												if (themeDisplay.isStateMaximized() && !event.shiftKey) {
+												if ((themeDisplay.isStateMaximized() && !event.shiftKey) || event.target.hasClass('lfr-nav-child-toggle')) {
 													return;
 												}
 
@@ -369,7 +377,7 @@ AUI.add(
 						var tabHtml = Lang.sub(
 							tabTPL,
 							{
-								pageTitle: Lang.String.escapeHTML(data.title),
+								pageTitle: data.title,
 								url: data.url
 							}
 						);
@@ -394,7 +402,7 @@ AUI.add(
 							}
 						}
 						else {
-							listItem.addClass('lfr-nav-sortable lfr-nav-updateable sortable-item');
+							listItem.addClass('lfr-nav-deletable lfr-nav-sortable lfr-nav-updateable sortable-item');
 
 							instance._createDeleteButton(listItem);
 
@@ -563,10 +571,10 @@ AUI.add(
 
 				var optionsPopover = new A.Popover(
 					{
-						bodyContent: prototypeTemplate,
 						align: {
 							points: ['tc', 'bc']
 						},
+						bodyContent: prototypeTemplate,
 						on: {
 							visibleChange: function(event) {
 								var instance = this;
@@ -638,8 +646,6 @@ AUI.add(
 				var instance = this;
 
 				if (instance.get('isSortable')) {
-					var navBlock = instance.get('navBlock');
-
 					var sortable = new A.Sortable(
 						{
 							container: instance._navList,
@@ -672,7 +678,7 @@ AUI.add(
 						}
 					);
 
-					sortable.delegate.dd.removeInvalid('a');
+					instance._afterMakeSortable(sortable);
 				}
 			},
 			['dd-constrain', 'sortable'],

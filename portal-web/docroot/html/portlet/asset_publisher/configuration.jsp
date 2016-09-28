@@ -281,8 +281,8 @@ String emailBodyParam = emailParam + "Body_" + currentLanguageId;
 				{
 					dialog: {
 						constrain: true,
-						modal: true,
-						width: 600
+						destroyOnHide: true,
+						modal: true
 					},
 					eventName: '<%= eventName %>',
 					id: '<%= eventName %>' + currentTarget.attr('id'),
@@ -310,6 +310,7 @@ String emailBodyParam = emailParam + "Body_" + currentLanguageId;
 
 	function <portlet:namespace />moveSelectionDown(assetEntryOrder) {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'move-selection-down';
+		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = '<%= HtmlUtil.escapeJS(currentURL) %>';
 		document.<portlet:namespace />fm.<portlet:namespace />assetEntryOrder.value = assetEntryOrder;
 
 		submitForm(document.<portlet:namespace />fm);
@@ -317,6 +318,7 @@ String emailBodyParam = emailParam + "Body_" + currentLanguageId;
 
 	function <portlet:namespace />moveSelectionUp(assetEntryOrder) {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'move-selection-up';
+		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = '<%= HtmlUtil.escapeJS(currentURL) %>';
 		document.<portlet:namespace />fm.<portlet:namespace />assetEntryOrder.value = assetEntryOrder;
 
 		submitForm(document.<portlet:namespace />fm);

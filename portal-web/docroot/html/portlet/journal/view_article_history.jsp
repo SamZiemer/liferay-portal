@@ -127,17 +127,15 @@ JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_AR
 			for (int i = 0; i < results.size(); i++) {
 				JournalArticle articleVersion = results.get(i);
 
-				articleVersion = articleVersion.toEscapedModel();
-
 				ResultRow row = new ResultRow(articleVersion, articleVersion.getArticleId() + EditArticleAction.VERSION_SEPARATOR + articleVersion.getVersion(), i);
 
 				// Article id
 
-				row.addText(articleVersion.getArticleId());
+				row.addText(HtmlUtil.escape(articleVersion.getArticleId()));
 
 				// Title
 
-				row.addText(articleVersion.getTitle(locale));
+				row.addText(HtmlUtil.escape(articleVersion.getTitle(locale)));
 
 				// Version
 
@@ -185,7 +183,7 @@ JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_AR
 					function() {
 						if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-delete-the-selected-version") %>')) {
 							document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
-							document.<portlet:namespace />fm.<portlet:namespace />groupId.value = "<%= scopeGroupId %>";
+							document.<portlet:namespace />fm.<portlet:namespace />groupId.value = "<%= String.valueOf(article.getGroupId()) %>";
 							document.<portlet:namespace />fm.<portlet:namespace />articleId.value = "";
 							document.<portlet:namespace />fm.<portlet:namespace />articleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
 
@@ -203,7 +201,7 @@ JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_AR
 					function() {
 						if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-expire-the-selected-version") %>')) {
 							document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.EXPIRE %>";
-							document.<portlet:namespace />fm.<portlet:namespace />groupId.value = "<%= scopeGroupId %>";
+							document.<portlet:namespace />fm.<portlet:namespace />groupId.value = "<%= String.valueOf(article.getGroupId()) %>";
 							document.<portlet:namespace />fm.<portlet:namespace />articleId.value = "";
 							document.<portlet:namespace />fm.<portlet:namespace />expireArticleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
 

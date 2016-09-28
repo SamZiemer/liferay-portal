@@ -87,10 +87,12 @@ public class InputTag extends BaseInputTag {
 			String validatorErrorMessage = (String)modelValidator.getObject(2);
 			String validatorValue = (String)modelValidator.getObject(3);
 			boolean customValidator = (Boolean)modelValidator.getObject(4);
+			boolean customValidatorRequired = (Boolean)modelValidator.getObject(
+				5);
 
 			ValidatorTag validatorTag = new ValidatorTagImpl(
 				validatorName, validatorErrorMessage, validatorValue,
-				customValidator);
+				customValidator, customValidatorRequired);
 
 			addValidatorTag(validatorName, validatorTag);
 		}
@@ -121,7 +123,6 @@ public class InputTag extends BaseInputTag {
 	protected void cleanUp() {
 		super.cleanUp();
 
-		_forLabel = null;
 		_validators = null;
 	}
 
@@ -221,11 +222,33 @@ public class InputTag extends BaseInputTag {
 		String label = getLabel();
 
 		if (label == null) {
-			label = TextFormatter.format(name, TextFormatter.K);
+			label = TextFormatter.format(name, TextFormatter.P);
 		}
 
-		_forLabel = id;
+		String title = getTitle();
+
+		if ((title == null) && (Validator.isNull(label) ||
+			 Validator.equals(type, "image"))) {
+
+			title = TextFormatter.format(name, TextFormatter.P);
+		}
+
+		String forLabel = id;
+
+		if (Validator.equals(type,"assetTags")) {
+			forLabel = forLabel.concat("assetTagNames");
+		}
+		else if (Validator.equals(type, "checkbox")) {
+			forLabel = forLabel.concat("Checkbox");
+		}
+
 		_inputName = getName();
+
+		String languageId = getLanguageId();
+
+		if (Validator.isNotNull(languageId)) {
+			forLabel = forLabel + StringPool.UNDERLINE + languageId;
+		}
 
 		String baseType = null;
 
@@ -240,7 +263,8 @@ public class InputTag extends BaseInputTag {
 		}
 		else if (Validator.isNotNull(type)) {
 			if (Validator.equals(type, "checkbox") ||
-				Validator.equals(type, "radio")) {
+				Validator.equals(type, "radio") ||
+				Validator.equals(type, "resource")) {
 
 				baseType = type;
 			}
@@ -263,11 +287,12 @@ public class InputTag extends BaseInputTag {
 		setNamespacedAttribute(request, "bean", bean);
 		setNamespacedAttribute(request, "defaultLanguageId", defaultLanguageId);
 		setNamespacedAttribute(request, "field", field);
-		setNamespacedAttribute(request, "forLabel", _forLabel);
+		setNamespacedAttribute(request, "forLabel", forLabel);
 		setNamespacedAttribute(request, "formName", formName);
 		setNamespacedAttribute(request, "id", id);
 		setNamespacedAttribute(request, "label", label);
 		setNamespacedAttribute(request, "model", model);
+		setNamespacedAttribute(request, "title", String.valueOf(title));
 		setNamespacedAttribute(request, "wrappedField", wrappedField);
 
 		request.setAttribute(getAttributeNamespace() + "value", getValue());
@@ -300,13 +325,18 @@ public class InputTag extends BaseInputTag {
 				inputName = inputName.concat("Checkbox");
 			}
 
+			String languageId = getLanguageId();
+
+			if (Validator.isNotNull(languageId)) {
+				inputName = inputName + StringPool.UNDERLINE + languageId;
+			}
+
 			validatorTagsMap.put(inputName, validatorTags);
 		}
 	}
 
 	private static final boolean _CLEAN_UP_SET_ATTRIBUTES = true;
 
-	private String _forLabel;
 	private String _inputName;
 	private Map<String, ValidatorTag> _validators;
 

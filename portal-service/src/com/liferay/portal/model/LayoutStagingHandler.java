@@ -14,7 +14,6 @@
 
 package com.liferay.portal.model;
 
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
@@ -33,7 +32,6 @@ import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextThreadLocal;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.LayoutTypePortletFactoryUtil;
-import com.liferay.portal.util.comparator.LayoutRevisionCreateDateComparator;
 
 import java.io.Serializable;
 
@@ -42,7 +40,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -212,25 +209,9 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 			return layoutRevision;
 		}
 
-		layoutRevision = null;
-
-		List<LayoutRevision> layoutRevisions =
-			LayoutRevisionLocalServiceUtil.getLayoutRevisions(
-				layoutSetBranchId, layout.getPlid(), QueryUtil.ALL_POS,
-				QueryUtil.ALL_POS,
-				new LayoutRevisionCreateDateComparator(true));
-
-		if (!layoutRevisions.isEmpty()) {
-			layoutRevision = layoutRevisions.get(0);
-
-			for (LayoutRevision curLayoutRevision : layoutRevisions) {
-				if (curLayoutRevision.isHead()) {
-					layoutRevision = curLayoutRevision;
-
-					break;
-				}
-			}
-		}
+		layoutRevision =
+			LayoutRevisionLocalServiceUtil.fetchLatestLayoutRevision(
+				layoutSetBranchId, layout.getPlid());
 
 		if (layoutRevision != null) {
 			StagingUtil.setRecentLayoutRevisionId(
@@ -314,10 +295,12 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 		_layoutRevisionMethodNames.add("getCss");
 		_layoutRevisionMethodNames.add("getCssText");
 		_layoutRevisionMethodNames.add("getDescription");
+		_layoutRevisionMethodNames.add("getGroupId");
 		_layoutRevisionMethodNames.add("getHTMLTitle");
 		_layoutRevisionMethodNames.add("getIconImage");
 		_layoutRevisionMethodNames.add("getIconImageId");
 		_layoutRevisionMethodNames.add("getKeywords");
+		_layoutRevisionMethodNames.add("getLayoutSet");
 		_layoutRevisionMethodNames.add("getName");
 		_layoutRevisionMethodNames.add("getRobots");
 		_layoutRevisionMethodNames.add("getTheme");
@@ -326,6 +309,7 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 		_layoutRevisionMethodNames.add("getTitle");
 		_layoutRevisionMethodNames.add("getTypeSettings");
 		_layoutRevisionMethodNames.add("getTypeSettingsProperties");
+		_layoutRevisionMethodNames.add("getTypeSettingsProperty");
 		_layoutRevisionMethodNames.add("getWapColorScheme");
 		_layoutRevisionMethodNames.add("getWapColorSchemeId");
 		_layoutRevisionMethodNames.add("getWapTheme");
@@ -340,6 +324,7 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 		_layoutRevisionMethodNames.add("setDescription");
 		_layoutRevisionMethodNames.add("setDescriptionMap");
 		_layoutRevisionMethodNames.add("setEscapedModel");
+		_layoutRevisionMethodNames.add("setGroupId");
 		_layoutRevisionMethodNames.add("setIconImage");
 		_layoutRevisionMethodNames.add("setIconImageId");
 		_layoutRevisionMethodNames.add("setKeywords");

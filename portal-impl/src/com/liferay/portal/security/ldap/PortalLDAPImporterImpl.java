@@ -121,7 +121,7 @@ public class PortalLDAPImporterImpl implements PortalLDAPImporter {
 				if (_log.isDebugEnabled()) {
 					_log.debug(
 						"Skipping LDAP import for company " + companyId +
-							"because another LDAP import is in process");
+							" because another LDAP import is in process");
 				}
 
 				return;
@@ -932,12 +932,12 @@ public class PortalLDAPImporterImpl implements PortalLDAPImporter {
 				isNew = true;
 			}
 
-			String modifiedDate = LDAPUtil.getAttributeString(
+			String modifyTimestamp = LDAPUtil.getAttributeString(
 				attributes, "modifyTimestamp");
 
 			user = updateUser(
 				companyId, ldapUser, user, userMappings, contactMappings,
-				password, modifiedDate, isNew);
+				password, modifyTimestamp, isNew);
 
 			updateExpandoAttributes(
 				user, ldapUser, userExpandoMappings, contactExpandoMappings);
@@ -1178,10 +1178,10 @@ public class PortalLDAPImporterImpl implements PortalLDAPImporter {
 	protected User updateUser(
 			long companyId, LDAPUser ldapUser, User user,
 			Properties userMappings, Properties contactMappings,
-			String password, String modifiedDate, boolean isNew)
+			String password, String modifyTimestamp, boolean isNew)
 		throws Exception {
 
-		Date ldapUserModifiedDate = null;
+		Date modifiedDate = null;
 
 		boolean passwordReset = ldapUser.isPasswordReset();
 
@@ -1193,10 +1193,10 @@ public class PortalLDAPImporterImpl implements PortalLDAPImporter {
 		}
 
 		try {
-			if (Validator.isNotNull(modifiedDate)) {
-				ldapUserModifiedDate = LDAPUtil.parseDate(modifiedDate);
+			if (Validator.isNotNull(modifyTimestamp)) {
+				modifiedDate = LDAPUtil.parseDate(modifyTimestamp);
 
-				if (ldapUserModifiedDate.equals(user.getModifiedDate())) {
+				if (modifiedDate.equals(user.getModifiedDate())) {
 					if (ldapUser.isAutoPassword()) {
 						if (_log.isDebugEnabled()) {
 							_log.debug(
@@ -1234,7 +1234,7 @@ public class PortalLDAPImporterImpl implements PortalLDAPImporter {
 		catch (ParseException pe) {
 			if (_log.isDebugEnabled()) {
 				_log.debug(
-					"Unable to parse LDAP modify timestamp " + modifiedDate,
+					"Unable to parse LDAP modify timestamp " + modifyTimestamp,
 					pe);
 			}
 		}
@@ -1249,37 +1249,30 @@ public class PortalLDAPImporterImpl implements PortalLDAPImporter {
 			}
 		}
 
-		if (Validator.isNull(ldapUser.getScreenName())) {
-			ldapUser.setAutoScreenName(true);
+		if (Validator.isNull(ldapUser.getScreenName()) ||
+			ldapUser.isAutoScreenName()) {
+
+			ldapUser.setScreenName(user.getScreenName());
 		}
-
-		if (ldapUser.isAutoScreenName()) {
-			ScreenNameGenerator screenNameGenerator =
-				ScreenNameGeneratorFactory.getInstance();
-
-			ldapUser.setScreenName(
-				screenNameGenerator.generate(
-					companyId, user.getUserId(), ldapUser.getEmailAddress()));
-		}
-
-		Calendar birthdayCal = CalendarFactoryUtil.getCalendar();
-
-		Contact ldapContact = ldapUser.getContact();
-
-		birthdayCal.setTime(ldapContact.getBirthday());
-
-		int birthdayMonth = birthdayCal.get(Calendar.MONTH);
-		int birthdayDay = birthdayCal.get(Calendar.DAY_OF_MONTH);
-		int birthdayYear = birthdayCal.get(Calendar.YEAR);
 
 		if (ldapUser.isUpdatePassword()) {
 			UserLocalServiceUtil.updatePassword(
 				user.getUserId(), password, password, passwordReset, true);
 		}
 
+		Contact ldapContact = ldapUser.getContact();
+
 		updateLDAPUser(
 			ldapUser.getUser(), ldapContact, user, userMappings,
 			contactMappings);
+
+		Calendar birthdayCal = CalendarFactoryUtil.getCalendar();
+
+		birthdayCal.setTime(ldapContact.getBirthday());
+
+		int birthdayMonth = birthdayCal.get(Calendar.MONTH);
+		int birthdayDay = birthdayCal.get(Calendar.DAY_OF_MONTH);
+		int birthdayYear = birthdayCal.get(Calendar.YEAR);
 
 		user = UserLocalServiceUtil.updateUser(
 			user.getUserId(), password, StringPool.BLANK, StringPool.BLANK,
@@ -1300,9 +1293,9 @@ public class PortalLDAPImporterImpl implements PortalLDAPImporter {
 			ldapUser.getRoleIds(), ldapUser.getUserGroupRoles(),
 			ldapUser.getUserGroupIds(), ldapUser.getServiceContext());
 
-		if (ldapUserModifiedDate != null) {
+		if (modifiedDate != null) {
 			user = UserLocalServiceUtil.updateModifiedDate(
-				user.getUserId(), ldapUserModifiedDate);
+				user.getUserId(), modifiedDate);
 		}
 
 		if (ldapUser.isUpdatePortrait()) {
@@ -1324,9 +1317,9 @@ public class PortalLDAPImporterImpl implements PortalLDAPImporter {
 	}
 
 	private static final String[] _CONTACT_PROPERTY_NAMES = {
-		"aimSn", "employeeNumber", "facebookSn", "icqSn", "jabberSn", "male",
-		"msnSn", "mySpaceSn","prefixId", "skypeSn", "smsSn", "suffixId",
-		"twitterSn", "ymSn"
+		"aimSn", "birthday", "employeeNumber", "facebookSn", "icqSn",
+		"jabberSn", "male", "msnSn", "mySpaceSn","prefixId", "skypeSn", "smsSn",
+		"suffixId", "twitterSn", "ymSn"
 	};
 
 	private static final String _IMPORT_BY_GROUP = "group";
@@ -1336,8 +1329,9 @@ public class PortalLDAPImporterImpl implements PortalLDAPImporter {
 	private static final String _USER_PASSWORD_SCREEN_NAME = "screenName";
 
 	private static final String[] _USER_PROPERTY_NAMES = {
-		"comments", "firstName", "greeting", "jobTitle", "languageId",
-		"lastName", "middleName", "openId", "timeZoneId"
+		"comments", "emailAddress", "firstName", "greeting", "jobTitle",
+		"languageId", "lastName", "middleName", "openId", "portraitId",
+		"timeZoneId"
 	};
 
 	private static Log _log = LogFactoryUtil.getLog(

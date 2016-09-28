@@ -248,7 +248,7 @@ else {
 						%>
 
 						<li>
-							<%= ResourceActionsUtil.getModelResource(locale, layoutPrototypeClassName) %>: <strong><%= HtmlUtil.escape(layoutPrototypeName) %></strong> (<%= layoutPrototypeUuid %>)
+							<%= ResourceActionsUtil.getModelResource(locale, layoutPrototypeClassName) %>: <strong><%= HtmlUtil.escape(layoutPrototypeName) %></strong> (<%= HtmlUtil.escape(layoutPrototypeUuid) %>)
 						</li>
 
 						<%
@@ -348,11 +348,9 @@ else {
 							</aui:fieldset>
 						</c:if>
 
-						<c:if test="<%= !selGroup.isCompany() %>">
-							<aui:fieldset cssClass="options-group" label="permissions">
-								<%@ include file="/html/portlet/layouts_admin/publish_layouts_permissions.jspf" %>
-							</aui:fieldset>
-						</c:if>
+						<aui:fieldset cssClass="options-group" label="permissions">
+							<%@ include file="/html/portlet/layouts_admin/publish_layouts_permissions.jspf" %>
+						</aui:fieldset>
 
 						<c:if test="<%= !localPublishing %>">
 							<aui:fieldset cssClass="options-group" label="remote-live-connection-settings">
@@ -409,9 +407,34 @@ else {
 		'<portlet:namespace />publishPages',
 		function() {
 			if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-" + publishActionKey + "-these-pages") %>')) {
+				var A = AUI();
+
+				var allContentRadioChecked = A.one('#<portlet:namespace />allContent').attr('checked');
+
+				if (allContentRadioChecked) {
+					var selectedContents = A.one('#<portlet:namespace />selectContents');
+
+					var checkedNodes = selectedContents.all('input[type=checkbox]');
+
+					checkedNodes.each(
+						function(item, index, collection) {
+							if (!item.attr('checked')) {
+								item.attr('checked', true);
+
+								Liferay.Util.updateCheckboxValue(item);
+							}
+						}
+					);
+
+					var portletDataControlDefault = A.one('#<portlet:namespace /><%= PortletDataHandlerKeys.PORTLET_DATA_CONTROL_DEFAULT %>');
+
+					portletDataControlDefault.val(true);
+				}
+
 				submitForm(document.<portlet:namespace />exportPagesFm);
 			}
-		}
+		},
+		['aui-base']
 	);
 
 	Liferay.Util.toggleRadio('<portlet:namespace />allApplications', '<portlet:namespace />showChangeGlobalConfiguration', ['<portlet:namespace />selectApplications']);

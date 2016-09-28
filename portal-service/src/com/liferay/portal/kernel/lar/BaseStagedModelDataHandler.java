@@ -15,14 +15,15 @@
 package com.liferay.portal.kernel.lar;
 
 import com.liferay.portal.NoSuchModelException;
+import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.Session;
+import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.trash.TrashHandler;
-import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.model.StagedModel;
@@ -39,6 +40,10 @@ import java.util.Map;
  */
 public abstract class BaseStagedModelDataHandler<T extends StagedModel>
 	implements StagedModelDataHandler<T> {
+
+	public static final int STAGING_HIBERNATE_CACHE_FLUSH_FREQUENCY =
+		GetterUtil.getInteger(PropsUtil.get(
+			"staging.hibernate.cache.flush.frequency"));
 
 	@Override
 	public abstract void deleteStagedModel(
@@ -71,6 +76,8 @@ public abstract class BaseStagedModelDataHandler<T extends StagedModel>
 				manifestSummary.incrementModelAdditionCount(
 					stagedModel.getStagedModelType());
 			}
+
+			portletDataContext.cleanUpMissingReferences(stagedModel);
 		}
 		catch (PortletDataException pde) {
 			throw pde;
@@ -152,14 +159,14 @@ public abstract class BaseStagedModelDataHandler<T extends StagedModel>
 			PortletDataHandlerStatusMessageSenderUtil.sendStatusMessage(
 				"stagedModel", stagedModel, manifestSummary);
 
-			if (stagedModel instanceof TrashedModel) {
-				restoreStagedModel(portletDataContext, stagedModel);
-			}
+			restoreStagedModel(portletDataContext, stagedModel);
 
 			doImportStagedModel(portletDataContext, stagedModel);
 
 			manifestSummary.incrementModelAdditionCount(
 				stagedModel.getStagedModelType());
+
+			maintainSessionCache(portletDataContext);
 		}
 		catch (PortletDataException pde) {
 			throw pde;
@@ -169,13 +176,35 @@ public abstract class BaseStagedModelDataHandler<T extends StagedModel>
 		}
 	}
 
+	protected void maintainSessionCache(PortletDataContext portletDataContext) {
+		ManifestSummary manifestSummary =
+			portletDataContext.getManifestSummary();
+
+		int hibernateCacheFlushFrequency = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.STAGING_HIBERNATE_CACHE_FLUSH_FREQUENCY));
+
+		if ((manifestSummary.getModelAdditionCount() %
+				hibernateCacheFlushFrequency) != 0) {
+
+			return;
+		}
+
+		Session session = sessionFactory.getCurrentSession();
+
+		session.flush();
+
+		session.clear();
+	}
+
 	@Override
 	public void restoreStagedModel(
 			PortletDataContext portletDataContext, T stagedModel)
 		throws PortletDataException {
 
 		try {
-			doRestoreStagedModel(portletDataContext, stagedModel);
+			if (stagedModel instanceof TrashedModel) {
+				doRestoreStagedModel(portletDataContext, stagedModel);
+			}
 		}
 		catch (PortletDataException pde) {
 			throw pde;
@@ -241,7 +270,9 @@ public abstract class BaseStagedModelDataHandler<T extends StagedModel>
 			PortletDataContext portletDataContext, T stagedModel)
 		throws PortletDataException {
 
-		if (stagedModel instanceof WorkflowedModel) {
+		if (!portletDataContext.isInitialPublication() &&
+			(stagedModel instanceof WorkflowedModel)) {
+
 			WorkflowedModel workflowedModel = (WorkflowedModel)stagedModel;
 
 			if (!ArrayUtil.contains(
@@ -256,33 +287,16 @@ public abstract class BaseStagedModelDataHandler<T extends StagedModel>
 			}
 		}
 
-		StagedModelType stagedModelType = stagedModel.getStagedModelType();
+		if (stagedModel instanceof TrashedModel) {
+			TrashedModel trashedModel = (TrashedModel)stagedModel;
 
-		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
-			stagedModelType.getClassName());
+			if (trashedModel.isInTrash()) {
+				PortletDataException pde = new PortletDataException(
+					PortletDataException.STATUS_IN_TRASH);
 
-		if (trashHandler != null) {
-			try {
-				long classPK = (Long)stagedModel.getPrimaryKeyObj();
+				pde.setStagedModel(stagedModel);
 
-				if (trashHandler.isInTrash(classPK)) {
-					PortletDataException pde = new PortletDataException(
-						PortletDataException.STATUS_IN_TRASH);
-
-					pde.setStagedModel(stagedModel);
-
-					throw pde;
-				}
-			}
-			catch (PortletDataException pde) {
 				throw pde;
-			}
-			catch (Exception e) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(
-						"Unable to check trash status for " +
-							stagedModel.getModelClassName());
-				}
 			}
 		}
 	}
@@ -294,7 +308,7 @@ public abstract class BaseStagedModelDataHandler<T extends StagedModel>
 		return true;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
-		BaseStagedModelDataHandler.class);
+	protected final SessionFactory sessionFactory =
+		(SessionFactory)PortalBeanLocatorUtil.locate("liferaySessionFactory");
 
 }

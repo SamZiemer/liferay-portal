@@ -37,7 +37,7 @@ if (folder != null) {
 		title="home"
 	/>
 
-	<liferay-ui:breadcrumb showGuestGroup="<%= false %>" showLayout="<%= false %>" showParentGroups="<%= false %>" />
+	<liferay-ui:breadcrumb showCurrentGroup="<%= false %>" showGuestGroup="<%= false %>" showLayout="<%= false %>" showParentGroups="<%= false %>" />
 
 	<%
 	PortletURL portletURL = renderResponse.createRenderURL();
@@ -65,7 +65,7 @@ if (folder != null) {
 		Map<String, Object> data = new HashMap<String, Object>();
 
 		data.put("folderid", String.valueOf(folderId));
-		data.put("foldername", HtmlUtil.escape(folderName));
+		data.put("foldername", folderName);
 		%>
 
 		<aui:button cssClass="selector-button" data="<%= data %>" value="choose-this-folder" />
@@ -143,7 +143,7 @@ if (folder != null) {
 					Map<String, Object> data = new HashMap<String, Object>();
 
 					data.put("folderid", curFolder.getFolderId());
-					data.put("foldername", HtmlUtil.escape(curFolder.getName()));
+					data.put("foldername", curFolder.getName());
 					%>
 
 					<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />
@@ -157,17 +157,5 @@ if (folder != null) {
 </aui:form>
 
 <aui:script use="aui-base">
-	var Util = Liferay.Util;
-
-	A.one('#<portlet:namespace />selectFolderFm').delegate(
-		'click',
-		function(event) {
-			var result = Util.getAttributes(event.currentTarget, 'data-');
-
-			Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
-
-			Util.getWindow().hide();
-		},
-		'.selector-button'
-	);
+	Liferay.Util.selectEntityHandler('#<portlet:namespace />selectFolderFm', '<%= HtmlUtil.escapeJS(eventName) %>');
 </aui:script>

@@ -92,7 +92,7 @@ public abstract class BasePreferencesImpl implements Serializable {
 			values = preference.getValues();
 		}
 
-		if (ArrayUtil.isNotEmpty(values)) {
+		if (!isNull(values)) {
 			return getActualValue(values[0]);
 		}
 		else {
@@ -115,7 +115,7 @@ public abstract class BasePreferencesImpl implements Serializable {
 			values = preference.getValues();
 		}
 
-		if (ArrayUtil.isNotEmpty(values)) {
+		if (!isNull(values)) {
 			return getActualValues(values);
 		}
 		else {
@@ -141,7 +141,7 @@ public abstract class BasePreferencesImpl implements Serializable {
 	}
 
 	public void reset() {
-		_modifiedPreferences = new ConcurrentHashMap<String, Preference>();
+		_modifiedPreferences = null;
 	}
 
 	public abstract void reset(String key) throws ReadOnlyException;
@@ -294,6 +294,26 @@ public abstract class BasePreferencesImpl implements Serializable {
 		}
 
 		return xmlSafeValues;
+	}
+
+	protected boolean isNull(String[] values) {
+		if (ArrayUtil.isEmpty(values) ||
+			((values.length == 1) && (getActualValue(values[0]) == null))) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	protected void setOriginalPreferences(
+		Map<String, Preference> originalPreferences) {
+
+		_originalPreferences = originalPreferences;
+	}
+
+	protected void setOriginalXML(String originalXML) {
+		_originalXML = originalXML;
 	}
 
 	protected String toXML() {

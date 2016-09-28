@@ -41,6 +41,7 @@ import com.liferay.portlet.shopping.model.ShoppingItem;
 import com.liferay.portlet.shopping.model.ShoppingItemField;
 import com.liferay.portlet.shopping.model.ShoppingItemPrice;
 import com.liferay.portlet.shopping.model.ShoppingItemPriceConstants;
+import com.liferay.portlet.shopping.model.impl.ShoppingItemImpl;
 import com.liferay.portlet.shopping.service.ShoppingItemServiceUtil;
 import com.liferay.portlet.shopping.service.persistence.ShoppingItemFieldUtil;
 import com.liferay.portlet.shopping.service.persistence.ShoppingItemPriceUtil;
@@ -200,13 +201,17 @@ public class EditItemAction extends PortletAction {
 			int maxQuantity = ParamUtil.getInteger(
 				uploadPortletRequest, "maxQuantity" + i);
 			double price = ParamUtil.getDouble(
-				uploadPortletRequest, "price" + i);
+				uploadPortletRequest, "price" + i, themeDisplay.getLocale());
+
 			double discount = ParamUtil.getDouble(
-				uploadPortletRequest, "discount" + i) / 100;
+				uploadPortletRequest, "discount" + i, themeDisplay.getLocale());
+
+			discount = discount / 100;
+
 			boolean taxable = ParamUtil.getBoolean(
 				uploadPortletRequest, "taxable" + i);
 			double shipping = ParamUtil.getDouble(
-				uploadPortletRequest, "shipping" + i);
+				uploadPortletRequest, "shipping" + i, themeDisplay.getLocale());
 			boolean useShippingFormula = ParamUtil.getBoolean(
 				uploadPortletRequest, "useShippingFormula" + i);
 			boolean active = ParamUtil.getBoolean(
@@ -239,8 +244,13 @@ public class EditItemAction extends PortletAction {
 
 		boolean requiresShipping = ParamUtil.getBoolean(
 			uploadPortletRequest, "requiresShipping");
+
 		int stockQuantity = ParamUtil.getInteger(
 			uploadPortletRequest, "stockQuantity");
+
+		if (ParamUtil.getBoolean(uploadPortletRequest, "infiniteStock")) {
+			stockQuantity = ShoppingItemImpl.STOCK_QUANTITY_INFINITE_STOCK;
+		}
 
 		boolean featured = ParamUtil.getBoolean(
 			uploadPortletRequest, "featured");

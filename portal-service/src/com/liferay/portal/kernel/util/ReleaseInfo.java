@@ -85,7 +85,15 @@ public class ReleaseInfo {
 
 	public static final int RELEASE_6_2_0_BUILD_NUMBER = 6200;
 
-	public static final int RELEASE_6_2_01_BUILD_NUMBER = 6201;
+	public static final int RELEASE_6_2_1_BUILD_NUMBER = 6201;
+
+	public static final int RELEASE_6_2_2_BUILD_NUMBER = 6202;
+
+	public static final int RELEASE_6_2_3_BUILD_NUMBER = 6203;
+
+	public static final int RELEASE_6_2_4_BUILD_NUMBER = 6204;
+
+	public static final int RELEASE_6_2_5_BUILD_NUMBER = 6205;
 
 	public static final int RELEASE_6_2_10_BUILD_NUMBER = 6210;
 
@@ -138,13 +146,13 @@ public class ReleaseInfo {
 		return _VERSION;
 	}
 
-	private static final String _BUILD = "6201";
+	private static final String _BUILD = "6205";
 
 	private static final int _BUILD_NUMBER = GetterUtil.getInteger(_BUILD);
 
 	private static final String _CODE_NAME = "Newton";
 
-	private static final String _DATE = "March 20, 2014";
+	private static final String _DATE = "January 6, 2016";
 
 	private static final String _NAME = "Liferay Portal Community Edition";
 
@@ -158,9 +166,9 @@ public class ReleaseInfo {
 
 	private static final String _VENDOR = "Liferay, Inc.";
 
-	private static final String _VERSION = "6.2.1";
+	private static final String _VERSION = "6.2.5";
 
-	private static final String _VERSION_DISPLAY_NAME = "6.2 CE GA2";
+	private static final String _VERSION_DISPLAY_NAME = "6.2 CE GA6";
 
 	private static String _releaseInfo;
 	private static String _serverInfo;

@@ -14,11 +14,14 @@
 
 package com.liferay.portlet.documentlibrary.service.impl;
 
-import com.liferay.portal.kernel.dao.orm.Session;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.DynamicQuery;
+import com.liferay.portal.kernel.dao.orm.Property;
+import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
-import com.liferay.portal.kernel.util.TreePathUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.User;
@@ -27,9 +30,8 @@ import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
-import com.liferay.portlet.documentlibrary.model.impl.DLFileShortcutModelImpl;
-import com.liferay.portlet.documentlibrary.model.impl.DLFolderModelImpl;
 import com.liferay.portlet.documentlibrary.service.base.DLFileShortcutLocalServiceBaseImpl;
+import com.liferay.portlet.documentlibrary.service.persistence.DLFileShortcutActionableDynamicQuery;
 
 import java.util.Date;
 import java.util.List;
@@ -95,11 +97,8 @@ public class DLFileShortcutLocalServiceImpl
 		// Folder
 
 		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
-
-			dlFolder.setLastPostDate(fileShortcut.getModifiedDate());
-
-			dlFolderPersistence.update(dlFolder);
+			dlFolderLocalService.updateLastPostDate(
+				folderId, fileShortcut.getModifiedDate());
 		}
 
 		// Asset
@@ -231,7 +230,7 @@ public class DLFileShortcutLocalServiceImpl
 			dlFileShortcutPersistence.findByG_F(groupId, folderId);
 
 		for (DLFileShortcut fileShortcut : fileShortcuts) {
-			if (includeTrashedEntries || !fileShortcut.isInTrash()) {
+			if (includeTrashedEntries || !fileShortcut.isInTrashExplicitly()) {
 				deleteFileShortcut(fileShortcut);
 			}
 		}
@@ -290,21 +289,53 @@ public class DLFileShortcutLocalServiceImpl
 	}
 
 	@Override
-	public void rebuildTree(long companyId) throws SystemException {
+	public void rebuildTree(long companyId)
+		throws PortalException, SystemException {
+
 		dlFolderLocalService.rebuildTree(companyId);
+	}
 
-		Session session = dlFileShortcutPersistence.openSession();
+	@Override
+	public void setTreePaths(final long folderId, final String treePath)
+		throws PortalException, SystemException {
 
-		try {
-			TreePathUtil.rebuildTree(
-				session, companyId, DLFileShortcutModelImpl.TABLE_NAME,
-				DLFolderModelImpl.TABLE_NAME, "folderId", true);
+		if (treePath == null) {
+			throw new IllegalArgumentException("Tree path is null");
 		}
-		finally {
-			dlFileShortcutPersistence.closeSession(session);
 
-			dlFileShortcutPersistence.clearCache();
-		}
+		ActionableDynamicQuery actionableDynamicQuery =
+			new DLFileShortcutActionableDynamicQuery() {
+
+			@Override
+			protected void addCriteria(DynamicQuery dynamicQuery) {
+				Property folderIdProperty = PropertyFactoryUtil.forName(
+					"folderId");
+
+				dynamicQuery.add(folderIdProperty.eq(folderId));
+
+				Property treePathProperty = PropertyFactoryUtil.forName(
+					"treePath");
+
+				dynamicQuery.add(
+					RestrictionsFactoryUtil.or(
+						treePathProperty.isNull(),
+						treePathProperty.ne(treePath)));
+			}
+
+			@Override
+			protected void performAction(Object object)
+				throws PortalException, SystemException {
+
+				DLFileShortcut shortcut = (DLFileShortcut)object;
+
+				shortcut.setTreePath(treePath);
+
+				updateDLFileShortcut(shortcut);
+			}
+
+		};
+
+		actionableDynamicQuery.performActions();
 	}
 
 	@Override
@@ -351,11 +382,8 @@ public class DLFileShortcutLocalServiceImpl
 		// Folder
 
 		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
-
-			dlFolder.setLastPostDate(fileShortcut.getModifiedDate());
-
-			dlFolderPersistence.update(dlFolder);
+			dlFolderLocalService.updateLastPostDate(
+				folderId, fileShortcut.getModifiedDate());
 		}
 
 		// Asset
@@ -442,7 +470,8 @@ public class DLFileShortcutLocalServiceImpl
 		FileEntry fileEntry = dlAppLocalService.getFileEntry(toFileEntryId);
 
 		if (user.getCompanyId() != fileEntry.getCompanyId()) {
-			throw new NoSuchFileEntryException();
+			throw new NoSuchFileEntryException(
+				"{fileEntryId=" + toFileEntryId + "}");
 		}
 	}
 

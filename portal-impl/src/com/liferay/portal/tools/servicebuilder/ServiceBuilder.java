@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.util.Validator_IW;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.model.CacheField;
 import com.liferay.portal.model.ModelHintsUtil;
 import com.liferay.portal.security.permission.ResourceActionsUtil;
@@ -57,6 +58,7 @@ import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaField;
 import com.thoughtworks.qdox.model.JavaMethod;
 import com.thoughtworks.qdox.model.JavaParameter;
+import com.thoughtworks.qdox.model.JavaSource;
 import com.thoughtworks.qdox.model.Type;
 
 import de.hunsicker.io.FileFormat;
@@ -629,7 +631,7 @@ public class ServiceBuilder {
 
 			String content = getContent(fileName);
 
-			Document document = SAXReaderUtil.read(content, true);
+			Document document = UnsecureSAXReaderUtil.read(content, true);
 
 			Element rootElement = document.getRootElement();
 
@@ -857,6 +859,61 @@ public class ServiceBuilder {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public String annotationToString(Annotation annotation) {
+		StringBundler sb = new StringBundler();
+
+		sb.append(StringPool.AT);
+
+		Type type = annotation.getType();
+
+		sb.append(type.getValue());
+
+		Map<String, Object> namedParameters = annotation.getNamedParameterMap();
+
+		if (namedParameters.isEmpty()) {
+			return sb.toString();
+		}
+
+		sb.append(StringPool.OPEN_PARENTHESIS);
+
+		for (Map.Entry<String, Object> entry : namedParameters.entrySet()) {
+			sb.append(entry.getKey());
+
+			sb.append(StringPool.EQUAL);
+
+			Object value = entry.getValue();
+
+			if (value instanceof List) {
+				List<String> stringValues = (List<String>)entry.getValue();
+
+				sb.append(StringPool.OPEN_CURLY_BRACE);
+
+				for (String stringValue : stringValues) {
+					sb.append(stringValue);
+
+					sb.append(StringPool.COMMA_AND_SPACE);
+				}
+
+				if (!stringValues.isEmpty()) {
+					sb.setIndex(sb.index() - 1);
+				}
+
+				sb.append(StringPool.CLOSE_CURLY_BRACE);
+			}
+			else {
+				sb.append(value);
+			}
+
+			sb.append(StringPool.COMMA_AND_SPACE);
+		}
+
+		sb.setIndex(sb.index() - 1);
+
+		sb.append(StringPool.CLOSE_PARENTHESIS);
+
+		return sb.toString();
 	}
 
 	public String getClassName(Type type) {
@@ -1675,7 +1732,7 @@ public class ServiceBuilder {
 
 		String content = FileUtil.read(new File(fileName));
 
-		Document document = SAXReaderUtil.read(content);
+		Document document = UnsecureSAXReaderUtil.read(content);
 
 		Element rootElement = document.getRootElement();
 
@@ -2148,9 +2205,9 @@ public class ServiceBuilder {
 		}
 
 		int firstClass = newContent.indexOf(
-			"<class name=\"" + _packagePath + ".model.impl.");
+			"<class name=\"" + _packagePath + ".model.");
 		int lastClass = newContent.lastIndexOf(
-			"<class name=\"" + _packagePath + ".model.impl.");
+			"<class name=\"" + _packagePath + ".model.");
 
 		if (firstClass == -1) {
 			int x = newContent.indexOf("</hibernate-mapping>");
@@ -2698,7 +2755,7 @@ public class ServiceBuilder {
 	private void _createRemotingXml() throws Exception {
 		StringBundler sb = new StringBundler();
 
-		Document document = SAXReaderUtil.read(new File(_springFileName));
+		Document document = UnsecureSAXReaderUtil.read(new File(_springFileName));
 
 		Element rootElement = document.getRootElement();
 
@@ -2787,9 +2844,15 @@ public class ServiceBuilder {
 	private void _createService(Entity entity, int sessionType)
 		throws Exception {
 
+		Set<String> imports = new HashSet<String>();
+
 		JavaClass javaClass = _getJavaClass(
 			_outputPath + "/service/impl/" + entity.getName() +
 				_getSessionTypeName(sessionType) + "ServiceImpl.java");
+
+		JavaSource javaSource = javaClass.getSource();
+
+		imports.addAll(Arrays.asList(javaSource.getImports()));
 
 		JavaMethod[] methods = _getMethods(javaClass);
 
@@ -2805,6 +2868,10 @@ public class ServiceBuilder {
 				_outputPath + "/service/base/" + entity.getName() +
 					_getSessionTypeName(sessionType) + "ServiceBaseImpl.java");
 
+			JavaSource parentJavaSource = parentJavaClass.getSource();
+
+			imports.addAll(Arrays.asList(parentJavaSource.getImports()));
+
 			methods = ArrayUtil.append(
 				parentJavaClass.getMethods(), methods);
 		}
@@ -2812,6 +2879,7 @@ public class ServiceBuilder {
 		Map<String, Object> context = _getContext();
 
 		context.put("entity", entity);
+		context.put("imports", imports);
 		context.put("methods", methods);
 		context.put("sessionTypeName", _getSessionTypeName(sessionType));
 
@@ -4255,7 +4323,7 @@ public class ServiceBuilder {
 						hints.get("max-length"), maxLength);
 				}
 
-				if (col.isLocalized()) {
+				if (col.isLocalized() && (maxLength < 4000)) {
 					maxLength = 4000;
 				}
 
@@ -4689,15 +4757,7 @@ public class ServiceBuilder {
 				EntityMapping entityMapping = new EntityMapping(
 					mappingTable, ejbName, collectionEntity);
 
-				int ejbNameWeight = StringUtil.startsWithWeight(
-					mappingTable, ejbName);
-				int collectionEntityWeight = StringUtil.startsWithWeight(
-					mappingTable, collectionEntity);
-
-				if ((ejbNameWeight > collectionEntityWeight) ||
-					((ejbNameWeight == collectionEntityWeight) &&
-					 (ejbName.compareTo(collectionEntity) > 0))) {
-
+				if (!_entityMappings.containsKey(mappingTable)) {
 					_entityMappings.put(mappingTable, entityMapping);
 				}
 			}

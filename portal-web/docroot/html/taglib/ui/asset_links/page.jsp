@@ -49,7 +49,17 @@ if (assetEntryId > 0) {
 
 				assetLinkEntry = assetLinkEntry.toEscapedModel();
 
-				AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(PortalUtil.getClassName(assetLinkEntry.getClassNameId()));
+				String className = PortalUtil.getClassName(assetLinkEntry.getClassNameId());
+
+				AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(className);
+
+				if (Validator.isNull(assetRendererFactory)) {
+					if (_log.isWarnEnabled()) {
+						_log.warn("No asset renderer factory found for class " + className);
+					}
+
+					continue;
+				}
 
 				if (!assetRendererFactory.isActive(company.getCompanyId())) {
 					continue;
@@ -63,6 +73,7 @@ if (assetEntryId > 0) {
 					LiferayPortletURL assetPublisherURL = new PortletURLImpl(request, PortletKeys.ASSET_PUBLISHER, plid, PortletRequest.RENDER_PHASE);
 
 					assetPublisherURL.setParameter("struts_action", "/asset_publisher/view_content");
+					assetPublisherURL.setParameter("redirect", currentURL);
 					assetPublisherURL.setParameter("assetEntryId", String.valueOf(assetLinkEntry.getEntryId()));
 					assetPublisherURL.setParameter("type", assetRendererFactory.getType());
 
@@ -81,13 +92,25 @@ if (assetEntryId > 0) {
 					viewFullContentURLString = HttpUtil.setParameter(viewFullContentURLString, "redirect", currentURL);
 
 					String urlViewInContext = assetRenderer.getURLViewInContext((LiferayPortletRequest)portletRequest, (LiferayPortletResponse)portletResponse, viewFullContentURLString);
+
+					urlViewInContext = HttpUtil.setParameter(urlViewInContext, "inheritRedirect", true);
+
+					String method = null;
+					String target = "_self";
+
+					if (themeDisplay.isStatePopUp() || (themeDisplay.isStateMaximized() && PropsValues.DOCKBAR_ADMINISTRATIVE_LINKS_SHOW_IN_POP_UP && PortletCategoryKeys.MY.equals(themeDisplay.getControlPanelCategory()))) {
+						method = "get";
+						target = "_blank";
+					}
 			%>
 
 					<li class="asset-links-list-item">
 						<liferay-ui:icon
 							label="<%= true %>"
 							message="<%= asseLinktEntryTitle %>"
+							method="<%= method %>"
 							src="<%= assetRenderer.getIconPath(portletRequest) %>"
+							target="<%= target %>"
 							url="<%= urlViewInContext %>"
 						/>
 					</li>
@@ -100,3 +123,7 @@ if (assetEntryId > 0) {
 		</ul>
 	</div>
 </c:if>
+
+<%!
+private static Log _log = LogFactoryUtil.getLog("portal-web.docroot.html.taglib.ui.asset_links.page_jsp");
+%>

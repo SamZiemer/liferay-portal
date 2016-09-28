@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.increment.NumberIncrement;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.lar.ExportImportThreadLocal;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
@@ -155,8 +156,6 @@ public class MBThreadLocalServiceImpl extends MBThreadLocalServiceBaseImpl {
 		Indexer messageIndexer = IndexerRegistryUtil.nullSafeGetIndexer(
 			MBMessage.class);
 
-		messageIndexer.delete(thread);
-
 		// Attachments
 
 		long folderId = thread.getAttachmentsFolderId();
@@ -203,6 +202,10 @@ public class MBThreadLocalServiceImpl extends MBThreadLocalServiceBaseImpl {
 			// Message
 
 			mbMessagePersistence.remove(message);
+
+			// Indexer
+
+			messageIndexer.delete(message);
 
 			// Statistics
 
@@ -286,7 +289,7 @@ public class MBThreadLocalServiceImpl extends MBThreadLocalServiceBaseImpl {
 			groupId, categoryId);
 
 		for (MBThread thread : threads) {
-			if (includeTrashedEntries || !thread.isInTrash()) {
+			if (includeTrashedEntries || !thread.isInTrashExplicitly()) {
 				mbThreadLocalService.deleteThread(thread);
 			}
 		}
@@ -671,6 +674,8 @@ public class MBThreadLocalServiceImpl extends MBThreadLocalServiceBaseImpl {
 
 		Set<Long> userIds = new HashSet<Long>();
 
+		MBThread thread = mbThreadLocalService.getThread(threadId);
+
 		List<MBMessage> messages = mbMessageLocalService.getThreadMessages(
 			threadId, WorkflowConstants.STATUS_ANY);
 
@@ -709,6 +714,13 @@ public class MBThreadLocalServiceImpl extends MBThreadLocalServiceBaseImpl {
 			if (oldStatus == WorkflowConstants.STATUS_APPROVED) {
 				assetEntryLocalService.updateVisible(
 					MBMessage.class.getName(), message.getMessageId(), false);
+			}
+
+			// Attachments
+
+			for (FileEntry fileEntry : message.getAttachmentsFileEntries()) {
+				PortletFileRepositoryUtil.movePortletFileEntryToTrash(
+					thread.getStatusByUserId(), fileEntry.getFileEntryId());
 			}
 
 			// Indexer
@@ -811,14 +823,14 @@ public class MBThreadLocalServiceImpl extends MBThreadLocalServiceBaseImpl {
 
 		MBThread thread = mbThreadPersistence.findByPrimaryKey(threadId);
 
-		TrashEntry trashEntry = thread.getTrashEntry();
-
-		if (trashEntry.isTrashEntry(MBThread.class, threadId)) {
+		if (thread.isInTrashExplicitly()) {
 			restoreThreadFromTrash(userId, threadId);
 		}
 		else {
 
 			// Thread
+
+			TrashEntry trashEntry = thread.getTrashEntry();
 
 			TrashVersion trashVersion =
 				trashVersionLocalService.fetchVersion(
@@ -928,6 +940,8 @@ public class MBThreadLocalServiceImpl extends MBThreadLocalServiceBaseImpl {
 
 		Set<Long> userIds = new HashSet<Long>();
 
+		MBThread thread = mbThreadLocalService.getThread(threadId);
+
 		List<MBMessage> messages = mbMessageLocalService.getThreadMessages(
 			threadId, WorkflowConstants.STATUS_ANY);
 
@@ -966,6 +980,13 @@ public class MBThreadLocalServiceImpl extends MBThreadLocalServiceBaseImpl {
 			if (oldStatus == WorkflowConstants.STATUS_APPROVED) {
 				assetEntryLocalService.updateVisible(
 					MBMessage.class.getName(), message.getMessageId(), true);
+			}
+
+			// Attachments
+
+			for (FileEntry fileEntry : message.getAttachmentsFileEntries()) {
+				PortletFileRepositoryUtil.restorePortletFileEntryFromTrash(
+					thread.getStatusByUserId(), fileEntry.getFileEntryId());
 			}
 
 			// Indexer

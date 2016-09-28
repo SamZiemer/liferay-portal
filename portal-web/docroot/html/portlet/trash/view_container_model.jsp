@@ -41,11 +41,11 @@ containerURL.setParameter("className", className);
 containerURL.setParameter("classPK", String.valueOf(classPK));
 containerURL.setParameter("containerModelClassName", trashHandler.getContainerModelClassName());
 
-TrashUtil.addContainerModelBreadcrumbEntries(request, trashHandler.getContainerModelClassName(), containerModelId, containerURL);
+TrashUtil.addContainerModelBreadcrumbEntries(request, liferayPortletResponse, trashHandler.getContainerModelClassName(), containerModelId, containerURL);
 %>
 
 <div class="alert alert-block">
-	<liferay-ui:message arguments="<%= new Object[] {trashHandler.getContainerModelName(), trashRenderer.getTitle(locale)} %>" key="the-original-x-does-not-exist-anymore" />
+	<liferay-ui:message arguments="<%= new Object[] {trashHandler.getContainerModelName(), HtmlUtil.escape(trashRenderer.getTitle(locale))} %>" key="the-original-x-does-not-exist-anymore" />
 </div>
 
 <aui:form method="post" name="selectFolderFm">
@@ -142,17 +142,5 @@ TrashUtil.addContainerModelBreadcrumbEntries(request, trashHandler.getContainerM
 </aui:form>
 
 <aui:script use="aui-base">
-	var Util = Liferay.Util;
-
-	A.one('#<portlet:namespace />selectFolderFm').delegate(
-		'click',
-		function(event) {
-			var result = Util.getAttributes(event.currentTarget, 'data-');
-
-			Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
-
-			Util.getWindow().hide();
-		},
-		'.selector-button'
-	);
+	Liferay.Util.selectEntityHandler('#<portlet:namespace />selectFolderFm', '<%= HtmlUtil.escapeJS(eventName) %>');
 </aui:script>

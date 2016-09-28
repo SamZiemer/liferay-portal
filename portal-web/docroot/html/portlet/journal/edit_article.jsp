@@ -42,11 +42,13 @@ String portletResource = ParamUtil.getString(request, "portletResource");
 
 String referringPortletResource = ParamUtil.getString(request, "referringPortletResource");
 
+boolean changeStructure = GetterUtil.getBoolean(ParamUtil.getString(request, "changeStructure"));
+
 JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_ARTICLE);
 
 long groupId = BeanParamUtil.getLong(article, request, "groupId", scopeGroupId);
 
-long folderId = ParamUtil.getLong(request, "folderId", JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+long folderId = BeanParamUtil.getLong(article, request, "folderId", JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 long classNameId = BeanParamUtil.getLong(article, request, "classNameId");
 long classPK = BeanParamUtil.getLong(article, request, "classPK");
@@ -62,18 +64,10 @@ DDMStructure ddmStructure = null;
 long ddmStructureId = ParamUtil.getLong(request, "ddmStructureId");
 
 if (ddmStructureId > 0) {
-	try {
-		ddmStructure = DDMStructureLocalServiceUtil.getStructure(ddmStructureId);
-	}
-	catch (NoSuchStructureException nsse) {
-	}
+	ddmStructure = DDMStructureLocalServiceUtil.fetchStructure(ddmStructureId);
 }
 else if (Validator.isNotNull(structureId)) {
-	try {
-		ddmStructure = DDMStructureLocalServiceUtil.getStructure(themeDisplay.getSiteGroupId(), PortalUtil.getClassNameId(JournalArticle.class), structureId, true);
-	}
-	catch (NoSuchStructureException nsse) {
-	}
+	ddmStructure = DDMStructureLocalServiceUtil.fetchStructure(themeDisplay.getSiteGroupId(), PortalUtil.getClassNameId(JournalArticle.class), structureId, true);
 }
 
 String templateId = BeanParamUtil.getString(article, request, "templateId");
@@ -83,18 +77,10 @@ DDMTemplate ddmTemplate = null;
 long ddmTemplateId = ParamUtil.getLong(request, "ddmTemplateId");
 
 if (ddmTemplateId > 0) {
-	try {
-		ddmTemplate = DDMTemplateLocalServiceUtil.getTemplate(ddmTemplateId);
-	}
-	catch (NoSuchTemplateException nste) {
-	}
+	ddmTemplate = DDMTemplateLocalServiceUtil.fetchDDMTemplate(ddmTemplateId);
 }
 else if (Validator.isNotNull(templateId)) {
-	try {
-		ddmTemplate = DDMTemplateLocalServiceUtil.getTemplate(groupId, PortalUtil.getClassNameId(DDMStructure.class), templateId, true);
-	}
-	catch (NoSuchStructureException nste) {
-	}
+	ddmTemplate = DDMTemplateLocalServiceUtil.fetchTemplate(groupId, PortalUtil.getClassNameId(DDMStructure.class), templateId, true);
 }
 
 String defaultLanguageId = ParamUtil.getString(request, "defaultLanguageId");
@@ -133,6 +119,8 @@ request.setAttribute("edit_article.jsp-template", ddmTemplate);
 
 request.setAttribute("edit_article.jsp-defaultLanguageId", defaultLanguageId);
 request.setAttribute("edit_article.jsp-toLanguageId", toLanguageId);
+
+request.setAttribute("edit_article.jsp-changeStructure", changeStructure);
 %>
 
 <div class="article-form <%= ((article != null) && !article.isNew()) ? "article-form-edit" : "article-form-add" %>">
@@ -173,11 +161,31 @@ request.setAttribute("edit_article.jsp-toLanguageId", toLanguageId);
 		<aui:input name="version" type="hidden" value="<%= ((article == null) || article.isNew()) ? version : article.getVersion() %>" />
 		<aui:input name="languageId" type="hidden" value="<%= Validator.isNotNull(toLanguageId) ? toLanguageId : defaultLanguageId %>" />
 		<aui:input name="articleURL" type="hidden" value="<%= editArticleRenderURL %>" />
+		<aui:input name="changeStructure" type="hidden" />
 		<aui:input name="ddmStructureId" type="hidden" />
 		<aui:input name="ddmTemplateId" type="hidden" />
 		<aui:input name="workflowAction" type="hidden" value="<%= String.valueOf(WorkflowConstants.ACTION_SAVE_DRAFT) %>" />
 
 		<liferay-ui:error exception="<%= ArticleContentSizeException.class %>" message="you-have-exceeded-the-maximum-web-content-size-allowed" />
+
+		<liferay-ui:error exception="<%= FileSizeException.class %>">
+
+			<%
+			long fileMaxSize = PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE);
+
+			if (fileMaxSize == 0) {
+				fileMaxSize = PrefsPropsUtil.getLong(PropsKeys.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE);
+			}
+
+			fileMaxSize /= 1024;
+			%>
+
+			<liferay-ui:message arguments="<%= fileMaxSize %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
+		</liferay-ui:error>
+
+		<liferay-ui:error exception="<%= LiferayFileItemException.class %>">
+			<liferay-ui:message arguments="<%= TextFormatter.formatStorageSize(LiferayFileItem.THRESHOLD_SIZE, locale) %>" key="please-enter-valid-content-with-valid-content-size-no-larger-than-x" translateArguments="<%= false %>" />
+		</liferay-ui:error>
 
 		<aui:model-context bean="<%= article %>" defaultLanguageId="<%= defaultLanguageId %>" model="<%= JournalArticle.class %>" />
 
@@ -239,11 +247,11 @@ request.setAttribute("edit_article.jsp-toLanguageId", toLanguageId);
 						<%
 						boolean hasSavePermission = false;
 
-						if (article != null) {
+						if ((article != null) && !article.isNew()) {
 							hasSavePermission = JournalArticlePermission.contains(permissionChecker, article, ActionKeys.UPDATE);
 						}
 						else {
-							hasSavePermission = JournalPermission.contains(permissionChecker, groupId, ActionKeys.ADD_ARTICLE);
+							hasSavePermission = JournalFolderPermission.contains(permissionChecker, groupId, folderId, ActionKeys.ADD_ARTICLE);
 						}
 
 						String saveButtonLabel = "save";

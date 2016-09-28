@@ -26,6 +26,7 @@ page import="com.liferay.portlet.asset.NoSuchEntryException" %><%@
 page import="com.liferay.portlet.documentlibrary.util.JournalSearcher" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.NoSuchTemplateException" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.StorageFieldRequiredException" %><%@
+page import="com.liferay.portlet.dynamicdatamapping.service.DDMStructureServiceUtil" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.service.DDMTemplateServiceUtil" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.service.permission.DDMStructurePermission" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.storage.Fields" %><%@
@@ -78,6 +79,7 @@ page import="com.liferay.util.RSSUtil" %>
 PortalPreferences portalPreferences = PortletPreferencesFactoryUtil.getPortalPreferences(liferayPortletRequest);
 
 String[] displayViews = StringUtil.split(PrefsParamUtil.getString(portletPreferences, liferayPortletRequest, "displayViews", StringUtil.merge(PropsValues.JOURNAL_DISPLAY_VIEWS)));
+int numberOfPages = PrefsParamUtil.getInteger(portletPreferences, request, "numberOfPages", PropsValues.SEARCH_CONTAINER_PAGE_ITERATOR_MAX_PAGES);
 
 Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
 %>

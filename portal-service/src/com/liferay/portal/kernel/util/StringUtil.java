@@ -227,21 +227,14 @@ public class StringUtil {
 	 * @return the string representing the bytes in hexadecimal form
 	 */
 	public static String bytesToHexString(byte[] bytes) {
-		StringBundler sb = new StringBundler(bytes.length * 2);
+		char[] chars = new char[bytes.length * 2];
 
-		for (byte b : bytes) {
-			String hex = Integer.toHexString(0x0100 + (b & 0x00FF));
-
-			hex = hex.substring(1);
-
-			if (hex.length() < 2) {
-				sb.append("0");
-			}
-
-			sb.append(hex);
+		for (int i = 0; i < bytes.length; i++) {
+			chars[i * 2] = HEX_DIGITS[(bytes[i] & 0xFF) >> 4];
+			chars[i * 2 + 1] = HEX_DIGITS[bytes[i] & 0x0F];
 		}
 
-		return sb.toString();
+		return new String(chars);
 	}
 
 	/**
@@ -670,12 +663,15 @@ public class StringUtil {
 	public static String highlight(
 		String s, String[] queryTerms, String highlight1, String highlight2) {
 
-		if (Validator.isNull(s) || ArrayUtil.isEmpty(queryTerms)) {
-			return s;
+		if (_highlightEnabled == null) {
+			_highlightEnabled = GetterUtil.getBoolean(
+				PropsUtil.get(PropsKeys.INDEX_SEARCH_HIGHLIGHT_ENABLED));
 		}
 
-		if (queryTerms.length == 0) {
-			return StringPool.BLANK;
+		if (Validator.isNull(s) || ArrayUtil.isEmpty(queryTerms) ||
+			!_highlightEnabled) {
+
+			return s;
 		}
 
 		StringBundler sb = new StringBundler(2 * queryTerms.length - 1);
@@ -692,7 +688,12 @@ public class StringUtil {
 
 		Pattern pattern = Pattern.compile(sb.toString(), flags);
 
-		return _highlight(s, pattern, highlight1, highlight2);
+		s = _highlight(
+			HtmlUtil.unescape(s), pattern, _ESCAPE_SAFE_HIGHLIGHTS[0],
+			_ESCAPE_SAFE_HIGHLIGHTS[1]);
+
+		return StringUtil.replace(
+			HtmlUtil.escape(s), _ESCAPE_SAFE_HIGHLIGHTS, _HIGHLIGHTS);
 	}
 
 	/**
@@ -1445,12 +1446,7 @@ public class StringUtil {
 	 * @see    String#toLowerCase()
 	 */
 	public static String lowerCase(String s) {
-		if (s == null) {
-			return null;
-		}
-		else {
-			return toLowerCase(s);
-		}
+		return toLowerCase(s);
 	}
 
 	public static void lowerCase(String... array) {
@@ -2658,8 +2654,8 @@ public class StringUtil {
 	public static StringBundler replaceToStringBundler(
 		String s, String begin, String end, Map<String, String> values) {
 
-		if ((s == null) || (begin == null) || (end == null) ||
-			(values == null) || (values.size() == 0)) {
+		if (Validator.isBlank(s) || Validator.isBlank(begin) ||
+			Validator.isBlank(end) || (values == null) || values.isEmpty()) {
 
 			return new StringBundler(s);
 		}
@@ -2700,8 +2696,8 @@ public class StringUtil {
 	public static StringBundler replaceWithStringBundler(
 		String s, String begin, String end, Map<String, StringBundler> values) {
 
-		if ((s == null) || (begin == null) || (end == null) ||
-			(values == null) || (values.size() == 0)) {
+		if (Validator.isBlank(s) || Validator.isBlank(begin) ||
+			Validator.isBlank(end) || (values == null) || values.isEmpty()) {
 
 			return new StringBundler(s);
 		}
@@ -3525,6 +3521,36 @@ public class StringUtil {
 
 	/**
 	 * Returns a string representing the string <code>s</code> with all
+	 * occurrences of the specified characters removed.
+	 *
+	 * <p>
+	 * Example:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * strip("Hello World", {' ', 'l', 'd'}) returns "HeoWor"
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string from which to strip all occurrences the characters
+	 * @param  remove the characters to strip from the string
+	 * @return a string representing the string <code>s</code> with all
+	 *         occurrences of the specified characters removed, or
+	 *         <code>null</code> if <code>s</code> is <code>null</code>
+	 */
+	public static String strip(String s, char[] remove) {
+		for (char c : remove) {
+			s = strip(s, c);
+		}
+
+		return s;
+	}
+
+	/**
+	 * Returns a string representing the string <code>s</code> with all
 	 * occurrences of the specified character removed.
 	 *
 	 * <p>
@@ -3603,7 +3629,9 @@ public class StringUtil {
 	 *         <code>null</code>
 	 */
 	public static String stripBetween(String s, String begin, String end) {
-		if ((s == null) || (begin == null) || (end == null)) {
+		if (Validator.isBlank(s) || Validator.isBlank(begin) ||
+			Validator.isBlank(end)) {
+
 			return s;
 		}
 
@@ -3669,7 +3697,7 @@ public class StringUtil {
 		int index = 8;
 
 		do {
-			buffer[--index] = _HEX_DIGITS[i & 15];
+			buffer[--index] = HEX_DIGITS[i & 15];
 
 			i >>>= 4;
 		}
@@ -3684,7 +3712,7 @@ public class StringUtil {
 		int index = 16;
 
 		do {
-			buffer[--index] = _HEX_DIGITS[(int) (l & 15)];
+			buffer[--index] = HEX_DIGITS[(int) (l & 15)];
 
 			l >>>= 4;
 		}
@@ -3710,6 +3738,10 @@ public class StringUtil {
 	}
 
 	public static String toLowerCase(String s, Locale locale) {
+		if (s == null) {
+			return null;
+		}
+
 		StringBuilder sb = null;
 
 		for (int i = 0; i < s.length(); i++) {
@@ -3747,6 +3779,10 @@ public class StringUtil {
 	}
 
 	public static String toUpperCase(String s, Locale locale) {
+		if (s == null) {
+			return null;
+		}
+
 		StringBuilder sb = null;
 
 		for (int i = 0; i < s.length(); i++) {
@@ -4159,12 +4195,7 @@ public class StringUtil {
 	 * @see    String#toUpperCase()
 	 */
 	public static String upperCase(String s) {
-		if (s == null) {
-			return null;
-		}
-		else {
-			return toUpperCase(s);
-		}
+		return toUpperCase(s);
 	}
 
 	/**
@@ -4352,12 +4383,15 @@ public class StringUtil {
 			if (matcher.find()) {
 				StringBuffer hightlighted = new StringBuffer();
 
-				do {
+				while (true) {
 					matcher.appendReplacement(
-						hightlighted, highlight1 + matcher.group() +
-						highlight2);
+						hightlighted,
+						highlight1 + matcher.group() + highlight2);
+
+					if (!matcher.find()) {
+						break;
+					}
 				}
-				while (matcher.find());
 
 				matcher.appendTail(hightlighted);
 
@@ -4469,10 +4503,16 @@ public class StringUtil {
 		return sb.toString();
 	}
 
-	private static final char[] _HEX_DIGITS = {
+	private static final String[] _ESCAPE_SAFE_HIGHLIGHTS = {
+		"[@HIGHLIGHT1@]", "[@HIGHLIGHT2@]"};
+
+	protected static final char[] HEX_DIGITS = {
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',
 		'e', 'f'
 	};
+
+	private static final String[] _HIGHLIGHTS = {
+		"<span class=\"highlight\">", "</span>"};
 
 	private static final char[] _RANDOM_STRING_CHAR_TABLE = {
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D',
@@ -4485,5 +4525,6 @@ public class StringUtil {
 	private static Log _log = LogFactoryUtil.getLog(StringUtil.class);
 
 	private static String[] _emptyStringArray = new String[0];
+	private static Boolean _highlightEnabled;
 
 }

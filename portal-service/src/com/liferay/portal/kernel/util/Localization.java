@@ -81,6 +81,8 @@ public interface Localization {
 
 	public String getDefaultLanguageId(Document document);
 
+	public String getDefaultLanguageId(Document document, Locale defaultLocale);
+
 	/**
 	 * Returns the default locale from the localizations XML.
 	 *
@@ -89,6 +91,8 @@ public interface Localization {
 	 *         locale if the default locale cannot be retrieved from the XML
 	 */
 	public String getDefaultLanguageId(String xml);
+
+	public String getDefaultLanguageId(String xml, Locale defaultLocale);
 
 	/**
 	 * Returns the localized string from the localizations XML in the language.
@@ -198,6 +202,10 @@ public interface Localization {
 	public String getLocalizationXmlFromPreferences(
 		PortletPreferences preferences, PortletRequest portletRequest,
 		String parameter);
+
+	public String getLocalizationXmlFromPreferences(
+		PortletPreferences preferences, PortletRequest portletRequest,
+		String parameter, String defaultValue);
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link

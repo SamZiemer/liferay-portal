@@ -59,6 +59,25 @@ boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
 	<liferay-ui:error exception="<%= EntryContentException.class %>" message="please-enter-valid-content" />
 	<liferay-ui:error exception="<%= EntryTitleException.class %>" message="please-enter-a-valid-title" />
 
+	<liferay-ui:error exception="<%= LiferayFileItemException.class %>">
+		<liferay-ui:message arguments="<%= TextFormatter.formatStorageSize(LiferayFileItem.THRESHOLD_SIZE, locale) %>" key="please-enter-valid-content-with-valid-content-size-no-larger-than-x" translateArguments="<%= false %>" />
+	</liferay-ui:error>
+
+	<liferay-ui:error exception="<%= FileSizeException.class %>">
+
+		<%
+		long fileMaxSize = PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE);
+
+		if (fileMaxSize == 0) {
+			fileMaxSize = PrefsPropsUtil.getLong(PropsKeys.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE);
+
+			fileMaxSize /= 1024;
+		}
+		%>
+
+		<liferay-ui:message arguments="<%= fileMaxSize %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
+	</liferay-ui:error>
+
 	<liferay-ui:asset-categories-error />
 
 	<liferay-ui:asset-tags-error />
@@ -122,19 +141,21 @@ boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
 			<aui:input label="trackbacks-to-send" name="trackbacks" />
 
 			<c:if test="<%= (entry != null) && Validator.isNotNull(entry.getTrackbacks()) %>">
-				<aui:field-wrapper name="trackbacks-already-sent">
+				<aui:fieldset label="trackbacks-already-sent">
 
 					<%
+					int i = 0;
+
 					for (String trackback : StringUtil.split(entry.getTrackbacks())) {
 					%>
 
-						<liferay-ui:input-resource url="<%= trackback %>" /><br />
+						<aui:input label="" name='<%= "trackback" + (i++) %>' title="" type="resource" value="<%= trackback %>" />
 
 					<%
 					}
 					%>
 
-				</aui:field-wrapper>
+				</aui:fieldset>
 			</c:if>
 		</c:if>
 
@@ -187,13 +208,13 @@ boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
 								<aui:fieldset>
 									<aui:input cssClass="lfr-blogs-small-image-type" inlineField="<%= true %>" label="small-image-url" name="type" type="radio" />
 
-									<aui:input cssClass="lfr-blogs-small-image-value" inlineField="<%= true %>" label="" name="smallImageURL" />
+									<aui:input cssClass="lfr-blogs-small-image-value" inlineField="<%= true %>" label="" name="smallImageURL" title="small-image-url" />
 								</aui:fieldset>
 
 								<aui:fieldset>
 									<aui:input cssClass="lfr-blogs-small-image-type" inlineField="<%= true %>" label="small-image" name="type" type="radio" />
 
-									<aui:input cssClass="lfr-blogs-small-image-value" inlineField="<%= true %>" label="" name="smallFile" type="file" />
+									<aui:input cssClass="lfr-blogs-small-image-value" inlineField="<%= true %>" label="" name="smallFile" title="small-image-file" type="file" />
 								</aui:fieldset>
 							</aui:col>
 						</aui:row>

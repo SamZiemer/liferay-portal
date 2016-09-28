@@ -33,7 +33,7 @@ long parentFolderId = BeanParamUtil.getLong(folder, request, "parentFolderId", D
 
 <c:if test="<%= cmd.equals(Constants.MOVE_FROM_TRASH) %>">
 	<div class="alert alert-block">
-		<liferay-ui:message arguments="<%= folder.getName() %>" key="the-original-folder-does-not-exist-anymore" />
+		<liferay-ui:message arguments="<%= HtmlUtil.escape(folder.getName()) %>" key="the-original-folder-does-not-exist-anymore" />
 	</div>
 </c:if>
 
@@ -54,6 +54,16 @@ long parentFolderId = BeanParamUtil.getLong(folder, request, "parentFolderId", D
 
 	<liferay-ui:error exception="<%= DuplicateFileException.class %>" message="the-folder-you-selected-already-has-an-entry-with-this-name.-please-select-a-different-folder" />
 	<liferay-ui:error exception="<%= DuplicateFolderNameException.class %>" message="the-folder-you-selected-already-has-an-entry-with-this-name.-please-select-a-different-folder" />
+
+	<liferay-ui:error exception="<%= InvalidFolderException.class %>">
+
+		<%
+			InvalidFolderException ife = (InvalidFolderException)errorException;
+		%>
+
+		<liferay-ui:message arguments="<%= ife.getMessageArgument(locale) %>" key="<%= ife.getMessageKey() %>" translateArguments="<%= false %>" />
+	</liferay-ui:error>
+
 	<liferay-ui:error exception="<%= NoSuchFolderException.class %>" message="please-enter-a-valid-folder" />
 
 	<aui:model-context bean="<%= folder %>" model="<%= DLFolder.class %>" />

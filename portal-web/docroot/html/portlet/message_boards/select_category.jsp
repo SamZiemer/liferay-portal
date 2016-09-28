@@ -113,7 +113,7 @@ else {
 				Map<String, Object> data = new HashMap<String, Object>();
 
 				data.put("categoryId", curCategory.getCategoryId());
-				data.put("name", HtmlUtil.escapeAttribute(curCategory.getName()));
+				data.put("name", curCategory.getName());
 				%>
 
 				<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />
@@ -126,7 +126,7 @@ else {
 			Map<String, Object> data = new HashMap<String, Object>();
 
 			data.put("categoryId", categoryId);
-			data.put("name", HtmlUtil.escapeAttribute(categoryName));
+			data.put("name", categoryName);
 			%>
 
 			<aui:button cssClass="selector-button"  data="<%= data %>" value="choose-this-category" />
@@ -137,17 +137,5 @@ else {
 </aui:form>
 
 <aui:script use="aui-base">
-	var Util = Liferay.Util;
-
-	A.one('#<portlet:namespace />selectCategoryFm').delegate(
-		'click',
-		function(event) {
-			var result = Util.getAttributes(event.currentTarget, 'data-');
-
-			Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
-
-			Util.getWindow().hide();
-		},
-		'.selector-button'
-	);
+	Liferay.Util.selectEntityHandler('#<portlet:namespace />selectCategoryFm', '<%= HtmlUtil.escapeJS(eventName) %>');
 </aui:script>

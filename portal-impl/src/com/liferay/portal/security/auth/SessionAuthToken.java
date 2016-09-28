@@ -14,6 +14,7 @@
 
 package com.liferay.portal.security.auth;
 
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -24,6 +25,7 @@ import com.liferay.portlet.SecurityPortletContainerWrapper;
 import com.liferay.util.PwdGenerator;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -75,6 +77,10 @@ public class SessionAuthToken implements AuthToken {
 		}
 
 		String csrfToken = ParamUtil.getString(request, "p_auth");
+
+		if (Validator.isNull(csrfToken)) {
+			csrfToken = GetterUtil.getString(request.getHeader("X-CSRF-Token"));
+		}
 
 		String sessionToken = getSessionAuthenticationToken(
 			request, _CSRF, false);
@@ -130,15 +136,37 @@ public class SessionAuthToken implements AuthToken {
 	protected String getSessionAuthenticationToken(
 		HttpServletRequest request, String key, boolean createToken) {
 
-		HttpSession session = request.getSession();
+		String sessionAuthenticationToken = null;
 
+		HttpServletRequest currentRequest = request;
+		HttpSession session = null;
 		String tokenKey = WebKeys.AUTHENTICATION_TOKEN.concat(key);
 
-		String sessionAuthenticationToken = (String)session.getAttribute(
-			tokenKey);
+		while (currentRequest instanceof HttpServletRequestWrapper) {
+			HttpServletRequestWrapper httpServletRequestWrapper =
+				(HttpServletRequestWrapper)currentRequest;
+
+			session = currentRequest.getSession();
+
+			sessionAuthenticationToken = (String)session.getAttribute(tokenKey);
+
+			if (Validator.isNotNull(sessionAuthenticationToken)) {
+				break;
+			}
+
+			currentRequest =
+				(HttpServletRequest)httpServletRequestWrapper.getRequest();
+		}
+
+		if (session == null) {
+			session = currentRequest.getSession();
+
+			sessionAuthenticationToken = (String)session.getAttribute(tokenKey);
+		}
 
 		if (createToken && Validator.isNull(sessionAuthenticationToken)) {
-			sessionAuthenticationToken = PwdGenerator.getPassword();
+			sessionAuthenticationToken = PwdGenerator.getPassword(
+				PropsValues.AUTH_TOKEN_LENGTH);
 
 			session.setAttribute(tokenKey, sessionAuthenticationToken);
 		}

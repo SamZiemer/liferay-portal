@@ -28,7 +28,7 @@ DDMStructure structure = null;
 long structureClassNameId = PortalUtil.getClassNameId(DDMStructure.class);
 
 if ((classPK > 0) && (structureClassNameId == classNameId)) {
-	structure = DDMStructureServiceUtil.getStructure(classPK);
+	structure = DDMStructureLocalServiceUtil.getStructure(classPK);
 }
 
 String title = ddmDisplay.getViewTemplatesTitle(structure, locale);
@@ -82,9 +82,9 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, locale);
 				value="<%= HtmlUtil.escape(template.getName(locale)) %>"
 			/>
 
-			<liferay-ui:search-container-column-text
+			<liferay-ui:search-container-column-jsp
 				name="description"
-				value="<%= HtmlUtil.escape(template.getDescription(locale)) %>"
+				path="/html/portlet/dynamic_data_mapping/template_description.jsp"
 			/>
 
 			<liferay-ui:search-container-column-date
@@ -100,7 +100,7 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, locale);
 
 					data.put("ddmtemplateid", template.getTemplateId());
 					data.put("ddmtemplatekey", template.getTemplateKey());
-					data.put("name", HtmlUtil.escapeAttribute(template.getName(locale)));
+					data.put("name", template.getName(locale));
 					%>
 
 					<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />
@@ -117,17 +117,5 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, locale);
 </aui:script>
 
 <aui:script use="aui-base">
-	var Util = Liferay.Util;
-
-	A.one('#<portlet:namespace />selectTemplateFm').delegate(
-		'click',
-		function(event) {
-			var result = Util.getAttributes(event.currentTarget, 'data-');
-
-			Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
-
-			Util.getWindow().hide();
-		},
-		'.selector-button'
-	);
+	Liferay.Util.selectEntityHandler('#<portlet:namespace />selectTemplateFm', '<%= HtmlUtil.escapeJS(eventName) %>');
 </aui:script>

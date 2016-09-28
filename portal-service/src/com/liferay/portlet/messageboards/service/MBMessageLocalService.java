@@ -18,6 +18,7 @@ import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -54,6 +55,7 @@ public interface MBMessageLocalService extends BaseLocalService,
 	* @return the message-boards message that was added
 	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
 	public com.liferay.portlet.messageboards.model.MBMessage addMBMessage(
 		com.liferay.portlet.messageboards.model.MBMessage mbMessage)
 		throws com.liferay.portal.kernel.exception.SystemException;
@@ -75,6 +77,7 @@ public interface MBMessageLocalService extends BaseLocalService,
 	* @throws PortalException if a message-boards message with the primary key could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
 	public com.liferay.portlet.messageboards.model.MBMessage deleteMBMessage(
 		long messageId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -87,6 +90,7 @@ public interface MBMessageLocalService extends BaseLocalService,
 	* @return the message-boards message that was removed
 	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
 	public com.liferay.portlet.messageboards.model.MBMessage deleteMBMessage(
 		com.liferay.portlet.messageboards.model.MBMessage mbMessage)
 		throws com.liferay.portal.kernel.exception.SystemException;
@@ -284,6 +288,7 @@ public interface MBMessageLocalService extends BaseLocalService,
 	* @return the message-boards message that was updated
 	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
 	public com.liferay.portlet.messageboards.model.MBMessage updateMBMessage(
 		com.liferay.portlet.messageboards.model.MBMessage mbMessage)
 		throws com.liferay.portal.kernel.exception.SystemException;
@@ -329,12 +334,31 @@ public interface MBMessageLocalService extends BaseLocalService,
 	public com.liferay.portlet.messageboards.model.MBMessage addMessage(
 		long userId, java.lang.String userName, long groupId, long categoryId,
 		java.lang.String subject, java.lang.String body,
+		java.lang.String fileName, java.io.File file,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException,
+			java.io.FileNotFoundException;
+
+	public com.liferay.portlet.messageboards.model.MBMessage addMessage(
+		long userId, java.lang.String userName, long groupId, long categoryId,
+		java.lang.String subject, java.lang.String body,
 		java.lang.String format,
 		java.util.List<com.liferay.portal.kernel.util.ObjectValuePair<java.lang.String, java.io.InputStream>> inputStreamOVPs,
 		boolean anonymous, double priority, boolean allowPingbacks,
 		com.liferay.portal.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
+
+	public com.liferay.portlet.messageboards.model.MBMessage addMessage(
+		long userId, java.lang.String userName, long groupId, long categoryId,
+		java.lang.String subject, java.lang.String body,
+		java.lang.String format, java.lang.String fileName, java.io.File file,
+		boolean anonymous, double priority, boolean allowPingbacks,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException,
+			java.io.FileNotFoundException;
 
 	public com.liferay.portlet.messageboards.model.MBMessage addMessage(
 		long userId, java.lang.String userName, long categoryId,
@@ -365,6 +389,7 @@ public interface MBMessageLocalService extends BaseLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
 	public com.liferay.portlet.messageboards.model.MBMessage deleteDiscussionMessage(
 		long messageId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -375,11 +400,13 @@ public interface MBMessageLocalService extends BaseLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
 	public com.liferay.portlet.messageboards.model.MBMessage deleteMessage(
 		long messageId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
 	public com.liferay.portlet.messageboards.model.MBMessage deleteMessage(
 		com.liferay.portlet.messageboards.model.MBMessage message)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -573,10 +600,17 @@ public interface MBMessageLocalService extends BaseLocalService,
 		java.lang.String className, long classPK, int status)
 		throws com.liferay.portal.kernel.exception.SystemException;
 
+	public void moveDiscussionToTrash(java.lang.String className, long classPK)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
 	public long moveMessageAttachmentToTrash(long userId, long messageId,
 		java.lang.String fileName)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
+
+	public void restoreDiscussionFromTrash(java.lang.String className,
+		long classPK)
+		throws com.liferay.portal.kernel.exception.SystemException;
 
 	public void restoreMessageAttachmentFromTrash(long userId, long messageId,
 		java.lang.String deletedFileName)

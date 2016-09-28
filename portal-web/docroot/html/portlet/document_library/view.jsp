@@ -198,31 +198,45 @@ if (!defaultFolderView && (folder != null) && portletName.equals(PortletKeys.DOC
 <aui:script use="liferay-document-library">
 	<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" varImpl="mainURL" />
 
-	new Liferay.Portlet.DocumentLibrary(
+	<%
+	String[] escapedEntryColumns = new String[entryColumns.length];
+
+	for (int i = 0; i < entryColumns.length; i++) {
+		escapedEntryColumns[i] = HtmlUtil.escapeJS(entryColumns[i]);
+	}
+
+	String[] escapedDisplayViews = new String[displayViews.length];
+
+	for (int i = 0; i < displayViews.length; i++) {
+		escapedDisplayViews[i] = HtmlUtil.escapeJS(displayViews[i]);
+	}
+	%>
+
+	var documentLibrary = new Liferay.Portlet.DocumentLibrary(
 		{
-			columnNames: ['<%= StringUtil.merge(entryColumns, "','") %>'],
+			columnNames: ['<%= StringUtil.merge(escapedEntryColumns, "','") %>'],
 			displayStyle: '<%= HtmlUtil.escapeJS(displayStyle) %>',
 			folders: {
 				defaultParams: {
 					p_p_id: <%= HtmlUtil.escapeJS(portletId) %>,
 					p_p_lifecycle: 0
 				},
-				defaultParentFolderId: '<%= DLFolderConstants.DEFAULT_PARENT_FOLDER_ID %>',
+				defaultParentFolderId: '<%= folderId %>',
 				dimensions: {
 					height: '<%= PrefsPropsUtil.getLong(PropsKeys.DL_FILE_ENTRY_THUMBNAIL_MAX_HEIGHT) %>',
 					width: '<%= PrefsPropsUtil.getLong(PropsKeys.DL_FILE_ENTRY_THUMBNAIL_MAX_WIDTH) %>'
 				},
 				'listViewConfig.useTransition': false,
 				mainUrl: '<%= mainURL %>',
+				rootFolderId: '<%= rootFolderId %>',
 				strutsAction: '/document_library/view'
 			},
-			trashEnabled: <%= TrashUtil.isTrashEnabled(scopeGroupId) %>,
 			maxFileSize: <%= PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE) %>,
 			move: {
 				allRowIds: '<%= RowChecker.ALL_ROW_IDS %>',
 				editEntryUrl: '<portlet:actionURL><portlet:param name="struts_action" value="/document_library/edit_entry" /></portlet:actionURL>',
-				folderIdRegEx: /&?<portlet:namespace />folderId=([\d]+)/i,
 				folderIdHashRegEx: /#.*&?<portlet:namespace />folderId=([\d]+)/i,
+				folderIdRegEx: /&?<portlet:namespace />folderId=([\d]+)/i,
 				form: {
 					method: 'post',
 					node: A.one(document.<portlet:namespace />fm2)
@@ -231,6 +245,7 @@ if (!defaultFolderView && (folder != null) && portletName.equals(PortletKeys.DOC
 				trashLinkId: '<%= TrashUtil.isTrashEnabled(scopeGroupId) ? "_" + PortletKeys.CONTROL_PANEL_MENU + "_portlet_" + PortletKeys.TRASH : StringPool.BLANK %>',
 				updateable: <%= DLFolderPermission.contains(permissionChecker, scopeGroupId, folderId, ActionKeys.UPDATE) %>
 			},
+			namespace: '<portlet:namespace />',
 			paginator: {
 				entriesTotal: <%= entriesTotal %>,
 				entryEnd: <%= entryEnd %>,
@@ -240,9 +255,10 @@ if (!defaultFolderView && (folder != null) && portletName.equals(PortletKeys.DOC
 				folderId: <%= folderId %>,
 				folderRowsPerPage: <%= folderEnd - folderStart %>,
 				folderStart: <%= folderStart %>,
-				foldersTotal: <%= foldersTotal %>
+				foldersTotal: <%= foldersTotal %>,
+				numberOfPages: <%= ParamUtil.getInteger(request, "numberOfPages", numberOfPages) %>,
+				showControls: true
 			},
-			namespace: '<portlet:namespace />',
 			portletId: '<%= HtmlUtil.escapeJS(portletId) %>',
 			redirect: encodeURIComponent('<%= currentURL %>'),
 			repositories: [
@@ -257,9 +273,9 @@ if (!defaultFolderView && (folder != null) && portletName.equals(PortletKeys.DOC
 				for (Folder mountFolder : mountFolders) {
 				%>
 
-					,{
+					, {
 						id: '<%= mountFolder.getRepositoryId() %>',
-						name: '<%= mountFolder.getName() %>'
+						name: '<%= HtmlUtil.escapeJS(mountFolder.getName()) %>'
 					}
 
 				<%
@@ -269,13 +285,22 @@ if (!defaultFolderView && (folder != null) && portletName.equals(PortletKeys.DOC
 			],
 			rowIds: '<%= RowChecker.ROW_IDS %>',
 			select: {
-				displayViews: ['<%= StringUtil.merge(displayViews, "','") %>']
+				displayViews: ['<%= StringUtil.merge(escapedDisplayViews, "','") %>']
 			},
 			syncMessageDisabled: <%= !PropsValues.DL_SHOW_LIFERAY_SYNC_MESSAGE %>,
 			syncMessageSuppressed: <%= !GetterUtil.getBoolean(SessionClicks.get(request, liferayPortletResponse.getNamespace() + "show-sync-message", "true")) %>,
+			trashEnabled: <%= TrashUtil.isTrashEnabled(scopeGroupId) %>,
 			updateable: <%= DLFolderPermission.contains(permissionChecker, scopeGroupId, folderId, ActionKeys.UPDATE) %>,
 			uploadURL: '<%= uploadURL %>',
 			viewFileEntryURL: '<portlet:renderURL><portlet:param name="struts_action" value="/document_library/view_file_entry" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:renderURL>'
 		}
 	);
+
+	var changeScopeHandles = function(event) {
+		documentLibrary.destroy();
+
+		Liferay.detach('changeScope', changeScopeHandles);
+	};
+
+	Liferay.on('changeScope', changeScopeHandles);
 </aui:script>

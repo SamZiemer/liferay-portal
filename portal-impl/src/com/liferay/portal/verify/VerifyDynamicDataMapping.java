@@ -22,20 +22,23 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.repository.model.Folder;
-import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.xml.Attribute;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.Node;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.XPath;
+import com.liferay.portal.model.AuditedModel;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CompanyConstants;
+import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryMetadata;
@@ -68,8 +71,10 @@ import java.io.File;
 import java.io.Serializable;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Marcellus Tavares
@@ -84,12 +89,6 @@ public class VerifyDynamicDataMapping extends VerifyProcess {
 		String contentType = MimeTypesUtil.getContentType(fileName);
 
 		String title = fileName;
-
-		int index = title.indexOf(CharPool.PERIOD);
-
-		if (index > 0) {
-			title = title.substring(0, index);
-		}
 
 		try {
 			File file = DLStoreUtil.getFile(
@@ -147,6 +146,51 @@ public class VerifyDynamicDataMapping extends VerifyProcess {
 		}
 	}
 
+	protected boolean checkDuplicateNames(DDMStructure structure)
+		throws Exception {
+
+		String xml =
+			"<root>" + getFullStructureXML(structure, StringPool.BLANK) +
+				"</root>";
+
+		Document document = SAXReaderUtil.read(xml);
+
+		Set<String> duplicateElementNames =
+			getDuplicateElementNames(
+				document.getRootElement(), new HashSet<String>(),
+				new HashSet<String>());
+
+		if (duplicateElementNames.isEmpty()) {
+			return false;
+		}
+
+		if (!_log.isWarnEnabled()) {
+			return true;
+		}
+
+		StringBundler sb = new StringBundler(
+			duplicateElementNames.size() * 2 + 7);
+
+		sb.append("Structure with class name ID ");
+		sb.append(structure.getClassNameId());
+		sb.append(" and structure key = ");
+		sb.append(structure.getStructureKey());
+		sb.append(" contains more than one element that is identified by the ");
+		sb.append("same name either within itself or within any of its ");
+		sb.append("parent structures. The duplicate element names are: ");
+
+		for (String duplicateElementName : duplicateElementNames) {
+			sb.append(duplicateElementName);
+			sb.append(StringPool.COMMA_AND_SPACE);
+		}
+
+		sb.setIndex(sb.index() - 1);
+
+		_log.warn(sb.toString());
+
+		return true;
+	}
+
 	protected boolean createDefaultMetadataElement(
 		Element dynamicElementElement, String defaultLanguageId) {
 
@@ -185,11 +229,42 @@ public class VerifyDynamicDataMapping extends VerifyProcess {
 		List<DDMStructure> structures =
 			DDMStructureLocalServiceUtil.getStructures();
 
+		boolean duplicateExists = false;
+
+		for (DDMStructure structure : structures) {
+			if (checkDuplicateNames(structure)) {
+				duplicateExists = true;
+			}
+		}
+
+		if (duplicateExists) {
+			throw new VerifyException(
+				"Duplicate element name found in structures");
+		}
+
 		for (DDMStructure structure : structures) {
 			verifyStructure(structure);
-
-			updateFileUploadReferences(structure);
 		}
+	}
+
+	protected Set<String> getDuplicateElementNames(
+		Element element, Set<String> elementNames,
+		Set<String> duplicateElementNames) {
+
+		String elementName = element.attributeValue("name");
+
+		if (!elementNames.add(elementName)) {
+			duplicateElementNames.add(elementName);
+		}
+
+		List<Element> dynamicElements = element.elements("dynamic-element");
+
+		for (Element dynamicElement : dynamicElements) {
+			duplicateElementNames = getDuplicateElementNames(
+				dynamicElement, elementNames, duplicateElementNames);
+		}
+
+		return duplicateElementNames;
 	}
 
 	protected String getFileUploadPath(BaseModel<?> baseModel)
@@ -232,6 +307,30 @@ public class VerifyDynamicDataMapping extends VerifyProcess {
 		return sb.toString();
 	}
 
+	protected String getFullStructureXML(DDMStructure structure, String xml)
+		throws Exception {
+
+		if (structure.getParentStructureId() != 0) {
+			DDMStructure parentStructure =
+				DDMStructureLocalServiceUtil.getStructure(
+					structure.getParentStructureId());
+
+			xml = getFullStructureXML(parentStructure, xml);
+		}
+
+		Document document = SAXReaderUtil.read(structure.getXsd());
+
+		Element rootElement = document.getRootElement();
+
+		List<Element> dynamicElements = rootElement.elements("dynamic-element");
+
+		for (Element dynamicElement : dynamicElements) {
+			xml += dynamicElement.asXML();
+		}
+
+		return xml;
+	}
+
 	protected String getJSON(FileEntry fileEntry) {
 		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
@@ -239,6 +338,26 @@ public class VerifyDynamicDataMapping extends VerifyProcess {
 		jsonObject.put("uuid", fileEntry.getUuid());
 
 		return jsonObject.toString();
+	}
+
+	protected long getUserId(AuditedModel auditedModel) throws Exception {
+		User user = UserLocalServiceUtil.fetchUser(auditedModel.getUserId());
+
+		if (user != null) {
+			return user.getUserId();
+		}
+
+		User defaultUser = UserLocalServiceUtil.getDefaultUser(
+			auditedModel.getCompanyId());
+
+		if (_log.isWarnEnabled()) {
+			_log.warn(
+				"Using default user " + defaultUser.getUserId() +
+					" for audited model " + auditedModel.getModelClassName() +
+						" with primary key " + auditedModel.getPrimaryKeyObj());
+		}
+
+		return defaultUser.getUserId();
 	}
 
 	protected boolean hasDefaultMetadataElement(
@@ -292,7 +411,7 @@ public class VerifyDynamicDataMapping extends VerifyProcess {
 		for (DDLRecord ddlRecord : ddlRecords) {
 			updateFileUploadReferences(
 				ddlRecord.getCompanyId(), ddlRecord.getDDMStorageId(),
-				ddlRecord.getUserId(), ddlRecord.getGroupId(), ddlRecord,
+				getUserId(ddlRecord), ddlRecord.getGroupId(), ddlRecord,
 				ddlRecord.getStatus());
 		}
 	}
@@ -311,7 +430,7 @@ public class VerifyDynamicDataMapping extends VerifyProcess {
 
 		updateFileUploadReferences(
 			fileEntry.getCompanyId(), dlFileEntryMetadata.getDDMStorageId(),
-			fileEntry.getUserId(), fileEntry.getGroupId(), dlFileEntryMetadata,
+			getUserId(fileEntry), fileEntry.getGroupId(), dlFileEntryMetadata,
 			fileVersion.getStatus());
 	}
 
@@ -365,8 +484,6 @@ public class VerifyDynamicDataMapping extends VerifyProcess {
 			updateFileUploadReferences(structureLink);
 		}
 
-		updateStructure(structure, updateXSD(structure.getXsd()));
-
 		List<DDMTemplate> templates = DDMTemplateLocalServiceUtil.getTemplates(
 			structure.getGroupId(), _ddmStructureClassNameId,
 			structure.getStructureId(),
@@ -402,7 +519,9 @@ public class VerifyDynamicDataMapping extends VerifyProcess {
 		for (Field field : fields) {
 			String dataType = field.getDataType();
 
-			if (!dataType.equals("file-upload") || (field.getValue() == null)) {
+			if (!dataType.equals("file-upload") ||
+				Validator.isNull(field.getValue())) {
+
 				continue;
 			}
 
@@ -481,9 +600,19 @@ public class VerifyDynamicDataMapping extends VerifyProcess {
 		for (Element dynamicElementElement : dynamicElementElements) {
 			updateXSDDynamicElement(dynamicElementElement);
 		}
+
+		Attribute attribute = element.attribute("autoGeneratedName");
+
+		if (attribute != null) {
+			element.remove(attribute);
+		}
 	}
 
 	protected void verifyStructure(DDMStructure structure) throws Exception {
+		updateFileUploadReferences(structure);
+
+		updateStructure(structure, updateXSD(structure.getXsd()));
+
 		boolean modified = false;
 
 		String defaultLanguageId = structure.getDefaultLanguageId();

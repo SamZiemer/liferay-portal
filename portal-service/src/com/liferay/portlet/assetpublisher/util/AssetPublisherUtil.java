@@ -87,6 +87,13 @@ public class AssetPublisherUtil {
 		getAssetPublisher().checkAssetEntries();
 	}
 
+	public static long[] getAssetCategoryIds(
+			PortletPreferences portletPreferences)
+		throws Exception {
+
+		return getAssetPublisher().getAssetCategoryIds(portletPreferences);
+	}
+
 	public static List<AssetEntry> getAssetEntries(
 			PortletPreferences portletPreferences, Layout layout,
 			long scopeGroupId, int max, boolean checkPermission)
@@ -230,6 +237,12 @@ public class AssetPublisherUtil {
 		throws PortalException, SystemException {
 
 		return getAssetPublisher().getScopeId(group, scopeGroupId);
+	}
+
+	public static long getSubscriptionClassPK(long plid, String portletId)
+		throws PortalException, SystemException {
+
+		return getAssetPublisher().getSubscriptionClassPK(plid, portletId);
 	}
 
 	public static boolean isScopeIdSelectable(

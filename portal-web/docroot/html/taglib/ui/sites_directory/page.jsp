@@ -47,7 +47,7 @@
 	}
 	%>
 
-	<div class="sites-directory-taglib nav-menu">
+	<div class="nav-menu sites-directory-taglib">
 		<c:choose>
 			<c:when test="<%= hidden %>">
 				<div class="alert alert-info">
@@ -75,10 +75,10 @@
 									List<Group> childGroups = null;
 
 									if (rootGroup != null) {
-										childGroups = rootGroup.getChildrenWithLayouts(true, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+										childGroups = rootGroup.getChildrenWithLayouts(true, QueryUtil.ALL_POS, QueryUtil.ALL_POS, new GroupNameComparator(true));
 									}
 									else {
-										childGroups = GroupLocalServiceUtil.getLayoutsGroups(group.getCompanyId(), GroupConstants.DEFAULT_LIVE_GROUP_ID, true, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+										childGroups = GroupLocalServiceUtil.getLayoutsGroups(group.getCompanyId(), GroupConstants.DEFAULT_LIVE_GROUP_ID, true, QueryUtil.ALL_POS, QueryUtil.ALL_POS, new GroupNameComparator(true));
 									}
 
 									List<Group> visibleGroups = new UniqueList<Group>();
@@ -127,11 +127,11 @@
 											showCheckbox="<%= false %>"
 											thumbnailSrc='<%= themeDisplay.getPathImage() + "/layout_set_logo?img_id=" + layoutSet.getLogoId() + "&t=" + WebServerServletTokenUtil.getToken(layoutSet.getLogoId()) %>'
 											title="<%= HtmlUtil.escape(childGroup.getDescriptiveName(locale)) %>"
-											url="<%= (childGroup.getGroupId() != scopeGroupId) ? PortalUtil.getGroupFriendlyURL(childGroup, !childGroup.hasPublicLayouts(), themeDisplay) : null %>"
+											url="<%= (childGroup.getGroupId() != scopeGroupId) ? PortalUtil.getDisplayURL(childGroup, themeDisplay) : null %>"
 										/>
 									</liferay-ui:search-container-row>
 
-									<liferay-ui:search-iterator />
+									<liferay-ui:search-paginator searchContainer="<%= searchContainer %>" />
 								</liferay-ui:search-container>
 							</c:otherwise>
 						</c:choose>
@@ -160,10 +160,10 @@ private void _buildSitesList(Group rootGroup, Group curGroup, List<Group> branch
 	List<Group> childGroups = null;
 
 	if (rootGroup != null) {
-		childGroups = rootGroup.getChildrenWithLayouts(true, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+		childGroups = rootGroup.getChildrenWithLayouts(true, QueryUtil.ALL_POS, QueryUtil.ALL_POS, new GroupNameComparator(true));
 	}
 	else {
-		childGroups = GroupLocalServiceUtil.getLayoutsGroups(curGroup.getCompanyId(), GroupConstants.DEFAULT_LIVE_GROUP_ID, true, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+		childGroups = GroupLocalServiceUtil.getLayoutsGroups(curGroup.getCompanyId(), GroupConstants.DEFAULT_LIVE_GROUP_ID, true, QueryUtil.ALL_POS, QueryUtil.ALL_POS, new GroupNameComparator(true));
 	}
 
 	List<Group> visibleGroups = new UniqueList<Group>();
@@ -245,7 +245,7 @@ private void _buildSitesList(Group rootGroup, Group curGroup, List<Group> branch
 
 		if (childGroup.getGroupId() != themeDisplay.getScopeGroupId()) {
 			sb.append("href=\"");
-			sb.append(HtmlUtil.escapeHREF(PortalUtil.getGroupFriendlyURL(childGroup, !childGroup.hasPublicLayouts(), themeDisplay)));
+			sb.append(HtmlUtil.escapeHREF(PortalUtil.getDisplayURL(childGroup, themeDisplay, !childGroup.hasPublicLayouts())));
 			sb.append("\"");
 		}
 

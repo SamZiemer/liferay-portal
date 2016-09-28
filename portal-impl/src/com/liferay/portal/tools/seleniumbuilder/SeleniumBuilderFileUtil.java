@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.xml.Attribute;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.DocumentException;
 import com.liferay.portal.kernel.xml.Element;
-import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.tools.servicebuilder.ServiceBuilder;
 
 import java.io.File;
@@ -297,7 +297,7 @@ public class SeleniumBuilderFileUtil {
 		String content = getNormalizedContent(fileName);
 
 		try {
-			Document document = SAXReaderUtil.read(content, true);
+			Document document = UnsecureSAXReaderUtil.read(content, true);
 
 			Element rootElement = document.getRootElement();
 
@@ -1297,15 +1297,6 @@ public class SeleniumBuilderFileUtil {
 			throwValidationException(1000, fileName, rootElement);
 		}
 
-		String extendedTestCase = rootElement.attributeValue("extends");
-
-		if (extendedTestCase != null) {
-			if (Validator.isNull(extendedTestCase)) {
-				throwValidationException(
-					1006, fileName, rootElement, "extends");
-			}
-		}
-
 		List<Element> elements = rootElement.elements();
 
 		if (elements.isEmpty()) {
@@ -1344,8 +1335,8 @@ public class SeleniumBuilderFileUtil {
 
 				validateBlockElement(
 					fileName, element, new String[] {"execute", "var"},
-					new String[] {"action", "macro", "test-case"},
-					new String[] {"var"}, new String[0]);
+					new String[] {"action", "macro"}, new String[] {"var"},
+					new String[0]);
 			}
 			else if (elementName.equals("set-up") ||
 					 elementName.equals("tear-down")) {
@@ -1363,8 +1354,8 @@ public class SeleniumBuilderFileUtil {
 
 				validateBlockElement(
 					fileName, element, new String[] {"execute", "var"},
-					new String[] {"action", "macro", "test-case"},
-					new String[] {"var"}, new String[0]);
+					new String[] {"action", "macro"}, new String[] {"var"},
+					new String[0]);
 			}
 			else if (elementName.equals("var")) {
 				validateVarElement(fileName, element);

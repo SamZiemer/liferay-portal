@@ -131,11 +131,11 @@ if (displayTerms.isNavigationRecent()) {
 	searchContainer.setOrderByType(orderByType);
 }
 
-boolean advancedSearch = ParamUtil.getBoolean(request, displayTerms.ADVANCED_SEARCH);
+int status = WorkflowConstants.STATUS_APPROVED;
 
-String keywords = ParamUtil.getString(request, "keywords");
-
-int status = WorkflowConstants.STATUS_ANY;
+if (permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId)) {
+	status = WorkflowConstants.STATUS_ANY;
+}
 
 List results = null;
 int total = 0;
@@ -145,20 +145,19 @@ int total = 0;
 	<c:when test='<%= displayTerms.getNavigation().equals("mine") || displayTerms.isNavigationRecent() %>'>
 
 		<%
-		long userId = 0;
+		boolean includeOwner = true;
 
 		if (displayTerms.getNavigation().equals("mine")) {
-			userId = themeDisplay.getUserId();
-		}
-		else if (!permissionChecker.isCompanyAdmin() || !permissionChecker.isGroupAdmin(scopeGroupId)) {
-			status = WorkflowConstants.STATUS_APPROVED;
+			includeOwner = false;
+
+			status = WorkflowConstants.STATUS_ANY;
 		}
 
-		total = JournalArticleServiceUtil.getGroupArticlesCount(scopeGroupId, userId, folderId, status);
+		total = JournalArticleServiceUtil.getGroupArticlesCount(scopeGroupId, themeDisplay.getUserId(), folderId, status, includeOwner);
 
 		searchContainer.setTotal(total);
 
-		results = JournalArticleServiceUtil.getGroupArticles(scopeGroupId, userId, folderId, status, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
+		results = JournalArticleServiceUtil.getGroupArticles(scopeGroupId, themeDisplay.getUserId(), folderId, status, includeOwner, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
 		%>
 
 	</c:when>
@@ -187,15 +186,11 @@ int total = 0;
 	<c:otherwise>
 
 		<%
-		if (!permissionChecker.isCompanyAdmin() || !permissionChecker.isGroupAdmin(scopeGroupId)) {
-			status = WorkflowConstants.STATUS_APPROVED;
-		}
-
-		total = JournalFolderServiceUtil.getFoldersAndArticlesCount(scopeGroupId, folderId, status);
+		total = JournalFolderServiceUtil.getFoldersAndArticlesCount(scopeGroupId, themeDisplay.getUserId(), folderId, status);
 
 		searchContainer.setTotal(total);
 
-		results = JournalFolderServiceUtil.getFoldersAndArticles(scopeGroupId, folderId, status, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
+		results = JournalFolderServiceUtil.getFoldersAndArticles(scopeGroupId, themeDisplay.getUserId(), folderId, status, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
 		%>
 
 	</c:otherwise>
@@ -248,6 +243,8 @@ for (int i = 0; i < results.size(); i++) {
 					tempRowURL.setParameter("folderId", String.valueOf(curArticle.getFolderId()));
 					tempRowURL.setParameter("articleId", curArticle.getArticleId());
 
+					tempRowURL.setParameter("status", String.valueOf(curArticle.getStatus()));
+
 					request.setAttribute("view_entries.jsp-article", curArticle);
 
 					request.setAttribute("view_entries.jsp-tempRowURL", tempRowURL);
@@ -274,18 +271,13 @@ for (int i = 0; i < results.size(); i++) {
 						rowURL.setParameter("folderId", String.valueOf(curArticle.getFolderId()));
 						rowURL.setParameter("articleId", curArticle.getArticleId());
 
-						if (!permissionChecker.isCompanyAdmin() || !permissionChecker.isGroupAdmin(scopeGroupId)) {
-							status = WorkflowConstants.STATUS_APPROVED;
-						}
-
-						rowURL.setParameter("status", String.valueOf(status));
+						rowURL.setParameter("status", String.valueOf(curArticle.getStatus()));
 						%>
 
 						<liferay-ui:icon
-							cssClass="entry-display-style selectable"
 							image="../file_system/small/html"
 							label="<%= true %>"
-							message="<%= curArticle.getTitle(locale) %>"
+							message="<%= HtmlUtil.escape(curArticle.getTitle(locale)) %>"
 							method="get"
 							url="<%= rowURL.toString() %>"
 						/>
@@ -328,7 +320,7 @@ for (int i = 0; i < results.size(); i++) {
 										</dt>
 
 										<dd>
-											<%= group.getDescriptiveName(locale) %>
+											<%= HtmlUtil.escape(group.getDescriptiveName(locale)) %>
 										</dd>
 									</c:if>
 								</dl>
@@ -341,12 +333,12 @@ for (int i = 0; i < results.size(); i++) {
 
 					ResultRow row = new ResultRow(curArticle, curArticle.getArticleId(), i);
 
-					row.setClassName("entry-display-style");
+					row.setClassName("entry-display-style selectable");
 
 					Map<String, Object> data = new HashMap<String, Object>();
 
 					data.put("draggable", JournalArticlePermission.contains(permissionChecker, curArticle, ActionKeys.DELETE) || JournalArticlePermission.contains(permissionChecker, curArticle, ActionKeys.UPDATE));
-					data.put("title", curArticle.getTitle(locale));
+					data.put("title", HtmlUtil.escape(curArticle.getTitle(locale)));
 
 					row.setData(data);
 					%>
@@ -435,14 +427,14 @@ for (int i = 0; i < results.size(); i++) {
 
 					ResultRow row = new ResultRow(curFolder, curFolder.getPrimaryKey(), i);
 
-					row.setClassName("entry-display-style");
+					row.setClassName("entry-display-style selectable");
 
 					Map<String, Object> data = new HashMap<String, Object>();
 
 					data.put("draggable", JournalFolderPermission.contains(permissionChecker, curFolder, ActionKeys.DELETE) || JournalFolderPermission.contains(permissionChecker, curFolder, ActionKeys.UPDATE));
 					data.put("folder", true);
 					data.put("folder-id", curFolder.getFolderId());
-					data.put("title", curFolder.getName());
+					data.put("title", HtmlUtil.escape(curFolder.getName()));
 
 					row.setData(data);
 					%>

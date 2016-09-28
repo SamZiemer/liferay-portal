@@ -21,9 +21,11 @@ import com.liferay.portal.kernel.lar.ExportImportHelperUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
@@ -41,6 +43,8 @@ import com.liferay.portlet.assetpublisher.util.AssetPublisherUtil;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
+import com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalServiceUtil;
+import com.liferay.portlet.dynamicdatamapping.util.DDMIndexer;
 import com.liferay.portlet.journal.model.JournalArticle;
 
 import java.util.ArrayList;
@@ -122,6 +126,40 @@ public class AssetPublisherPortletDataHandler
 		portletPreferences.setValues(key, newValues);
 	}
 
+	protected void updateExportDDMStructures(
+			PortletDataContext portletDataContext,
+			PortletPreferences portletPreferences, String key)
+		throws Exception {
+
+		String oldValue = portletPreferences.getValue(key, null);
+
+		if (Validator.isNull(oldValue) ||
+			!oldValue.startsWith(
+				DDMIndexer.DDM_FIELD_NAMESPACE + StringPool.FORWARD_SLASH)) {
+
+			return;
+		}
+
+		String[] oldValueParts = StringUtil.split(
+			oldValue, StringPool.FORWARD_SLASH);
+
+		long ddmStructureId = Long.valueOf(oldValueParts[1]);
+
+		DDMStructure ddmStructure =
+			DDMStructureLocalServiceUtil.fetchDDMStructure(ddmStructureId);
+
+		if (ddmStructure == null) {
+			portletPreferences.reset(key);
+
+			return;
+		}
+
+		String newValue = oldValue.replace(
+			String.valueOf(ddmStructureId), ddmStructure.getUuid());
+
+		portletPreferences.setValue(key, newValue);
+	}
+
 	protected PortletPreferences updateExportPortletPreferences(
 			PortletDataContext portletDataContext, String portletId,
 			PortletPreferences portletPreferences)
@@ -182,6 +220,10 @@ public class AssetPublisherPortletDataHandler
 					AssetVocabulary.class.getName(),
 					portletDataContext.getExportDataRootElement());
 			}
+			else if (name.startsWith("orderByColumn")) {
+				updateExportDDMStructures(
+					portletDataContext, portletPreferences, name);
+			}
 			else if (name.startsWith("queryName") &&
 					 StringUtil.equalsIgnoreCase(value, "assetCategories")) {
 
@@ -191,6 +233,21 @@ public class AssetPublisherPortletDataHandler
 					portletDataContext, portlet, portletPreferences,
 					"queryValues" + index, AssetCategory.class.getName(),
 					portletDataContext.getExportDataRootElement());
+			}
+			else if (name.startsWith("queryName") &&
+					 StringUtil.equalsIgnoreCase(value, "assetTags")) {
+
+				String index = name.substring(9);
+
+				String[] assetTagNames = portletPreferences.getValues(
+					"queryValues" + index, null);
+
+				if (ArrayUtil.isEmpty(assetTagNames)) {
+					continue;
+				}
+
+				portletDataContext.addAssetTags(
+					AssetPublisher.class.getName(), 0, assetTagNames);
 			}
 			else if (name.equals("scopeIds")) {
 				updateExportScopeIds(
@@ -295,6 +352,47 @@ public class AssetPublisherPortletDataHandler
 		portletPreferences.setValues(key, newValues);
 	}
 
+	protected void updateImportDDMStructures(
+			PortletDataContext portletDataContext,
+			PortletPreferences portletPreferences, String key)
+		throws Exception {
+
+		String oldValue = portletPreferences.getValue(key, null);
+
+		if (Validator.isNull(oldValue) ||
+			!oldValue.startsWith(
+				DDMIndexer.DDM_FIELD_NAMESPACE + StringPool.FORWARD_SLASH)) {
+
+			return;
+		}
+
+		String[] oldValueParts = StringUtil.split(
+			oldValue, StringPool.FORWARD_SLASH);
+
+		String ddmStructureUuid = oldValueParts[1];
+
+		DDMStructure ddmStructure =
+			DDMStructureLocalServiceUtil.fetchDDMStructureByUuidAndGroupId(
+				ddmStructureUuid, portletDataContext.getScopeGroupId());
+
+		if (ddmStructure == null) {
+			ddmStructure =
+				DDMStructureLocalServiceUtil.fetchDDMStructureByUuidAndGroupId(
+					ddmStructureUuid, portletDataContext.getCompanyGroupId());
+		}
+
+		if (ddmStructure == null) {
+			return;
+		}
+
+		long ddmStructureId = ddmStructure.getStructureId();
+
+		String newValue = oldValue.replace(
+			String.valueOf(ddmStructureUuid), String.valueOf(ddmStructureId));
+
+		portletPreferences.setValue(key, newValue);
+	}
+
 	protected PortletPreferences updateImportPortletPreferences(
 			PortletDataContext portletDataContext, String portletId,
 			PortletPreferences portletPreferences)
@@ -347,6 +445,10 @@ public class AssetPublisherPortletDataHandler
 				ExportImportHelperUtil.updateImportPortletPreferencesClassPKs(
 					portletDataContext, portletPreferences, name,
 					AssetVocabulary.class, companyGroup.getGroupId());
+			}
+			else if (name.startsWith("orderByColumn")) {
+				updateImportDDMStructures(
+					portletDataContext, portletPreferences, name);
 			}
 			else if (name.startsWith("queryName") &&
 					 StringUtil.equalsIgnoreCase(value, "assetCategories")) {

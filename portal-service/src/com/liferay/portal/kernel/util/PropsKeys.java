@@ -55,6 +55,8 @@ public interface PropsKeys {
 
 	public static final String ADMIN_MAIL_HOST_NAMES = "admin.mail.host.names";
 
+	public static final String ADMIN_OBFUSCATED_PROPERTIES = "admin.obfuscated.properties";
+
 	public static final String ADMIN_RESERVED_EMAIL_ADDRESSES = "admin.reserved.email.addresses";
 
 	public static final String ADMIN_RESERVED_SCREEN_NAMES = "admin.reserved.screen.names";
@@ -125,6 +127,10 @@ public interface PropsKeys {
 
 	public static final String ASSET_PUBLISHER_EMAIL_FROM_NAME = "asset.publisher.email.from.name";
 
+	public static final String ASSET_PUBLISHER_FILTER_UNLISTABLE_ENTRIES = "asset.publisher.filter.unlistable.entries";
+
+	public static final String ASSET_PUBLISHER_PERMISSION_CHECKING_CONFIGURABLE = "asset.publisher.permission.checking.configurable";
+
 	public static final String ASSET_PUBLISHER_QUERY_FORM_CONFIGURATION = "asset.publisher.query.form.configuration";
 
 	public static final String ASSET_PUBLISHER_SEARCH_WITH_INDEX = "asset.publisher.search.with.index";
@@ -194,6 +200,8 @@ public interface PropsKeys {
 	public static final String AUTH_TOKEN_IGNORE_PORTLETS = "auth.token.ignore.portlets";
 
 	public static final String AUTH_TOKEN_IMPL = "auth.token.impl";
+
+	public static final String AUTH_TOKEN_LENGTH = "auth.token.length";
 
 	public static final String AUTH_TOKEN_SHARED_SECRET = "auth.token.shared.secret";
 
@@ -423,6 +431,10 @@ public interface PropsKeys {
 
 	public static final String CLUSTER_LINK_AUTODETECT_ADDRESS = "cluster.link.autodetect.address";
 
+	public static final String CLUSTER_LINK_CHANNEL_NAME_CONTROL = "cluster.link.channel.name.control";
+
+	public static final String CLUSTER_LINK_CHANNEL_NAME_TRANSPORT = "cluster.link.channel.name.transport";
+
 	public static final String CLUSTER_LINK_CHANNEL_PROPERTIES_CONTROL = "cluster.link.channel.properties.control";
 
 	public static final String CLUSTER_LINK_CHANNEL_PROPERTIES_TRANSPORT = "cluster.link.channel.properties.transport";
@@ -468,6 +480,8 @@ public interface PropsKeys {
 	public static final String COMPANY_SECURITY_AUTO_LOGIN_MAX_AGE = "company.security.auto.login.max.age";
 
 	public static final String COMPANY_SECURITY_LOGIN_FORM_AUTOCOMPLETE = "company.security.login.form.autocomplete";
+
+	public static final String COMPANY_SECURITY_PASSWORD_REMINDER_QUERY_FORM_AUTOCOMPLETE = "company.security.password.reminder.query.form.autocomplete";
 
 	public static final String COMPANY_SECURITY_SEND_PASSWORD = "company.security.send.password";
 
@@ -705,6 +719,8 @@ public interface PropsKeys {
 
 	public static final String DL_FILE_ENTRY_PROCESSORS = "dl.file.entry.processors";
 
+	public static final String DL_FILE_ENTRY_RAW_METADATA_PROCESSOR_EXCLUDED_MIME_TYPES = "dl.file.entry.raw.metadata.processor.excluded.mime.types";
+
 	public static final String DL_FILE_ENTRY_THUMBNAIL_CUSTOM_1_MAX_HEIGHT = "dl.file.entry.thumbnail.custom1.max.height";
 
 	public static final String DL_FILE_ENTRY_THUMBNAIL_CUSTOM_1_MAX_WIDTH = "dl.file.entry.thumbnail.custom1.max.width";
@@ -809,11 +825,17 @@ public interface PropsKeys {
 
 	public static final String DYNAMIC_DATA_MAPPING_STRUCTURE_PRIVATE_FIELD_REPEATABLE = "dynamic.data.mapping.structure.private.field.repeatable";
 
+	public static final String DYNAMIC_DATA_MAPPING_TEMPLATE_FORCE_AUTOGENERATE_KEY = "dynamic.data.mapping.template.force.autogenerate.key";
+
 	public static final String DYNAMIC_DATA_MAPPING_TEMPLATE_LANGUAGE_CONTENT = "dynamic.data.mapping.template.language.content";
 
 	public static final String DYNAMIC_DATA_MAPPING_TEMPLATE_LANGUAGE_DEFAULT = "dynamic.data.mapping.template.language.default";
 
 	public static final String DYNAMIC_RESOURCE_SERVLET_ALLOWED_PATHS = "dynamic.resource.servlet.allowed.paths";
+
+	public static final String EDITOR_CKEDITOR_VERSION = "editor.ckeditor.version";
+
+	public static final String EDITOR_INLINE_EDITING_ENABLED = "editor.inline.editing.enabled";
 
 	public static final String EDITOR_WYSIWYG_DEFAULT = "editor.wysiwyg.default";
 
@@ -883,6 +905,8 @@ public interface PropsKeys {
 
 	public static final String FLAGS_REASONS = "flags.reasons";
 
+	public static final String FREEMARKER_ENGINE_ALLOWED_CLASSES = "freemarker.engine.allowed.classes";
+
 	public static final String FREEMARKER_ENGINE_CACHE_ENABLED = "freemarker.engine.cache.enabled";
 
 	public static final String FREEMARKER_ENGINE_LOCALIZED_LOOKUP = "freemarker.engine.localized.lookup";
@@ -927,6 +951,10 @@ public interface PropsKeys {
 
 	public static final String HIBERNATE_JDBC_BATCH_SIZE = "hibernate.jdbc.batch_size";
 
+	public static final String HOT_DEPLOY_DEPENDENCY_MANAGEMENT_ENABLED = "hot.deploy.dependency.management.enabled";
+
+	public static final String HOT_DEPLOY_HOOK_CUSTOM_JSP_VERIFICATION_ENABLED = "hot.deploy.hook.custom.jsp.verification.enabled";
+
 	public static final String HOT_DEPLOY_LISTENERS = "hot.deploy.listeners";
 
 	public static final String HOT_UNDEPLOY_ENABLED = "hot.undeploy.enabled";
@@ -953,6 +981,8 @@ public interface PropsKeys {
 
 	public static final String ICQ_PASSWORD = "icq.password";
 
+	public static final String IFRAME_DYNAMIC_URL_ENABLED = "iframe.dynamic.url.enabled";
+
 	public static final String IFRAME_PASSWORD_PASSWORD_TOKEN_ROLE = "iframe.password.token.role";
 
 	public static final String IMAGE_AUTO_SCALE = "image.auto.scale";
@@ -971,6 +1001,8 @@ public interface PropsKeys {
 
 	public static final String IMAGE_HOOK_IMPL = "image.hook.impl";
 
+	public static final String IMAGE_IO_USE_DISK_CACHE = "image.io.use.disk.cache";
+
 	public static final String IMAGEMAGICK_ENABLED = "imagemagick.enabled";
 
 	public static final String IMAGEMAGICK_GLOBAL_SEARCH_PATH = "imagemagick.global.search.path";
@@ -981,6 +1013,8 @@ public interface PropsKeys {
 
 	public static final String INDEX_DUMP_COMPRESSION_ENABLED = "index.dump.compression.enabled";
 
+	public static final String INDEX_DUMP_PROCESS_DOCUMENTS_ENABLED = "index.dump.process.documents.enabled";
+
 	public static final String INDEX_FILTER_SEARCH_LIMIT = "index.filter.search.limit";
 
 	public static final String INDEX_ON_STARTUP = "index.on.startup";
@@ -988,6 +1022,8 @@ public interface PropsKeys {
 	public static final String INDEX_ON_STARTUP_DELAY = "index.on.startup.delay";
 
 	public static final String INDEX_ON_UPGRADE = "index.on.upgrade";
+
+	public static final String INDEX_PERMISSION_FILTER_SEARCH_AMPLIFICATION_FACTOR = "index.permission.filter.search.amplification.factor";
 
 	public static final String INDEX_READ_ONLY = "index.read.only";
 
@@ -1022,6 +1058,8 @@ public interface PropsKeys {
 	public static final String INDEX_SEARCH_SPELL_CHECKER_DICTIONARY = "index.search.spell.checker.dictionary";
 
 	public static final String INDEX_SEARCH_SPELL_CHECKER_SUPPORTED_LOCALES = "index.search.spell.checker.supported.locales";
+
+	public static final String INDEX_SEARCH_WRITER_MAX_QUEUE_SIZE = "index.search.writer.max.queue.size";
 
 	public static final String INDEX_SORTABLE_TEXT_FIELDS = "index.sortable.text.fields";
 
@@ -1060,6 +1098,8 @@ public interface PropsKeys {
 	public static final String INVITATION_EMAIL_MESSAGE_SUBJECT = "invitation.email.message.subject";
 
 	public static final String INVOKER_FILTER_CHAIN_SIZE = "invoker.filter.chain.cache.size";
+
+	public static final String INVOKER_FILTER_URI_MAX_LENGTH = "invoker.filter.uri.max.length";
 
 	public static final String JAVADOC_MANAGER_ENABLED = "javadoc.manager.enabled";
 
@@ -1119,6 +1159,8 @@ public interface PropsKeys {
 
 	public static final String JOURNAL_ARTICLE_CUSTOM_TOKENS = "journal.article.custom.tokens";
 
+	public static final String JOURNAL_ARTICLE_DATABASE_KEYWORD_SEARCH_CONTENT = "journal.article.database.keyword.search.content";
+
 	public static final String JOURNAL_ARTICLE_EXPIRE_ALL_VERSIONS = "journal.article.expire.all.versions";
 
 	public static final String JOURNAL_ARTICLE_FORCE_AUTOGENERATE_ID = "journal.article.force.autogenerate.id";
@@ -1130,6 +1172,8 @@ public interface PropsKeys {
 	public static final String JOURNAL_ARTICLE_FORM_TRANSLATE = "journal.article.form.translate";
 
 	public static final String JOURNAL_ARTICLE_FORM_UPDATE = "journal.article.form.update";
+
+	public static final String JOURNAL_ARTICLE_INDEX_ALL_VERSIONS = "journal.articles.index.all.versions";
 
 	public static final String JOURNAL_ARTICLE_STORAGE_TYPE = "journal.article.storage.type";
 
@@ -1467,6 +1511,8 @@ public interface PropsKeys {
 
 	public static final String LOCALE_PREPEND_FRIENDLY_URL_STYLE = "locale.prepend.friendly.url.style";
 
+	public static final String LOCALE_USE_DEFAULT_IF_NOT_AVAILABLE = "locale.use.default.if.not.available";
+
 	public static final String LOCALES = "locales";
 
 	public static final String LOCALES_BETA = "locales.beta";
@@ -1499,6 +1545,8 @@ public interface PropsKeys {
 
 	public static final String LOGIN_FORM_NAVIGATION_PRE = "login.form.navigation.pre";
 
+	public static final String LOGIN_SECURE_FORGOT_PASSWORD = "login.secure.forgot.password";
+
 	public static final String LOGOUT_EVENTS_POST = "logout.events.post";
 
 	public static final String LOGOUT_EVENTS_PRE = "logout.events.pre";
@@ -1512,6 +1560,8 @@ public interface PropsKeys {
 	public static final String LUCENE_BUFFER_SIZE = "lucene.buffer.size";
 
 	public static final String LUCENE_CLUSTER_INDEX_LOADING_SYNC_TIMEOUT = "lucene.cluster.index.loading.sync.timeout";
+
+	public static final String LUCENE_CLUSTER_INDEX_LOADING_USE_CANONICAL_HOST_NAME = "lucene.cluster.index.loading.use.canonical.host.name";
 
 	public static final String LUCENE_COMMIT_BATCH_SIZE = "lucene.commit.batch.size";
 
@@ -1596,6 +1646,8 @@ public interface PropsKeys {
 	public static final String MAIL_SESSION_MAIL_STORE_PROTOCOL = "mail.session.mail.store.protocol";
 
 	public static final String MAIL_SESSION_MAIL_TRANSPORT_PROTOCOL = "mail.session.mail.transport.protocol";
+
+	public static final String MAIL_THROWS_EXCEPTION_ON_FAILURE = "mail.throws.exception.on.failure";
 
 	public static final String MEMBERSHIP_POLICY_AUTO_VERIFY = "membership.policy.auto.verify";
 
@@ -1696,6 +1748,8 @@ public interface PropsKeys {
 	public static final String MODULE_FRAMEWORK_BASE_DIR = "module.framework.base.dir";
 
 	public static final String MODULE_FRAMEWORK_BEGINNING_START_LEVEL = "module.framework.beginning.start.level";
+
+	public static final String MODULE_FRAMEWORK_ENABLED = "module.framework.enabled";
 
 	public static final String MODULE_FRAMEWORK_INITIAL_BUNDLES = "module.framework.initial.bundles";
 
@@ -1983,9 +2037,15 @@ public interface PropsKeys {
 
 	public static final String POP_SERVER_SUBDOMAIN = "pop.server.subdomain";
 
+	public static final String PORTAL_IMPERSONATION_DEFAULT_URL = "portal.impersonation.default.url";
+
 	public static final String PORTAL_IMPERSONATION_ENABLE = "portal.impersonation.enable";
 
 	public static final String PORTAL_INSTANCE_HTTP_PORT = "portal.instance.http.port";
+
+	public static final String PORTAL_INSTANCE_HTTPS_PORT = "portal.instance.https.port";
+
+	public static final String PORTAL_INSTANCE_PROTOCOL = "portal.instance.protocol";
 
 	public static final String PORTAL_JAAS_AUTH_TYPE = "portal.jaas.auth.type";
 
@@ -2028,6 +2088,14 @@ public interface PropsKeys {
 	public static final String PORTLET_EVENT_DISTRIBUTION = "portlet.event.distribution";
 
 	public static final String PORTLET_FILTERS_SYSTEM = "portlet.filters.system";
+
+	public static final String PORTLET_INTERRUPTED_REQUEST_WHITELIST = "portlet.interrupted.request.whitelist";
+
+	public static final String PORTLET_INTERRUPTED_REQUEST_WHITELIST_ACTIONS = "portlet.interrupted.request.whitelist.actions";
+
+	public static final String PORTLET_PREFERENCES_CACHE_KEY_THRESHOLD_SIZE = "portlet.preferences.cache.key.threshold.size";
+
+	public static final String PORTLET_PREFERENCES_STRICT_STORE = "portlet.preferences.strict.store";
 
 	public static final String PORTLET_PUBLIC_RENDER_PARAMETER_DISTRIBUTION = "portlet.public.render.parameter.distribution";
 
@@ -2097,6 +2165,8 @@ public interface PropsKeys {
 
 	public static final String RSS_FEED_DISPLAY_STYLE_DEFAULT = "rss.feed.display.style.default";
 
+	public static final String RSS_FEED_REFRESH_TIME = "rss.feed.refresh.time";
+
 	public static final String RSS_FEED_TYPE_DEFAULT = "rss.feed.type.default";
 
 	public static final String RSS_FEED_TYPES = "rss.feed.types";
@@ -2104,6 +2174,8 @@ public interface PropsKeys {
 	public static final String RSS_FEEDS_ENABLED = "rss.feeds.enabled";
 
 	public static final String RSS_PUBLISH_TO_LIVE_BY_DEFAULT = "rss.publish.to.live.by.default";
+
+	public static final String RTL_CSS_EXCLUDED_PATHS_REGEXP = "rtl.css.excluded.paths.regexp";
 
 	public static final String SANDBOX_DEPLOY_DIR = "sandbox.deploy.dir";
 
@@ -2146,6 +2218,8 @@ public interface PropsKeys {
 	public static final String SEARCH_CONTAINER_PAGE_DELTA_VALUES = "search.container.page.delta.values";
 
 	public static final String SEARCH_CONTAINER_PAGE_ITERATOR_MAX_PAGES = "search.container.page.iterator.max.pages";
+
+	public static final String SEARCH_CONTAINER_PAGE_ITERATOR_PAGE_VALUES = "search.container.page.iterator.page.values";
 
 	public static final String SEARCH_CONTAINER_SHOW_PAGINATION_BOTTOM = "search.container.show.pagination.bottom";
 
@@ -2311,6 +2385,8 @@ public interface PropsKeys {
 
 	public static final String SITES_FORM_UPDATE_SEO = "sites.form.update.seo";
 
+	public static final String SITES_FRIENDLY_URL_PAGE_NOT_FOUND = "sites.friendly.url.page.not.found";
+
 	public static final String SITES_SITEMAP_DEFAULT_CHANGE_FREQUENCY = "sites.sitemap.default.change.frequency";
 
 	public static final String SITES_SITEMAP_DEFAULT_PRIORITY = "sites.sitemap.default.priority";
@@ -2377,9 +2453,19 @@ public interface PropsKeys {
 
 	public static final String SQL_DATA_MAX_PARAMETERS = "sql.data.max.parameters";
 
+	public static final String STAGING_DELETE_TEMP_LAR_ON_FAILURE = "staging.delete.temp.lar.on.failure";
+
+	public static final String STAGING_DELETE_TEMP_LAR_ON_SUCCESS = "staging.delete.temp.lar.on.success";
+
+	public static final String STAGING_HIBERNATE_CACHE_FLUSH_FREQUENCY = "staging.hibernate.cache.flush.frequency";
+
 	public static final String STAGING_LOCK_ENABLED = "staging.lock.enabled";
 
 	public static final String STAGING_REMOTE_TRANSFER_BUFFER_SIZE = "staging.remote.transfer.buffer.size";
+
+	public static final String STAGING_XSTREAM_CLASS_WHITELIST = "staging.xstream.class.whitelist";
+
+	public static final String STAGING_XSTREAM_SECURITY_ENABLED = "staging.xstream.security.enabled";
 
 	public static final String STRIP_CSS_SASS_ENABLED = "strip.css.sass.enabled";
 
@@ -2388,6 +2474,8 @@ public interface PropsKeys {
 	public static final String STRIP_JS_LANGUAGE_ATTRIBUTE_SUPPORT_ENABLED = "strip.js.language.attribute.support.enabled";
 
 	public static final String STRIP_MIME_TYPES = "strip.mime.types";
+
+	public static final String STRUTS_PORTLET_IGNORED_PARAMETERS_REGEXP = "struts.portlet.ignored.parameters.regexp";
 
 	public static final String STRUTS_PORTLET_REQUEST_PROCESSOR = "struts.portlet.request.processor";
 
@@ -2461,7 +2549,11 @@ public interface PropsKeys {
 
 	public static final String TRASH_SEARCH_LIMIT = "trash.search.limit";
 
+	public static final String TUNNELING_SERVLET_ENCRYPTION_ALGORITHM = "tunneling.servlet.encryption.algorithm";
+
 	public static final String TUNNELING_SERVLET_SHARED_SECRET = "tunneling.servlet.shared.secret";
+
+	public static final String TUNNELING_SERVLET_SHARED_SECRET_HEX = "tunneling.servlet.shared.secret.hex";
 
 	public static final String UPGRADE_DATABASE_TRANSACTIONS_DISABLED = "upgrade.database.transactions.disabled";
 
@@ -2514,6 +2606,8 @@ public interface PropsKeys {
 	public static final String USERS_FULL_NAME_GENERATOR = "users.full.name.generator";
 
 	public static final String USERS_FULL_NAME_VALIDATOR = "users.full.name.validator";
+
+	public static final String USERS_IMAGE_CHECK_TOKEN = "users.image.check.token";
 
 	public static final String USERS_IMAGE_MAX_HEIGHT = "users.image.max.height";
 
@@ -2587,6 +2681,10 @@ public interface PropsKeys {
 
 	public static final String VERIFY_FREQUENCY = "verify.frequency";
 
+	public static final String VERIFY_PATCH_LEVELS_DISABLED = "verify.patch.levels.disabled";
+
+	public static final String VERIFY_PROCESS_CONCURRENCY_THRESHOLD = "verify.process.concurrency.threshold";
+
 	public static final String VERIFY_PROCESSES = "verify.processes";
 
 	public static final String VIRTUAL_HOSTS_DEFAULT_SITE_NAME = "virtual.hosts.default.site.name";
@@ -2596,6 +2694,8 @@ public interface PropsKeys {
 	public static final String VIRTUAL_HOSTS_IGNORE_HOSTS = "virtual.hosts.ignore.hosts";
 
 	public static final String VIRTUAL_HOSTS_IGNORE_PATHS = "virtual.hosts.ignore.paths";
+
+	public static final String VIRTUAL_HOSTS_VALID_HOSTS = "virtual.hosts.valid.hosts";
 
 	public static final String WEB_SERVER_DISPLAY_NODE = "web.server.display.node";
 
@@ -2610,6 +2710,8 @@ public interface PropsKeys {
 	public static final String WEB_SERVER_PROXY_LEGACY_MODE = "web.server.proxy.legacy.mode";
 
 	public static final String WEB_SERVER_SERVLET_ACCEPT_RANGES_MIME_TYPES = "web.server.servlet.accept.ranges.mime.types";
+
+	public static final String WEB_SERVER_SERVLET_CHECK_IMAGE_GALLERY = "web.server.servlet.check.image.gallery";
 
 	public static final String WEB_SERVER_SERVLET_DIRECTORY_INDEXING_ENABLED = "web.server.servlet.directory.indexing.enabled";
 
@@ -2689,7 +2791,21 @@ public interface PropsKeys {
 
 	public static final String WIKI_RSS_ABSTRACT_LENGTH = "wiki.rss.abstract.length";
 
+	public static final String XML_SECURITY_ENABLED = "xml.security.enabled";
+
 	public static final String XML_VALIDATION_ENABLED = "xml.validation.enabled";
+
+	public static final String XSL_CONTENT_VALID_URL_PREFIXES = "xsl.content.valid.url.prefixes";
+
+	public static final String XSL_CONTENT_XML_DOCTYPE_DECLARATION_ALLOWED = "xsl.content.xml.doctype.declaration.allowed";
+
+	public static final String XSL_CONTENT_XML_EXTERNAL_GENERAL_ENTITIES_ALLOWED = "xsl.content.xml.external.general.entities.allowed";
+
+	public static final String XSL_CONTENT_XML_EXTERNAL_PARAMETER_ENTITIES_ALLOWED = "xsl.content.xml.external.parameter.entities.allowed";
+
+	public static final String XSL_CONTENT_XSL_SECURE_PROCESSING_ENABLED = "xsl.content.xsl.secure.processing.enabled";
+
+	public static final String XSL_TEMPLATE_SECURE_PROCESSING_ENABLED = "xsl.template.secure.processing.enabled";
 
 	public static final String XUGGLER_ENABLED = "xuggler.enabled";
 

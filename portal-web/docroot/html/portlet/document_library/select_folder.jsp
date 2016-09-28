@@ -39,7 +39,7 @@ if (folder != null) {
 		title="home"
 	/>
 
-	<liferay-ui:breadcrumb showGuestGroup="<%= false %>" showLayout="<%= false %>" showParentGroups="<%= false %>" />
+	<liferay-ui:breadcrumb showCurrentGroup="<%= false %>" showGuestGroup="<%= false %>" showLayout="<%= false %>" showParentGroups="<%= false %>" />
 
 	<aui:button-row>
 		<c:if test="<%= showAddFolderButton && DLFolderPermission.contains(permissionChecker, repositoryId, folderId, ActionKeys.ADD_FOLDER) %>">
@@ -59,7 +59,7 @@ if (folder != null) {
 		data.put("folderid", folderId);
 		data.put("folderissupportsmetadata", ((folder != null) ? folder.isSupportsMetadata() : Boolean.TRUE.toString()));
 		data.put("folderissupportssocial", ((folder != null) ? folder.isSupportsSocial() : Boolean.TRUE.toString()));
-		data.put("foldername", HtmlUtil.escapeAttribute(folderName));
+		data.put("foldername", folderName);
 		%>
 
 		<aui:button cssClass="selector-button" data="<%= data %>" value="choose-this-folder" />
@@ -70,6 +70,7 @@ if (folder != null) {
 
 	portletURL.setParameter("struts_action", "/document_library/select_folder");
 	portletURL.setParameter("folderId", String.valueOf(folderId));
+	portletURL.setParameter("ignoreRootFolder", Boolean.TRUE.toString());
 	%>
 
 	<liferay-ui:search-container
@@ -90,6 +91,7 @@ if (folder != null) {
 			<liferay-portlet:renderURL varImpl="rowURL">
 				<portlet:param name="struts_action" value="/document_library/select_folder" />
 				<portlet:param name="folderId" value="<%= String.valueOf(curFolder.getFolderId()) %>" />
+				<portlet:param name="ignoreRootFolder" value="<%= Boolean.TRUE.toString() %>" />
 			</liferay-portlet:renderURL>
 
 			<%
@@ -160,7 +162,7 @@ if (folder != null) {
 					data.put("folderid", curFolder.getFolderId());
 					data.put("folderissupportsmetadata", curFolder.isSupportsMetadata());
 					data.put("folderissupportssocial", curFolder.isSupportsSocial());
-					data.put("foldername", HtmlUtil.escapeAttribute(curFolder.getName()));
+					data.put("foldername", curFolder.getName());
 					%>
 
 					<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />
@@ -173,17 +175,5 @@ if (folder != null) {
 </aui:form>
 
 <aui:script use="aui-base">
-	var Util = Liferay.Util;
-
-	A.one('#<portlet:namespace />selectFolderFm').delegate(
-		'click',
-		function(event) {
-			var result = Util.getAttributes(event.currentTarget, 'data-');
-
-			Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
-
-			Util.getWindow().hide();
-		},
-		'.selector-button'
-	);
+	Liferay.Util.selectEntityHandler('#<portlet:namespace />selectFolderFm', '<%= HtmlUtil.escapeJS(eventName) %>');
 </aui:script>

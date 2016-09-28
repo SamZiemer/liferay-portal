@@ -14,6 +14,7 @@
 
 package com.liferay.taglib.aui;
 
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
@@ -48,6 +49,37 @@ public class AUIUtil {
 	 * @deprecated As of 6.2.0
 	 */
 	public static final String LABEL_FIELD_PREFIX = "field-label";
+
+	public static String buildControlGroupCss(
+		boolean inlineField, String inlineLabel, String wrapperCssClass,
+		String baseType) {
+
+		StringBundler sb = new StringBundler(9);
+
+		sb.append("control-group");
+
+		if (inlineField) {
+			sb.append(" control-group-inline");
+		}
+
+		if (Validator.isNotNull(inlineLabel)) {
+			sb.append(" form-inline");
+		}
+
+		if (Validator.isNotNull(wrapperCssClass)) {
+			sb.append(StringPool.SPACE);
+			sb.append(wrapperCssClass);
+		}
+
+		if (Validator.isNotNull(baseType)) {
+			sb.append(StringPool.SPACE);
+			sb.append("input-");
+			sb.append(baseType);
+			sb.append("-wrapper");
+		}
+
+		return sb.toString();
+	}
 
 	public static String buildCss(
 		String prefix, boolean disabled, boolean first, boolean last,
@@ -106,7 +138,7 @@ public class AUIUtil {
 			sb.append("data-");
 			sb.append(dataKey);
 			sb.append("=\"");
-			sb.append(dataValue);
+			sb.append(HtmlUtil.escapeAttribute(dataValue));
 			sb.append("\" ");
 		}
 
@@ -139,7 +171,7 @@ public class AUIUtil {
 
 		if (showForLabel) {
 			sb.append("for=\"");
-			sb.append(forLabel);
+			sb.append(HtmlUtil.escapeAttribute(forLabel));
 			sb.append("\"");
 		}
 

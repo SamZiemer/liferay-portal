@@ -21,7 +21,7 @@ JournalFolder folder = (JournalFolder)request.getAttribute("view.jsp-folder");
 
 long folderId = GetterUtil.getLong((String)request.getAttribute("view.jsp-folderId"));
 
-List<DDMStructure> ddmStructures = DDMStructureLocalServiceUtil.getStructures(PortalUtil.getSiteAndCompanyGroupIds(themeDisplay), PortalUtil.getClassNameId(JournalArticle.class));
+List<DDMStructure> ddmStructures = DDMStructureServiceUtil.getStructures(PortalUtil.getSiteAndCompanyGroupIds(themeDisplay), PortalUtil.getClassNameId(JournalArticle.class));
 %>
 
 <aui:nav-item dropdown="<%= true %>" id="addButtonContainer" label="add">
@@ -44,7 +44,7 @@ List<DDMStructure> ddmStructures = DDMStructureLocalServiceUtil.getStructures(Po
 			<portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" />
 		</liferay-portlet:renderURL>
 
-		<aui:nav-item href="<%= addArticleURL %>" label="basic-web-content" />
+		<aui:nav-item href="<%= addArticleURL %>" iconCssClass="icon-tasks" label="basic-web-content" />
 
 		<%
 		for (DDMStructure ddmStructure : ddmStructures) {
@@ -58,7 +58,7 @@ List<DDMStructure> ddmStructures = DDMStructureLocalServiceUtil.getStructures(Po
 				<portlet:param name="structureId" value="<%= ddmStructure.getStructureKey() %>" />
 			</liferay-portlet:renderURL>
 
-			<aui:nav-item href="<%= addArticleURL %>" label="<%= HtmlUtil.escape(ddmStructure.getName(themeDisplay.getLocale())) %>" />
+			<aui:nav-item href="<%= addArticleURL %>" iconCssClass="icon-tasks" label="<%= HtmlUtil.escape(ddmStructure.getName(themeDisplay.getLocale())) %>" localizeLabel="<%= false %>" />
 
 		<%
 		}

@@ -351,6 +351,23 @@ public class DDMStructureServiceSoap {
 		}
 	}
 
+	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap fetchStructure(
+		long groupId, long classNameId, java.lang.String structureKey,
+		boolean includeAncestorStructures) throws RemoteException {
+		try {
+			com.liferay.portlet.dynamicdatamapping.model.DDMStructure returnValue =
+				DDMStructureServiceUtil.fetchStructure(groupId, classNameId,
+					structureKey, includeAncestorStructures);
+
+			return com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	/**
 	* Returns the structure with the ID.
 	*
@@ -479,6 +496,38 @@ public class DDMStructureServiceSoap {
 		try {
 			java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> returnValue =
 				DDMStructureServiceUtil.getStructures(groupIds);
+
+			return com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap[] getStructures(
+		long[] groupIds, long classNameId) throws RemoteException {
+		try {
+			java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> returnValue =
+				DDMStructureServiceUtil.getStructures(groupIds, classNameId);
+
+			return com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap[] getStructures(
+		long[] groupIds, long classNameId, int start, int end)
+		throws RemoteException {
+		try {
+			java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> returnValue =
+				DDMStructureServiceUtil.getStructures(groupIds, classNameId,
+					start, end);
 
 			return com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap.toSoapModels(returnValue);
 		}

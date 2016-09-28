@@ -381,8 +381,6 @@ AUI.add(
 							entriesContainer.html(searchingTPL);
 						}
 
-						instance._journalContainer.all('.article-entries-pagination').hide();
-
 						var requestParams = {};
 
 						requestParams[instance.ns(STRUTS_ACTION)] = '/journal/search';
@@ -404,6 +402,7 @@ AUI.add(
 							instance._eventDataRequest,
 							{
 								requestParams: requestParams,
+								resetPagination: true,
 								src: Liferay.JOURNAL_SEARCH
 							}
 						);

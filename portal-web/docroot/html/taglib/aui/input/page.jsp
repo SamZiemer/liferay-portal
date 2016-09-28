@@ -32,16 +32,23 @@
 	</c:if>
 </liferay-util:buffer>
 
-<c:if test='<%= !choiceField && !type.equals("hidden") && !wrappedField %>'>
+<c:if test='<%= !type.equals("hidden") && !wrappedField %>'>
 	<div class="<%= controlGroupCssClass %>">
 </c:if>
 
+<%
+boolean choiceField = checkboxField || radioField;
+%>
+
 <c:if test='<%= !type.equals("assetCategories") && !type.equals("hidden") && Validator.isNotNull(label) %>'>
-	<label <%= labelTag %>>
-		<c:if test='<%= !choiceField && !inlineLabel.equals("right") %>'>
-				<%= labelContent %>
-			</label>
-		</c:if>
+	<c:if test='<%= choiceField || !inlineLabel.equals("right") %>'>
+		<label <%= labelTag %>>
+	</c:if>
+
+	<c:if test='<%= !choiceField && !inlineLabel.equals("right") %>'>
+			<%= labelContent %>
+		</label>
+	</c:if>
 </c:if>
 
 <c:if test="<%= Validator.isNotNull(prefix) || Validator.isNotNull(suffix) %>">
@@ -57,6 +64,7 @@
 			className="<%= model.getName() %>"
 			classPK="<%= _getClassPK(bean, classPK) %>"
 			contentCallback='<%= portletResponse.getNamespace() + "getSuggestionsContent" %>'
+			ignoreRequestValue="<%= ignoreRequestValue %>"
 		/>
 	</c:when>
 	<c:when test='<%= (model != null) && type.equals("assetTags") %>'>
@@ -66,6 +74,7 @@
 			classPK="<%= _getClassPK(bean, classPK) %>"
 			contentCallback='<%= portletResponse.getNamespace() + "getSuggestionsContent" %>'
 			id="<%= namespace + id %>"
+			ignoreRequestValue="<%= ignoreRequestValue %>"
 		/>
 	</c:when>
 	<c:when test="<%= (model != null) && Validator.isNull(type) %>">
@@ -114,7 +123,7 @@
 
 		<input id="<%= namespace + id %>" name="<%= namespace + name %>" type="hidden" value="<%= HtmlUtil.escapeAttribute(valueString) %>" />
 
-		<input <%= checked ? "checked" : StringPool.BLANK %> class="<%= fieldCssClass %>" <%= disabled ? "disabled" : StringPool.BLANK %> id="<%= namespace + id %>Checkbox" name="<%= namespace + name %>Checkbox" <%= Validator.isNotNull(onChange) ? "onChange=\"" + onChange + "\"" : StringPool.BLANK %> onClick="Liferay.Util.updateCheckboxValue(this); <%= onClick %>" <%= Validator.isNotNull(title) ? "title=\"" + title + "\"" : StringPool.BLANK %> type="checkbox" value="<%= HtmlUtil.escapeAttribute(defaultValueString) %>" <%= AUIUtil.buildData(data) %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %> />
+		<input <%= checked ? "checked" : StringPool.BLANK %> class="<%= fieldCssClass %>" <%= disabled ? "disabled" : StringPool.BLANK %> id="<%= namespace + id %>Checkbox" name="<%= namespace + name %>Checkbox" <%= Validator.isNotNull(onChange) ? "onChange=\"" + onChange + "\"" : StringPool.BLANK %> onClick="Liferay.Util.updateCheckboxValue(this); <%= onClick %>" <%= Validator.isNotNull(title) ? "title=\"" + LanguageUtil.get(locale, title) + "\"" : StringPool.BLANK %> type="checkbox" value="<%= HtmlUtil.escapeAttribute(defaultValueString) %>" <%= AUIUtil.buildData(data) %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %> />
 	</c:when>
 	<c:when test='<%= type.equals("radio") %>'>
 
@@ -134,7 +143,10 @@
 		}
 		%>
 
-		<input <%= checked ? "checked" : StringPool.BLANK %> class="<%= fieldCssClass %>" <%= disabled ? "disabled" : StringPool.BLANK %> id="<%= namespace + id %>" name="<%= namespace + name %>" <%= Validator.isNotNull(onChange) ? "onChange=\"" + onChange + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(onClick) ? "onClick=\"" + onClick + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(title) ? "title=\"" + title + "\"" : StringPool.BLANK %> type="radio" value="<%= HtmlUtil.escapeAttribute(valueString) %>" <%= AUIUtil.buildData(data) %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %> />
+		<input <%= checked ? "checked" : StringPool.BLANK %> class="<%= fieldCssClass %>" <%= disabled ? "disabled" : StringPool.BLANK %> id="<%= namespace + id %>" name="<%= namespace + name %>" <%= Validator.isNotNull(onChange) ? "onChange=\"" + onChange + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(onClick) ? "onClick=\"" + onClick + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(title) ? "title=\"" + LanguageUtil.get(locale, title) + "\"" : StringPool.BLANK %> type="radio" value="<%= HtmlUtil.escapeAttribute(valueString) %>" <%= AUIUtil.buildData(data) %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %> />
+	</c:when>
+	<c:when test='<%= type.equals("resource") %>'>
+		<liferay-ui:input-resource id="<%= id %>" title="<%= title %>" url="<%= String.valueOf(value) %>" />
 	</c:when>
 	<c:when test='<%= type.equals("timeZone") %>'>
 
@@ -168,7 +180,7 @@
 		if (type.equals("hidden") && (value == null)) {
 			valueString = BeanPropertiesUtil.getStringSilent(bean, name);
 		}
-		else if (!ignoreRequestValue && (Validator.isNull(type) || type.equals("text") || type.equals("textarea"))) {
+		else if (!ignoreRequestValue && (Validator.isNull(type) || type.equals("email") || type.equals("text") || type.equals("textarea"))) {
 			valueString = BeanParamUtil.getStringSilent(bean, request, name, valueString);
 
 			if (Validator.isNotNull(fieldParam)) {
@@ -178,13 +190,32 @@
 		%>
 
 		<c:choose>
+			<c:when test='<%= localized && (type.equals("editor") || type.equals("text") || type.equals("textarea")) %>'>
+				<liferay-ui:input-localized
+					autoFocus="<%= autoFocus %>"
+					availableLocales="<%= LanguageUtil.getAvailableLocales(themeDisplay.getSiteGroupId()) %>"
+					cssClass="<%= fieldCssClass %>"
+					defaultLanguageId="<%= defaultLanguageId %>"
+					disabled="<%= disabled %>"
+					formName="<%= formName %>"
+					id="<%= id %>"
+					ignoreRequestValue="<%= ignoreRequestValue %>"
+					languageId="<%= languageId %>"
+					name="<%= name %>"
+					onChange="<%= onChange %>"
+					onClick="<%= onClick %>"
+					placeholder="<%= placeholder %>"
+					type='<%= type.equals("text") ? "input" : type %>'
+					xml="<%= valueString %>"
+				/>
+			</c:when>
 			<c:when test='<%= type.equals("textarea") %>'>
 
 				<%
 				String[] storedDimensions = resizable ? StringUtil.split(SessionClicks.get(request, _TEXTAREA_WIDTH_HEIGHT_PREFIX + namespace + id, StringPool.BLANK)) : StringPool.EMPTY_ARRAY;
 				%>
 
-				<textarea class="<%= fieldCssClass %>" <%= disabled ? "disabled" : StringPool.BLANK %> id="<%= namespace + id %>" <%= multiple ? "multiple" : StringPool.BLANK %> name="<%= namespace + name %>" <%= Validator.isNotNull(onChange) ? "onChange=\"" + onChange + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(onClick) ? "onClick=\"" + onClick + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(placeholder) ? "placeholder=\"" + LanguageUtil.get(pageContext, placeholder) + "\"" : StringPool.BLANK %> <%= (storedDimensions.length > 1) ? "style=\"height: " + storedDimensions[0] + "; width: " + storedDimensions[1] + ";" + title + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(title) ? "title=\"" + title + "\"" : StringPool.BLANK %> <%= AUIUtil.buildData(data) %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>><%= HtmlUtil.escape(valueString) %></textarea>
+				<textarea class="<%= fieldCssClass %>" <%= disabled ? "disabled" : StringPool.BLANK %> id="<%= namespace + id %>" <%= multiple ? "multiple" : StringPool.BLANK %> name="<%= namespace + name %>" <%= Validator.isNotNull(onChange) ? "onChange=\"" + onChange + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(onClick) ? "onClick=\"" + onClick + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(placeholder) ? "placeholder=\"" + LanguageUtil.get(pageContext, placeholder) + "\"" : StringPool.BLANK %> <%= (storedDimensions.length > 1) ? "style=\"height: " + storedDimensions[0] + "; width: " + storedDimensions[1] + ";" + title + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(title) ? "title=\"" + LanguageUtil.get(locale, title) + "\"" : StringPool.BLANK %> <%= AUIUtil.buildData(data) %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>><%= HtmlUtil.escape(valueString) %></textarea>
 
 				<c:if test="<%= autoSize %>">
 					<aui:script use="aui-autosize">
@@ -215,7 +246,7 @@
 
 			</c:when>
 			<c:otherwise>
-				<input class="<%= fieldCssClass %>" <%= disabled ? "disabled" : StringPool.BLANK %> id="<%= namespace + id %>" <%= (max != null) ? "max=\"" + max + "\"": StringPool.BLANK %> <%= (min != null) ? "min=\"" + min + "\"": StringPool.BLANK %> <%= multiple ? "multiple" : StringPool.BLANK %> name="<%= namespace + name %>" <%= Validator.isNotNull(onChange) ? "onChange=\"" + onChange + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(onClick) ? "onClick=\"" + onClick + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(placeholder) ? "placeholder=\"" + LanguageUtil.get(pageContext, placeholder) + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(title) ? "title=\"" + title + "\"" : StringPool.BLANK %> type="<%= Validator.isNull(type) ? "text" : type %>" <%= !type.equals("image") ? "value=\"" + HtmlUtil.escapeAttribute(valueString) + "\"" : StringPool.BLANK %> <%= AUIUtil.buildData(data) %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %> />
+				<input <%= type.equals("image") ? "alt=\"" + LanguageUtil.get(pageContext, title) + "\"" : StringPool.BLANK %> class="<%= fieldCssClass %>" <%= disabled ? "disabled" : StringPool.BLANK %> id="<%= namespace + id %>" <%= (max != null) ? "max=\"" + max + "\"": StringPool.BLANK %> <%= (min != null) ? "min=\"" + min + "\"": StringPool.BLANK %> <%= multiple ? "multiple" : StringPool.BLANK %> name="<%= namespace + name %>" <%= Validator.isNotNull(onChange) ? "onChange=\"" + onChange + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(onClick) ? "onClick=\"" + onClick + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(placeholder) ? "placeholder=\"" + LanguageUtil.get(pageContext, placeholder) + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(title) ? "title=\"" + LanguageUtil.get(locale, title) + "\"" : StringPool.BLANK %> type="<%= Validator.isNull(type) ? "text" : type %>" <%= !type.equals("image") ? "value=\"" + HtmlUtil.escapeAttribute(valueString) + "\"" : StringPool.BLANK %> <%= AUIUtil.buildData(data) %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %> />
 			</c:otherwise>
 		</c:choose>
 
@@ -239,14 +270,17 @@
 		<label <%= labelTag %>>
 			<%= labelContent %>
 	</c:if>
+
 	<c:if test="<%= choiceField %>">
 		<%= labelContent %>
 	</c:if>
 
-	</label>
+	<c:if test='<%= inlineLabel.equals("right") %>'>
+		</label>
+	</c:if>
 </c:if>
 
-<c:if test='<%= !choiceField && !type.equals("hidden") && !wrappedField %>'>
+<c:if test='<%= !type.equals("hidden") && !wrappedField %>'>
 	</div>
 </c:if>
 

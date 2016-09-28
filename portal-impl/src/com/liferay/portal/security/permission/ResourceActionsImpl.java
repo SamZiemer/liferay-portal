@@ -33,7 +33,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.DocumentType;
 import com.liferay.portal.kernel.xml.Element;
-import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.LayoutPrototype;
 import com.liferay.portal.model.LayoutSetPrototype;
@@ -622,7 +622,7 @@ public class ResourceActionsImpl implements ResourceActions {
 			_log.debug("Loading " + source);
 		}
 
-		Document document = SAXReaderUtil.read(inputStream, true);
+		Document document = UnsecureSAXReaderUtil.read(inputStream, true);
 
 		DocumentType documentType = document.getDocumentType();
 
@@ -656,7 +656,7 @@ public class ResourceActionsImpl implements ResourceActions {
 	public void read(String servletContextName, InputStream inputStream)
 		throws Exception {
 
-		Document document = SAXReaderUtil.read(inputStream, true);
+		Document document = UnsecureSAXReaderUtil.read(inputStream, true);
 
 		read(servletContextName, document);
 	}
@@ -685,29 +685,13 @@ public class ResourceActionsImpl implements ResourceActions {
 	}
 
 	protected void checkPortletActions(Portlet portlet, List<String> actions) {
-		if (!actions.contains(ActionKeys.ACCESS_IN_CONTROL_PANEL) &&
-			!actions.contains(ActionKeys.ADD_TO_PAGE)) {
-
-			actions.add(ActionKeys.ADD_TO_PAGE);
-		}
+		checkPortletLayoutManagerActions(actions);
 
 		if ((portlet != null) &&
 			(portlet.getControlPanelEntryCategory() != null) &&
 			!actions.contains(ActionKeys.ACCESS_IN_CONTROL_PANEL)) {
 
 			actions.add(ActionKeys.ACCESS_IN_CONTROL_PANEL);
-		}
-
-		if (!actions.contains(ActionKeys.CONFIGURATION)) {
-			actions.add(ActionKeys.CONFIGURATION);
-		}
-
-		if (!actions.contains(ActionKeys.PERMISSIONS)) {
-			actions.add(ActionKeys.PERMISSIONS);
-		}
-
-		if (!actions.contains(ActionKeys.VIEW)) {
-			actions.add(ActionKeys.VIEW);
 		}
 	}
 
@@ -730,6 +714,12 @@ public class ResourceActionsImpl implements ResourceActions {
 	}
 
 	protected void checkPortletLayoutManagerActions(List<String> actions) {
+		if (!actions.contains(ActionKeys.ACCESS_IN_CONTROL_PANEL) &&
+			!actions.contains(ActionKeys.ADD_TO_PAGE)) {
+
+			actions.add(ActionKeys.ADD_TO_PAGE);
+		}
+
 		if (!actions.contains(ActionKeys.CONFIGURATION)) {
 			actions.add(ActionKeys.CONFIGURATION);
 		}

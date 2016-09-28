@@ -95,6 +95,10 @@ public class AutoLoginFilter extends BasePortalFilter {
 			return null;
 		}
 
+		if (!PropsValues.AUTH_SIMULTANEOUS_LOGINS) {
+			LoginUtil.signOutSimultaneousLogins(userId);
+		}
+
 		if (PropsValues.SESSION_ENABLE_PHISHING_PROTECTION) {
 			session = LoginUtil.renewSession(request, session);
 		}
@@ -109,7 +113,8 @@ public class AutoLoginFilter extends BasePortalFilter {
 		}
 		else {
 			session.setAttribute(
-				"j_password", PasswordEncryptorUtil.encrypt(jPassword));
+				"j_password",
+				PasswordEncryptorUtil.encrypt(jPassword, user.getPassword()));
 
 			if (PropsValues.SESSION_STORE_PASSWORD) {
 				session.setAttribute(WebKeys.USER_PASSWORD, jPassword);

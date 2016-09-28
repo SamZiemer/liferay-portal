@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.dao.orm;
 
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.TableNameOrderByComparator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
@@ -31,27 +32,52 @@ public class QueryDefinition {
 	}
 
 	public QueryDefinition(int status) {
-		if (status == WorkflowConstants.STATUS_ANY) {
-			setStatus(WorkflowConstants.STATUS_IN_TRASH, true);
-		}
-		else {
-			setStatus(status);
-		}
+		this(status, 0, false);
 	}
 
 	public QueryDefinition(
 		int status, boolean excludeStatus, int start, int end,
-		OrderByComparator obc) {
+		OrderByComparator orderByComparator) {
 
-		_status = status;
-		_excludeStatus = excludeStatus;
-		_start = start;
-		_end = end;
-		_orderByComparator = obc;
+		this(status, excludeStatus, 0, false, start, end, orderByComparator);
 	}
 
 	public QueryDefinition(
-		int status, int start, int end, OrderByComparator obc) {
+		int status, boolean excludeStatus, long ownerUserId,
+		boolean includeOwner, int start, int end,
+		OrderByComparator orderByComparator) {
+
+		_status = status;
+		_excludeStatus = excludeStatus;
+		_ownerUserId = ownerUserId;
+		_includeOwner = includeOwner;
+		_start = start;
+		_end = end;
+
+		setOrderByComparator(orderByComparator);
+	}
+
+	public QueryDefinition(
+		int status, int start, int end, OrderByComparator orderByComparator) {
+
+		this(status, 0, false, start, end, orderByComparator);
+	}
+
+	public QueryDefinition(int status, long ownerUserId, boolean includeOwner) {
+		if (status == WorkflowConstants.STATUS_ANY) {
+			setStatus(WorkflowConstants.STATUS_IN_TRASH, true);
+		}
+		else {
+			setStatus(status);
+		}
+
+		_ownerUserId = ownerUserId;
+		_includeOwner = includeOwner;
+	}
+
+	public QueryDefinition(
+		int status, long ownerUserId, boolean includeOwner, int start, int end,
+		OrderByComparator orderByComparator) {
 
 		if (status == WorkflowConstants.STATUS_ANY) {
 			setStatus(WorkflowConstants.STATUS_IN_TRASH, true);
@@ -60,9 +86,12 @@ public class QueryDefinition {
 			setStatus(status);
 		}
 
+		_ownerUserId = ownerUserId;
+		_includeOwner = includeOwner;
 		_start = start;
 		_end = end;
-		_orderByComparator = obc;
+
+		setOrderByComparator(orderByComparator);
 	}
 
 	public Serializable getAttribute(String name) {
@@ -85,6 +114,18 @@ public class QueryDefinition {
 		return _orderByComparator;
 	}
 
+	public OrderByComparator getOrderByComparator(String tableName) {
+		if (_orderByComparator == null) {
+			return null;
+		}
+
+		return new TableNameOrderByComparator(_orderByComparator, tableName);
+	}
+
+	public long getOwnerUserId() {
+		return _ownerUserId;
+	}
+
 	public int getStart() {
 		return _start;
 	}
@@ -95,6 +136,10 @@ public class QueryDefinition {
 
 	public boolean isExcludeStatus() {
 		return _excludeStatus;
+	}
+
+	public boolean isIncludeOwner() {
+		return _includeOwner;
 	}
 
 	public void setAttribute(String name, Serializable value) {
@@ -113,8 +158,16 @@ public class QueryDefinition {
 		_end = end;
 	}
 
+	public void setIncludeOwner(boolean includeOwner) {
+		_includeOwner = includeOwner;
+	}
+
 	public void setOrderByComparator(OrderByComparator orderByComparator) {
 		_orderByComparator = orderByComparator;
+	}
+
+	public void setOwnerUserId(long ownerUserId) {
+		_ownerUserId = ownerUserId;
 	}
 
 	public void setStart(int start) {
@@ -133,7 +186,9 @@ public class QueryDefinition {
 	private Map<String, Serializable> _attributes;
 	private int _end = QueryUtil.ALL_POS;
 	private boolean _excludeStatus;
+	private boolean _includeOwner;
 	private OrderByComparator _orderByComparator;
+	private long _ownerUserId;
 	private int _start = QueryUtil.ALL_POS;
 	private int _status = WorkflowConstants.STATUS_ANY;
 

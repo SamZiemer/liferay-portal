@@ -194,9 +194,9 @@ AUI.add(
 
 				A.getWin()._node.onbeforeunload = A.bind('_confirmUnload', instance);
 
-				Liferay.on(instance.ns('dataRequest'), instance._onDataRequest, instance);
+				var onDataRequestHandle = Liferay.on(instance.ns('dataRequest'), instance._onDataRequest, instance);
 
-				Liferay.after(
+				var afterAppViewDataRequestHandle = Liferay.after(
 					'liferay-app-view-folders:dataRequest',
 					function(event) {
 						var requestParams = event.requestParams;
@@ -220,7 +220,7 @@ AUI.add(
 					dd.addInvalid(STR_DOT + CSS_UPLOAD_ERROR);
 				}
 
-				docElement.on(
+				var onDragOverHandle = docElement.on(
 					'dragover',
 					function(event) {
 						var dataTransfer = event._event.dataTransfer;
@@ -245,7 +245,7 @@ AUI.add(
 					}
 				);
 
-				docElement.delegate(
+				var onDropHandle = docElement.delegate(
 					'drop',
 					function(event) {
 						var dataTransfer = event._event.dataTransfer;
@@ -274,7 +274,7 @@ AUI.add(
 					'body, .document-container, .overlaymask, .progressbar, [data-folder="true"]'
 				);
 
-				entriesContainer.delegate(
+				var entriesDragDelegateHandle = entriesContainer.delegate(
 					['dragleave', 'dragover'],
 					function(event) {
 						var dataTransfer = event._event.dataTransfer;
@@ -290,12 +290,21 @@ AUI.add(
 					SELECTOR_DATA_FOLDER
 				);
 
-				entriesContainer.delegate(
+				var entriesClickDelegateHandle = entriesContainer.delegate(
 					'click',
 					function(event) {
 						event.preventDefault();
 					},
 					STR_DOT + CSS_UPLOAD_ERROR + STR_SPACE + SELECTOR_ENTRY_LINK
+				);
+
+				instance._handles.push(
+					afterAppViewDataRequestHandle,
+					entriesClickDelegateHandle,
+					entriesDragDelegateHandle,
+					onDataRequestHandle,
+					onDragOverHandle,
+					onDropHandle
 				);
 			},
 
@@ -895,6 +904,8 @@ AUI.add(
 
 				instance._folderId = foldersConfig.defaultParentFolderId;
 
+				instance._handles = [];
+
 				instance._attachEventHandlers();
 
 				var columnNames = config.columnNames;
@@ -906,7 +917,6 @@ AUI.add(
 
 				instance._dimensions = foldersConfig.dimensions;
 
-				instance._handles = [];
 				instance._tooltipDelegates = [];
 
 				var appViewEntryTemplates = instance.byId('appViewEntryTemplates');
@@ -919,7 +929,6 @@ AUI.add(
 				instance._viewFileEntryURL = config.viewFileEntryURL;
 
 				instance._invalidFileSizeText = Liferay.Language.get('please-enter-a-file-with-a-valid-file-size-no-larger-than-x');
-				instance._invalidFileType = Liferay.Language.get('please-enter-a-file-with-a-valid-file-type');
 				instance._zeroByteFileText = Liferay.Language.get('the-file-contains-no-data-and-cannot-be-uploaded.-please-use-the-classic-uploader');
 			},
 
@@ -1247,13 +1256,9 @@ AUI.add(
 						var errorMessage;
 
 						var size = item.get('size') || 0;
-						var type = item.get('type') || '';
 
 						if ((maxFileSize !== 0) && (size > maxFileSize)) {
 							errorMessage = invalidSizeText;
-						}
-						else if (!type) {
-							errorMessage = instance._invalidFileType;
 						}
 						else if (size === 0) {
 							errorMessage = instance._zeroByteFileText;

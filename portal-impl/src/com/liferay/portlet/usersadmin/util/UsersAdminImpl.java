@@ -31,6 +31,8 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.SetUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.util.UniqueList;
@@ -47,10 +49,12 @@ import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserGroup;
 import com.liferay.portal.model.UserGroupRole;
 import com.liferay.portal.model.Website;
+import com.liferay.portal.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.security.membershippolicy.OrganizationMembershipPolicyUtil;
 import com.liferay.portal.security.membershippolicy.SiteMembershipPolicyUtil;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.service.AddressLocalServiceUtil;
 import com.liferay.portal.service.AddressServiceUtil;
 import com.liferay.portal.service.EmailAddressLocalServiceUtil;
@@ -73,6 +77,7 @@ import com.liferay.portal.service.permission.OrganizationPermissionUtil;
 import com.liferay.portal.service.permission.RolePermissionUtil;
 import com.liferay.portal.service.permission.UserGroupPermissionUtil;
 import com.liferay.portal.service.permission.UserGroupRolePermissionUtil;
+import com.liferay.portal.service.permission.UserPermissionUtil;
 import com.liferay.portal.service.persistence.UserGroupRolePK;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsUtil;
@@ -214,6 +219,17 @@ public class UsersAdminImpl implements UsersAdmin {
 			return filteredGroupRoles;
 		}
 
+		Group group = GroupLocalServiceUtil.getGroup(groupId);
+
+		if (!GroupPermissionUtil.contains(
+				permissionChecker, group, ActionKeys.ASSIGN_USER_ROLES) &&
+			!OrganizationPermissionUtil.contains(
+				permissionChecker, group.getOrganizationId(),
+				ActionKeys.ASSIGN_USER_ROLES)) {
+
+			return Collections.emptyList();
+		}
+
 		itr = filteredGroupRoles.iterator();
 
 		while (itr.hasNext()) {
@@ -225,30 +241,9 @@ public class UsersAdminImpl implements UsersAdmin {
 					RoleConstants.ORGANIZATION_ADMINISTRATOR) ||
 				roleName.equals(RoleConstants.ORGANIZATION_OWNER) ||
 				roleName.equals(RoleConstants.SITE_ADMINISTRATOR) ||
-				roleName.equals(RoleConstants.SITE_OWNER)) {
-
-				itr.remove();
-			}
-		}
-
-		Group group = GroupLocalServiceUtil.getGroup(groupId);
-
-		if (GroupPermissionUtil.contains(
-				permissionChecker, groupId, ActionKeys.ASSIGN_USER_ROLES) ||
-			OrganizationPermissionUtil.contains(
-				permissionChecker, group.getOrganizationId(),
-				ActionKeys.ASSIGN_USER_ROLES)) {
-
-			return filteredGroupRoles;
-		}
-
-		itr = filteredGroupRoles.iterator();
-
-		while (itr.hasNext()) {
-			Role role = itr.next();
-
-			if (!RolePermissionUtil.contains(
-					permissionChecker, groupId, role.getRoleId(),
+				roleName.equals(RoleConstants.SITE_OWNER) ||
+				!RolePermissionUtil.contains(
+					permissionChecker, groupId, groupRole.getRoleId(),
 					ActionKeys.ASSIGN_MEMBERS)) {
 
 				itr.remove();
@@ -602,6 +597,22 @@ public class UsersAdminImpl implements UsersAdmin {
 	}
 
 	@Override
+	public long[] getGroupIds(PortletRequest portletRequest)
+		throws PortalException, SystemException {
+
+		long[] groupIds = new long[0];
+
+		User user = PortalUtil.getSelectedUser(portletRequest);
+
+		if (user != null) {
+			groupIds = user.getGroupIds();
+		}
+
+		return getRequestPrimaryKeys(
+			portletRequest, groupIds, "addGroupIds", "deleteGroupIds");
+	}
+
+	@Override
 	public OrderByComparator getGroupOrderByComparator(
 		String orderByCol, String orderByType) {
 
@@ -641,6 +652,23 @@ public class UsersAdminImpl implements UsersAdmin {
 		}
 
 		return organizationIds;
+	}
+
+	@Override
+	public long[] getOrganizationIds(PortletRequest portletRequest)
+		throws PortalException, SystemException {
+
+		long[] organizationIds = new long[0];
+
+		User user = PortalUtil.getSelectedUser(portletRequest);
+
+		if (user != null) {
+			organizationIds = user.getOrganizationIds();
+		}
+
+		return getRequestPrimaryKeys(
+			portletRequest, organizationIds, "addOrganizationIds",
+			"deleteOrganizationIds");
 	}
 
 	@Override
@@ -834,6 +862,22 @@ public class UsersAdminImpl implements UsersAdmin {
 	}
 
 	@Override
+	public long[] getRoleIds(PortletRequest portletRequest)
+		throws PortalException, SystemException {
+
+		long[] roleIds = new long[0];
+
+		User user = PortalUtil.getSelectedUser(portletRequest);
+
+		if (user != null) {
+			roleIds = user.getRoleIds();
+		}
+
+		return getRequestPrimaryKeys(
+			portletRequest, roleIds, "addRoleIds", "deleteRoleIds");
+	}
+
+	@Override
 	public OrderByComparator getRoleOrderByComparator(
 		String orderByCol, String orderByType) {
 
@@ -859,6 +903,23 @@ public class UsersAdminImpl implements UsersAdmin {
 		}
 
 		return orderByComparator;
+	}
+
+	@Override
+	public long[] getUserGroupIds(PortletRequest portletRequest)
+		throws PortalException, SystemException {
+
+		long[] userGroupIds = new long[0];
+
+		User user = PortalUtil.getSelectedUser(portletRequest);
+
+		if (user != null) {
+			userGroupIds = user.getUserGroupIds();
+		}
+
+		return getRequestPrimaryKeys(
+			portletRequest, userGroupIds, "addUserGroupIds",
+			"deleteUserGroupIds");
 	}
 
 	@Override
@@ -890,41 +951,27 @@ public class UsersAdminImpl implements UsersAdmin {
 	public List<UserGroupRole> getUserGroupRoles(PortletRequest portletRequest)
 		throws PortalException, SystemException {
 
-		List<UserGroupRole> userGroupRoles = new UniqueList<UserGroupRole>();
-
-		long[] groupRolesRoleIds = StringUtil.split(
-			ParamUtil.getString(portletRequest, "groupRolesRoleIds"), 0L);
-		long[] groupRolesGroupIds = StringUtil.split(
-			ParamUtil.getString(portletRequest, "groupRolesGroupIds"), 0L);
-
-		if (groupRolesGroupIds.length != groupRolesRoleIds.length) {
-			return userGroupRoles;
-		}
-
 		User user = PortalUtil.getSelectedUser(portletRequest);
 
-		long userId = 0;
-
-		if (user != null) {
-			userId = user.getUserId();
+		if (user == null) {
+			return Collections.emptyList();
 		}
 
-		for (int i = 0; i < groupRolesGroupIds.length; i++) {
-			if ((groupRolesGroupIds[i] == 0) || (groupRolesRoleIds[i] == 0)) {
-				continue;
-			}
+		Set<UserGroupRole> userGroupRoles =
+			new HashSet<UserGroupRole>(
+				UserGroupRoleLocalServiceUtil.getUserGroupRoles(
+					user.getUserId()));
 
-			UserGroupRolePK userGroupRolePK = new UserGroupRolePK(
-				userId, groupRolesGroupIds[i], groupRolesRoleIds[i]);
+		userGroupRoles.addAll(
+			getUserGroupRoles(
+				portletRequest, user, "addGroupRolesGroupIds",
+				"addGroupRolesRoleIds"));
+		userGroupRoles.removeAll(
+			getUserGroupRoles(
+				portletRequest, user, "deleteGroupRolesGroupIds",
+				"deleteGroupRolesRoleIds"));
 
-			UserGroupRole userGroupRole =
-				UserGroupRoleLocalServiceUtil.createUserGroupRole(
-					userGroupRolePK);
-
-			userGroupRoles.add(userGroupRole);
-		}
-
-		return userGroupRoles;
+		return new ArrayList<UserGroupRole>(userGroupRoles);
 	}
 
 	@Override
@@ -1083,47 +1130,70 @@ public class UsersAdminImpl implements UsersAdmin {
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 *             #hasUpdateFieldPermission(User, String)}
+	 *             #hasUpdateFieldPermission(PermissionChecker, User, User,
+	 *             String)}
 	 */
 	@Override
 	public boolean hasUpdateEmailAddress(
 			PermissionChecker permissionChecker, User user)
 		throws PortalException, SystemException {
 
-		return hasUpdateFieldPermission(user, "emailAddress");
+		return hasUpdateFieldPermission(
+			permissionChecker, null, user, "emailAddress");
 	}
 
 	@Override
-	public boolean hasUpdateFieldPermission(User user, String field)
+	public boolean hasUpdateFieldPermission(
+			PermissionChecker permissionChecker, User updatingUser,
+			User updatedUser, String field)
 		throws PortalException, SystemException {
 
-		if (user == null) {
+		if (updatedUser == null) {
+			return true;
+		}
+
+		if (updatingUser == null) {
+			long updatingUserId = PrincipalThreadLocal.getUserId();
+
+			if (updatingUserId > 0) {
+				updatingUser = UserLocalServiceUtil.fetchUserById(
+					updatingUserId);
+			}
+		}
+
+		if ((updatingUser != null) && !updatingUser.equals(updatedUser) &&
+			UserPermissionUtil.contains(
+				permissionChecker, updatingUser.getUserId(),
+				ActionKeys.UPDATE_USER)) {
+
 			return true;
 		}
 
 		for (String userType : PropsValues.FIELD_EDITABLE_USER_TYPES) {
-			if (userType.equals("user-with-mx") && user.hasCompanyMx()) {
+			if (userType.equals("user-with-mx") && updatedUser.hasCompanyMx()) {
 				return true;
 			}
 
-			if (userType.equals("user-without-mx") && !user.hasCompanyMx()) {
+			if (userType.equals("user-without-mx") &&
+				!updatedUser.hasCompanyMx()) {
+
 				return true;
 			}
 		}
 
 		for (String roleName : PropsValues.FIELD_EDITABLE_ROLES) {
 			Role role = RoleLocalServiceUtil.fetchRole(
-				user.getCompanyId(), roleName);
+				updatedUser.getCompanyId(), roleName);
 
 			if ((role != null) &&
 				RoleLocalServiceUtil.hasUserRole(
-					user.getUserId(), role.getRoleId())) {
+					updatedUser.getUserId(), role.getRoleId())) {
 
 				return true;
 			}
 		}
 
-		String emailAddress = user.getEmailAddress();
+		String emailAddress = updatedUser.getEmailAddress();
 
 		for (String domainName : PropsValues.FIELD_EDITABLE_DOMAINS) {
 			if (emailAddress.endsWith(domainName)) {
@@ -1135,7 +1205,9 @@ public class UsersAdminImpl implements UsersAdmin {
 			PropsKeys.FIELD_EDITABLE_DOMAINS, new Filter(field));
 
 		for (String domainName : fieldEditableDomainNames) {
-			if (emailAddress.endsWith(domainName)) {
+			if (domainName.equals(StringPool.STAR) ||
+				emailAddress.endsWith(domainName)) {
+
 				return true;
 			}
 		}
@@ -1145,14 +1217,32 @@ public class UsersAdminImpl implements UsersAdmin {
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 *             #hasUpdateFieldPermission(User, String)}
+	 *             #hasUpdateFieldPermission(PermissionChecker, User, User,
+	 *             String)}
 	 */
+	@Override
+	public boolean hasUpdateFieldPermission(User user, String field)
+		throws PortalException, SystemException {
+
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		return hasUpdateFieldPermission(permissionChecker, null, user, field);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #hasUpdateFieldPermission(PermissionChecker, User, User,
+	 *             String)}
+	 */
+	@Deprecated
 	@Override
 	public boolean hasUpdateScreenName(
 			PermissionChecker permissionChecker, User user)
 		throws PortalException, SystemException {
 
-		return hasUpdateFieldPermission(user, "screenName");
+		return hasUpdateFieldPermission(
+			permissionChecker, null, user, "screenName");
 	}
 
 	@Override
@@ -1389,6 +1479,67 @@ public class UsersAdminImpl implements UsersAdmin {
 				WebsiteServiceUtil.deleteWebsite(website.getWebsiteId());
 			}
 		}
+	}
+
+	protected long[] getRequestPrimaryKeys(
+		PortletRequest portletRequest, long[] currentPKs, String addParam,
+		String deleteParam) {
+
+		Set<Long> primaryKeys = SetUtil.fromArray(currentPKs);
+
+		long[] addPrimaryKeys = StringUtil.split(
+			ParamUtil.getString(portletRequest, addParam), 0L);
+		long[] deletePrimaryKeys = StringUtil.split(
+			ParamUtil.getString(portletRequest, deleteParam), 0L);
+
+		for (long addPrimaryKey : addPrimaryKeys) {
+			primaryKeys.add(addPrimaryKey);
+		}
+
+		for (long deletePrimaryKey : deletePrimaryKeys) {
+			primaryKeys.remove(deletePrimaryKey);
+		}
+
+		return ArrayUtil.toLongArray(primaryKeys);
+	}
+
+	protected List<UserGroupRole> getUserGroupRoles(
+		PortletRequest portletRequest, User user, String groupIdsParam,
+		String roleIdsParam) {
+
+		List<UserGroupRole> userGroupRoles = new UniqueList<UserGroupRole>();
+
+		long[] groupRolesGroupIds = StringUtil.split(
+			ParamUtil.getString(portletRequest, groupIdsParam), 0L);
+		long[] groupRolesRoleIds = StringUtil.split(
+			ParamUtil.getString(portletRequest, roleIdsParam), 0L);
+
+		if (groupRolesGroupIds.length != groupRolesRoleIds.length) {
+			return userGroupRoles;
+		}
+
+		long userId = 0;
+
+		if (user != null) {
+			userId = user.getUserId();
+		}
+
+		for (int i = 0; i < groupRolesGroupIds.length; i++) {
+			if ((groupRolesGroupIds[i] == 0) || (groupRolesRoleIds[i] == 0)) {
+				continue;
+			}
+
+			UserGroupRolePK userGroupRolePK = new UserGroupRolePK(
+				userId, groupRolesGroupIds[i], groupRolesRoleIds[i]);
+
+			UserGroupRole userGroupRole =
+				UserGroupRoleLocalServiceUtil.createUserGroupRole(
+					userGroupRolePK);
+
+			userGroupRoles.add(userGroupRole);
+		}
+
+		return userGroupRoles;
 	}
 
 }

@@ -169,6 +169,19 @@ public class LayoutSetPrototypeLocalServiceImpl
 	}
 
 	@Override
+	public void deleteLayoutSetPrototypes()
+		throws PortalException, SystemException {
+
+		List<LayoutSetPrototype> layoutSetPrototypes =
+			layoutSetPrototypePersistence.findAll();
+
+		for (LayoutSetPrototype layoutSetPrototype : layoutSetPrototypes) {
+			layoutSetPrototypeLocalService.deleteLayoutSetPrototype(
+				layoutSetPrototype);
+		}
+	}
+
+	@Override
 	public void deleteNondefaultLayoutSetPrototypes(long companyId)
 		throws PortalException, SystemException {
 
@@ -267,15 +280,6 @@ public class LayoutSetPrototypeLocalServiceImpl
 		layoutSetPrototype.setSettingsProperties(settingsProperties);
 
 		layoutSetPrototypePersistence.update(layoutSetPrototype);
-
-		// Group
-
-		Group group = groupLocalService.getLayoutSetPrototypeGroup(
-			layoutSetPrototype.getCompanyId(), layoutSetPrototypeId);
-
-		group.setName(layoutSetPrototype.getName(LocaleUtil.getDefault()));
-
-		groupPersistence.update(group);
 
 		return layoutSetPrototype;
 	}

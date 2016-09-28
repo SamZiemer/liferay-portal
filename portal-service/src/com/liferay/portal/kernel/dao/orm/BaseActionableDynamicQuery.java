@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.service.BaseLocalService;
 
 import java.lang.reflect.InvocationTargetException;
@@ -137,6 +138,9 @@ public abstract class BaseActionableDynamicQuery
 	protected void addCriteria(DynamicQuery dynamicQuery) {
 	}
 
+	protected void addOrderCriteria(DynamicQuery dynamicQuery) {
+	}
+
 	protected void addDefaultCriteria(DynamicQuery dynamicQuery) {
 		if (_companyId > 0) {
 			Property property = PropertyFactoryUtil.forName("companyId");
@@ -227,8 +231,15 @@ public abstract class BaseActionableDynamicQuery
 			return;
 		}
 
-		SearchEngineUtil.updateDocuments(
-			_searchEngineId, _companyId, new ArrayList<Document>(_documents));
+		if (Validator.isNull(_searchEngineId)) {
+			SearchEngineUtil.updateDocuments(
+				_companyId, new ArrayList<Document>(_documents));
+		}
+		else {
+			SearchEngineUtil.updateDocuments(
+				_searchEngineId, _companyId,
+				new ArrayList<Document>(_documents));
+		}
 
 		_documents.clear();
 	}
@@ -262,6 +273,8 @@ public abstract class BaseActionableDynamicQuery
 		addDefaultCriteria(dynamicQuery);
 
 		addCriteria(dynamicQuery);
+
+		addOrderCriteria(dynamicQuery);
 
 		List<Object[]> results = (List<Object[]>)executeDynamicQuery(
 			_dynamicQueryMethod, dynamicQuery);
@@ -301,6 +314,8 @@ public abstract class BaseActionableDynamicQuery
 		addDefaultCriteria(dynamicQuery);
 
 		addCriteria(dynamicQuery);
+
+		addOrderCriteria(dynamicQuery);
 
 		List<Object> objects = (List<Object>)executeDynamicQuery(
 			_dynamicQueryMethod, dynamicQuery);

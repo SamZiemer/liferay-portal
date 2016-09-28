@@ -546,11 +546,28 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 			mountPoint, parentFolderId, name, description, serviceContext);
 	}
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #deleteAllByGroup(long)}
+	*/
 	@Override
 	public void deleteAll(long groupId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_dlFolderLocalService.deleteAll(groupId);
+	}
+
+	@Override
+	public void deleteAllByGroup(long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_dlFolderLocalService.deleteAllByGroup(groupId);
+	}
+
+	@Override
+	public void deleteAllByRepository(long repositoryId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_dlFolderLocalService.deleteAllByRepository(repositoryId);
 	}
 
 	@Override
@@ -889,8 +906,18 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 
 	@Override
 	public void rebuildTree(long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		_dlFolderLocalService.rebuildTree(companyId);
+	}
+
+	@Override
+	public void rebuildTree(long companyId, long parentFolderId,
+		java.lang.String parentTreePath, boolean reindex)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_dlFolderLocalService.rebuildTree(companyId, parentFolderId,
+			parentTreePath, reindex);
 	}
 
 	@Override
@@ -952,9 +979,6 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 			serviceContext);
 	}
 
-	/**
-	* @deprecated As of 6.2.0
-	*/
 	@Override
 	public void updateLastPostDate(long folderId, java.util.Date lastPostDate)
 		throws com.liferay.portal.kernel.exception.PortalException,

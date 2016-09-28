@@ -15,8 +15,14 @@
 package com.liferay.taglib.ui;
 
 import com.liferay.portal.kernel.editor.EditorUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Portlet;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.taglib.util.IncludeTag;
 
 import java.util.Map;
@@ -125,6 +131,13 @@ public class InputEditorTag extends IncludeTag {
 
 	@Override
 	protected void setAttributes(HttpServletRequest request) {
+		if (_contentsLanguageId == null) {
+			ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+			_contentsLanguageId = themeDisplay.getLanguageId();
+		}
+
 		String cssClasses = "portlet ";
 
 		Portlet portlet = (Portlet)request.getAttribute(WebKeys.RENDER_PORTLET);
@@ -135,7 +148,25 @@ public class InputEditorTag extends IncludeTag {
 
 		String editorImpl = EditorUtil.getEditorValue(request, _editorImpl);
 
-		_page = "/html/js/editor/" + editorImpl + ".jsp";
+		String ckEditorVersion = PropsUtil.get(
+			PropsKeys.EDITOR_CKEDITOR_VERSION);
+
+		if (Validator.equals(editorImpl, "ckeditor") &&
+			Validator.equals(ckEditorVersion, "latest")) {
+
+			StringBundler sb = new StringBundler(5);
+
+			sb.append("/html/js/editor/");
+			sb.append(editorImpl);
+			sb.append(StringPool.UNDERLINE);
+			sb.append(ckEditorVersion);
+			sb.append(".jsp");
+
+			_page = sb.toString();
+		}
+		else {
+			_page = "/html/js/editor/" + editorImpl + ".jsp";
+		}
 
 		request.setAttribute(
 			"liferay-ui:input-editor:configParams", _configParams);
@@ -146,6 +177,17 @@ public class InputEditorTag extends IncludeTag {
 		request.setAttribute("liferay-ui:input-editor:editorImpl", editorImpl);
 		request.setAttribute(
 			"liferay-ui:input-editor:fileBrowserParams", _fileBrowserParams);
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		long groupId = themeDisplay.getDoAsGroupId();
+
+		if (groupId == 0) {
+			groupId = themeDisplay.getScopeGroupId();
+		}
+
+		request.setAttribute("liferay-ui:input-editor:groupId", groupId);
 		request.setAttribute("liferay-ui:input-editor:height", _height);
 		request.setAttribute("liferay-ui:input-editor:initMethod", _initMethod);
 		request.setAttribute(

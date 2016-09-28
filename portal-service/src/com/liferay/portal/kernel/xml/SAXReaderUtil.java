@@ -15,6 +15,9 @@
 package com.liferay.portal.kernel.xml;
 
 import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 
 import java.io.File;
 import java.io.InputStream;
@@ -118,7 +121,26 @@ public class SAXReaderUtil {
 	public static SAXReader getSAXReader() {
 		PortalRuntimePermission.checkGetBeanProperty(SAXReaderUtil.class);
 
+		if (!_XML_SECURITY_ENABLED) {
+			return UnsecureSAXReaderUtil.getSAXReader();
+		}
+
 		return _saxReader;
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, renamed to {@link #getSAXReader}
+	 */
+	public static SAXReader getSecureSAXReader() {
+		return getSAXReader();
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, renamed to {@link
+	 * UnsecureSAXReaderUtil#getSAXReader()}
+	 */
+	public static SAXReader getUnsecureSAXReader() {
+		return UnsecureSAXReaderUtil.getSAXReader();
 	}
 
 	public static Document read(File file) throws DocumentException {
@@ -216,6 +238,27 @@ public class SAXReaderUtil {
 
 		_saxReader = saxReader;
 	}
+
+	/**
+	 * @deprecated As of 6.2.0, renamed to {@link #setSAXReader}
+	 */
+	public void setSecureSAXReader(SAXReader saxReader) {
+		setSAXReader(saxReader);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, renamed to {@link
+	 * UnsecureSAXReaderUtil#setSAXReader()}
+	 */
+	public void setUnsecureSAXReader(SAXReader unsecureSAXReader) {
+		UnsecureSAXReaderUtil unsecureSAXReaderUtil =
+			new UnsecureSAXReaderUtil();
+
+		unsecureSAXReaderUtil.setSAXReader(unsecureSAXReader);
+	}
+
+	private static final boolean _XML_SECURITY_ENABLED = GetterUtil.getBoolean(
+		PropsUtil.get(PropsKeys.XML_SECURITY_ENABLED));
 
 	private static SAXReader _saxReader;
 

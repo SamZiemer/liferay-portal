@@ -50,7 +50,6 @@ import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -98,7 +97,6 @@ import java.util.Locale;
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletConfig;
-import javax.portlet.PortletRequest;
 import javax.portlet.PortletSession;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
@@ -274,11 +272,31 @@ public class EditUserAction extends PortletAction {
 					SessionErrors.add(actionRequest, e.getClass(), e);
 				}
 
+				String password1 = actionRequest.getParameter("password1");
+				String password2 = actionRequest.getParameter("password2");
+
+				boolean submittedPassword = false;
+
+				if (!Validator.isBlank(password1) ||
+					!Validator.isBlank(password2)) {
+
+					submittedPassword = true;
+				}
+
 				if (e instanceof CompanyMaxUsersException ||
-					e instanceof RequiredUserException) {
+					e instanceof RequiredUserException ||
+					submittedPassword) {
 
 					String redirect = PortalUtil.escapeRedirect(
 						ParamUtil.getString(actionRequest, "redirect"));
+
+					if (submittedPassword) {
+						User user = PortalUtil.getSelectedUser(actionRequest);
+
+						redirect = HttpUtil.setParameter(
+							redirect, actionResponse.getNamespace() + "p_u_i_d",
+							user.getUserId());
+					}
 
 					if (Validator.isNotNull(redirect)) {
 						actionResponse.sendRedirect(redirect);
@@ -367,16 +385,13 @@ public class EditUserAction extends PortletAction {
 		String twitterSn = ParamUtil.getString(actionRequest, "twitterSn");
 		String ymSn = ParamUtil.getString(actionRequest, "ymSn");
 		String jobTitle = ParamUtil.getString(actionRequest, "jobTitle");
-		long[] groupIds = getLongArray(
-			actionRequest, "groupsSearchContainerPrimaryKeys");
-		long[] organizationIds = getLongArray(
-			actionRequest, "organizationsSearchContainerPrimaryKeys");
-		long[] roleIds = getLongArray(
-			actionRequest, "rolesSearchContainerPrimaryKeys");
+		long[] groupIds = UsersAdminUtil.getGroupIds(actionRequest);
+		long[] organizationIds = UsersAdminUtil.getOrganizationIds(
+			actionRequest);
+		long[] roleIds = UsersAdminUtil.getRoleIds(actionRequest);
 		List<UserGroupRole> userGroupRoles = UsersAdminUtil.getUserGroupRoles(
 			actionRequest);
-		long[] userGroupIds = getLongArray(
-			actionRequest, "userGroupsSearchContainerPrimaryKeys");
+		long[] userGroupIds = UsersAdminUtil.getUserGroupIds(actionRequest);
 		List<Address> addresses = UsersAdminUtil.getAddresses(actionRequest);
 		List<EmailAddress> emailAddresses = UsersAdminUtil.getEmailAddresses(
 			actionRequest);
@@ -509,16 +524,6 @@ public class EditUserAction extends PortletAction {
 		return getAnnouncementsDeliveries(actionRequest);
 	}
 
-	protected long[] getLongArray(PortletRequest portletRequest, String name) {
-		String value = portletRequest.getParameter(name);
-
-		if (value == null) {
-			return null;
-		}
-
-		return StringUtil.split(GetterUtil.getString(value), 0L);
-	}
-
 	protected User updateLockout(ActionRequest actionRequest) throws Exception {
 		User user = PortalUtil.getSelectedUser(actionRequest);
 
@@ -617,23 +622,22 @@ public class EditUserAction extends PortletAction {
 		String ymSn = BeanParamUtil.getString(contact, actionRequest, "ymSn");
 		String jobTitle = BeanParamUtil.getString(
 			user, actionRequest, "jobTitle");
-		long[] groupIds = getLongArray(
-			actionRequest, "groupsSearchContainerPrimaryKeys");
-		long[] organizationIds = getLongArray(
-			actionRequest, "organizationsSearchContainerPrimaryKeys");
-		long[] roleIds = getLongArray(
-			actionRequest, "rolesSearchContainerPrimaryKeys");
+		long[] groupIds = UsersAdminUtil.getGroupIds(actionRequest);
+		long[] organizationIds = UsersAdminUtil.getOrganizationIds(
+			actionRequest);
+		long[] roleIds = UsersAdminUtil.getRoleIds(actionRequest);
 
 		List<UserGroupRole> userGroupRoles = null;
 
-		if ((actionRequest.getParameter("groupRolesGroupIds") != null) ||
-			(actionRequest.getParameter("groupRolesRoleIds") != null)) {
+		if ((actionRequest.getParameter("addGroupRolesGroupIds") != null) ||
+			(actionRequest.getParameter("addGroupRolesRoleIds") != null) ||
+			(actionRequest.getParameter("deleteGroupRolesGroupIds") != null) ||
+			(actionRequest.getParameter("deleteGroupRolesRoleIds") != null)) {
 
 			userGroupRoles = UsersAdminUtil.getUserGroupRoles(actionRequest);
 		}
 
-		long[] userGroupIds = getLongArray(
-			actionRequest, "userGroupsSearchContainerPrimaryKeys");
+		long[] userGroupIds = UsersAdminUtil.getUserGroupIds(actionRequest);
 		List<Address> addresses = UsersAdminUtil.getAddresses(
 			actionRequest, user.getAddresses());
 		List<EmailAddress> emailAddresses = UsersAdminUtil.getEmailAddresses(

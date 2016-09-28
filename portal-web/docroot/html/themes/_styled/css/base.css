@@ -1,4 +1,5 @@
 @import "compass";
+@import "mixins";
 
 /* ---------- Logo ---------- */
 
@@ -8,45 +9,75 @@
 	vertical-align: middle;
 }
 
-/* ---------- HTML editor ---------- */
+/* ---------- Table styles ---------- */
 
-body.html-editor {
-	background: #FFF;
-	color: #000;
-}
-
-.html-editor.portlet-message-boards {
-	@include hyphenation;
-	word-wrap: break-word;
-
-	blockquote {
-		background: #EEF0F2 url(../images/message_boards/quoteleft.png) no-repeat 5px 5px;
-		border: 1px solid #777;
+@include respond-to(phone, tablet) {
+	.responsive-table-horizontal {
+		display: block;
 		position: relative;
-		padding: 5px 45px;
+		width: 100%;
 
 		&:after {
-			background: url(../images/message_boards/quoteright.png) no-repeat 50%;
-			bottom: 5px;
+			clear: both;
 			content: '';
 			display: block;
-			height: 24px;
-			position: absolute;
-			right: 5px;
-			width: 31px;
-			z-index: 999;
+			font-size: 0;
+			height: 0;
+			visibility: hidden;
 		}
 
-		cite {
+		tbody {
 			display: block;
-			font-weight: bold;
+			overflow-x: auto;
+			position: relative;
+			white-space: nowrap;
+			width: auto;
+
+			tr {
+				display: inline-block;
+				vertical-align: top;
+
+				td {
+					display: block;
+					margin-bottom: 20px;
+
+					&:first-child {
+						text-align: left;
+					}
+				}
+			}
+		}
+
+		thead {
+			display: block;
+			float: left;
+			margin-right: 10px;
+
+			&:after {
+				clear: both;
+				content: "";
+				display: block;
+				font-size: 0;
+				height: 0;
+				visibility: hidden;
+			}
+
+			th {
+				display: block;
+				margin-bottom: 20px;
+				text-align: right;
+
+				&:first-child {
+					text-align: right;
+				}
+			}
 		}
 	}
 
-	pre {
-		background: #F9F9F9;
-		border: 1px solid #777;
-		padding: 0.5em;
+	.ie9 {
+		.responsive-table-horizontal thead {
+			float: none;
+		}
 	}
 }
 
@@ -94,6 +125,10 @@ body.html-editor {
 }
 
 /* ---------- Miscellaneous ---------- */
+
+span.alert {
+	display: inline-block;
+}
 
 #skip-to-content {
 	clip: rect(0 0 0 0);

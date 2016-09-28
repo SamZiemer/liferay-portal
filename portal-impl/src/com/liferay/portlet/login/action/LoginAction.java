@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Layout;
@@ -193,8 +194,11 @@ public class LoginAction extends PortletAction {
 		boolean rememberMe = ParamUtil.getBoolean(actionRequest, "rememberMe");
 
 		if (!themeDisplay.isSignedIn()) {
+			String portletId = PortalUtil.getPortletId(actionRequest);
+
 			PortletPreferences portletPreferences =
-				PortletPreferencesFactoryUtil.getPortletSetup(actionRequest);
+				PortletPreferencesFactoryUtil.getStrictPortletSetup(
+					themeDisplay.getLayout(), portletId);
 
 			String authType = portletPreferences.getValue("authType", null);
 
@@ -207,7 +211,9 @@ public class LoginAction extends PortletAction {
 		if (Validator.isNotNull(redirect)) {
 			redirect = PortalUtil.escapeRedirect(redirect);
 
-			if (!redirect.startsWith(Http.HTTP)) {
+			if (Validator.isNotNull(redirect) &&
+				!redirect.startsWith(Http.HTTP)) {
+
 				redirect = getCompleteRedirectURL(request, redirect);
 			}
 		}
@@ -217,7 +223,8 @@ public class LoginAction extends PortletAction {
 		if (PropsValues.PORTAL_JAAS_ENABLE) {
 			if (Validator.isNotNull(redirect)) {
 				redirect = mainPath.concat(
-					"/portal/protected?redirect=").concat(redirect);
+					"/portal/protected?redirect=").concat(
+						HttpUtil.encodeURL(redirect));
 			}
 			else {
 				redirect = mainPath.concat("/portal/protected");
@@ -254,6 +261,18 @@ public class LoginAction extends PortletAction {
 			PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter("saveLastPath", Boolean.FALSE.toString());
+
+		String redirect = ParamUtil.getString(actionRequest, "redirect");
+
+		if (Validator.isNotNull(redirect)) {
+			portletURL.setParameter("redirect", redirect);
+		}
+
+		String login = ParamUtil.getString(actionRequest, "login");
+
+		if (Validator.isNotNull(login)) {
+			portletURL.setParameter("login", login);
+		}
 
 		portletURL.setWindowState(WindowState.MAXIMIZED);
 

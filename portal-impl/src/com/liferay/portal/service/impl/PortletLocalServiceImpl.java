@@ -46,7 +46,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.QName;
-import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.model.CompanyConstants;
 import com.liferay.portal.model.EventDefinition;
 import com.liferay.portal.model.ModelHintsUtil;
@@ -82,9 +82,9 @@ import com.liferay.portlet.PortletContextFactory;
 import com.liferay.portlet.PortletInstanceFactoryUtil;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.PortletQNameUtil;
+import com.liferay.portlet.UndeployedPortlet;
 import com.liferay.portlet.expando.model.CustomAttributesDisplay;
 import com.liferay.util.ContentUtil;
-import com.liferay.util.bridges.mvc.MVCPortlet;
 
 import java.net.URL;
 
@@ -502,19 +502,13 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 			portlet = new PortletImpl(CompanyConstants.SYSTEM, portletId);
 
-			portlet.setTimestamp(System.currentTimeMillis());
-
 			PortletApp portletApp = _getPortletApp(StringPool.BLANK);
 
 			portlet.setPortletApp(portletApp);
 
 			portlet.setPortletName(portletId);
 			portlet.setDisplayName(portletId);
-			portlet.setPortletClass(MVCPortlet.class.getName());
-
-			Map<String, String> initParams = portlet.getInitParams();
-
-			initParams.put("view-jsp", "/html/portal/undeployed_portlet.jsp");
+			portlet.setPortletClass(UndeployedPortlet.class.getName());
 
 			Set<String> mimeTypePortletModes = new HashSet<String>();
 
@@ -706,10 +700,10 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 					pluginPackage));
 
 			Set<String> liferayPortletIds = _readLiferayPortletXML(
-				xmls[2], portletsPool);
+				servletContext, xmls[2], portletsPool);
 
 			liferayPortletIds.addAll(
-				_readLiferayPortletXML(xmls[3], portletsPool));
+				_readLiferayPortletXML(servletContext, xmls[3], portletsPool));
 
 			// Check for missing entries in liferay-portlet.xml
 
@@ -791,7 +785,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 					servletURLPatterns, pluginPackage));
 
 			Set<String> liferayPortletIds = _readLiferayPortletXML(
-				servletContextName, xmls[2], portletsPool);
+				servletContextName, servletContext, xmls[2], portletsPool);
 
 			// Check for missing entries in liferay-portlet.xml
 
@@ -1130,7 +1124,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 				"com/liferay/portal/deploy/dependencies/liferay-display.xml");
 		}
 
-		Document document = SAXReaderUtil.read(xml, true);
+		Document document = UnsecureSAXReaderUtil.read(xml, true);
 
 		Element rootElement = document.getRootElement();
 
@@ -1179,16 +1173,18 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 	}
 
 	private Set<String> _readLiferayPortletXML(
-			String xml, Map<String, Portlet> portletsPool)
+			ServletContext servletContext, String xml,
+			Map<String, Portlet> portletsPool)
 		throws Exception {
 
-		return _readLiferayPortletXML(StringPool.BLANK, xml, portletsPool);
+		return _readLiferayPortletXML(
+			StringPool.BLANK, servletContext, xml, portletsPool);
 	}
 
 	private void _readLiferayPortletXML(
-		String servletContextName, Map<String, Portlet> portletsPool,
-		Set<String> liferayPortletIds, Map<String, String> roleMappers,
-		Element portletElement) {
+		String servletContextName, ServletContext servletContext,
+		Map<String, Portlet> portletsPool, Set<String> liferayPortletIds,
+		Map<String, String> roleMappers, Element portletElement) {
 
 		String portletId = portletElement.elementText("portlet-name");
 
@@ -1646,10 +1642,16 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 		portletModel.setAutopropagatedParameters(autopropagatedParameters);
 
+		boolean defaultRequiresNamespacedParameters = GetterUtil.getBoolean(
+			servletContext.getInitParameter(
+				"com.liferay.portlet.requires-namespaced-parameters"),
+			portletModel.isRequiresNamespacedParameters());
+
 		portletModel.setRequiresNamespacedParameters(
 			GetterUtil.getBoolean(
 				portletElement.elementText("requires-namespaced-parameters"),
-				portletModel.isRequiresNamespacedParameters()));
+				defaultRequiresNamespacedParameters));
+
 		portletModel.setActionTimeout(
 			GetterUtil.getInteger(
 				portletElement.elementText("action-timeout"),
@@ -1788,8 +1790,8 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 	}
 
 	private Set<String> _readLiferayPortletXML(
-			String servletContextName, String xml,
-			Map<String, Portlet> portletsPool)
+			String servletContextName, ServletContext servletContext,
+			String xml, Map<String, Portlet> portletsPool)
 		throws Exception {
 
 		Set<String> liferayPortletIds = new HashSet<String>();
@@ -1798,7 +1800,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			return liferayPortletIds;
 		}
 
-		Document document = SAXReaderUtil.read(xml, true);
+		Document document = UnsecureSAXReaderUtil.read(xml, true);
 
 		Element rootElement = document.getRootElement();
 
@@ -1833,8 +1835,8 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 		for (Element portletElement : rootElement.elements("portlet")) {
 			_readLiferayPortletXML(
-				servletContextName, portletsPool, liferayPortletIds,
-				roleMappers, portletElement);
+				servletContextName, servletContext, portletsPool,
+				liferayPortletIds, roleMappers, portletElement);
 		}
 
 		return liferayPortletIds;
@@ -1854,7 +1856,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 	private void _readPortletXML(
 			String servletContextName, Map<String, Portlet> portletsPool,
 			PluginPackage pluginPackage, PortletApp portletApp,
-			Set<String> portletIds, long timestamp, Element portletElement)
+			Set<String> portletIds, Element portletElement)
 		throws PortletIdException {
 
 		String portletName = portletElement.elementText("portlet-name");
@@ -1890,8 +1892,6 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 			portletsPool.put(portletId, portletModel);
 		}
-
-		portletModel.setTimestamp(timestamp);
 
 		portletModel.setPluginPackage(pluginPackage);
 		portletModel.setPortletApp(portletApp);
@@ -2128,7 +2128,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			if (publicRenderParameter == null) {
 				_log.error(
 					"Supported public render parameter references " +
-						"unnknown identifier " + identifier);
+						"unknown identifier " + identifier);
 
 				continue;
 			}
@@ -2151,7 +2151,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			return portletIds;
 		}
 
-		Document document = SAXReaderUtil.read(
+		Document document = UnsecureSAXReaderUtil.read(
 			xml, PropsValues.PORTLET_XML_VALIDATE);
 
 		Element rootElement = document.getRootElement();
@@ -2247,12 +2247,10 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			}
 		}
 
-		long timestamp = ServletContextUtil.getLastModified(servletContext);
-
 		for (Element portletElement : rootElement.elements("portlet")) {
 			_readPortletXML(
 				servletContextName, portletsPool, pluginPackage, portletApp,
-				portletIds, timestamp, portletElement);
+				portletIds, portletElement);
 		}
 
 		for (Element filterElement : rootElement.elements("filter")) {
@@ -2298,7 +2296,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 				if (portletFilter == null) {
 					_log.error(
-						"Filter mapping references unnknown filter name " +
+						"Filter mapping references unknown filter name " +
 							filterName);
 
 					continue;
@@ -2310,7 +2308,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 				if (portletModels.size() == 0) {
 					_log.error(
 						"Filter mapping with filter name " + filterName +
-							" references unnknown portlet name " + portletName);
+							" references unknown portlet name " + portletName);
 				}
 
 				for (Portlet portletModel : portletModels) {
@@ -2340,7 +2338,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			return servletURLPatterns;
 		}
 
-		Document document = SAXReaderUtil.read(xml);
+		Document document = UnsecureSAXReaderUtil.read(xml);
 
 		Element rootElement = document.getRootElement();
 

@@ -23,7 +23,9 @@ String redirect = ParamUtil.getString(request, "redirect");
 
 JournalArticle article = null;
 
-String type = ParamUtil.getString(request, "type");
+String defaultType = "-1";
+
+String type = ParamUtil.getString(request, "type", defaultType);
 
 try {
 	if (Validator.isNotNull(articleId)) {
@@ -32,10 +34,17 @@ try {
 		article = article.toEscapedModel();
 
 		articleGroupId = article.getGroupId();
-		type = article.getType();
+
+		if (type.equals(defaultType)) {
+			type = article.getType();
+		}
+	}
+	else if (type.equals(defaultType)) {
+		type = StringPool.BLANK;
 	}
 }
 catch (NoSuchArticleException nsae) {
+	type = StringPool.BLANK;
 }
 %>
 
@@ -55,6 +64,22 @@ catch (NoSuchArticleException nsae) {
 
 		<span class="displaying-article-id-holder <%= article == null ? "hide" : StringPool.BLANK %>">
 			<liferay-ui:message key="displaying-content" />: <span class="displaying-article-id"><%= article != null ? article.getTitle(locale) : StringPool.BLANK %></span>
+
+			<%
+			String articleGroupDescriptiveNameWithParentheses = StringPool.BLANK;
+			%>
+
+			<c:if test="<%= (article != null) && (article.getGroupId() != themeDisplay.getScopeGroupId()) %>">
+
+				<%
+				Group articleGroup = GroupLocalServiceUtil.getGroup(article.getGroupId());
+
+				articleGroupDescriptiveNameWithParentheses = StringPool.OPEN_PARENTHESIS + articleGroup.getDescriptiveName(locale) + StringPool.CLOSE_PARENTHESIS;
+				%>
+
+			</c:if>
+
+			<span id="display-article-group"><%= articleGroupDescriptiveNameWithParentheses %></span>
 		</span>
 	</div>
 
@@ -111,7 +136,7 @@ catch (NoSuchArticleException nsae) {
 						</liferay-portlet:renderURL>
 
 						<liferay-util:buffer var="linkContent">
-							<aui:a href="<%= editTemplateURL %>" id="tableIteratorObjName"><%= tableIteratorObj.getName() %></aui:a>
+							<aui:a href="<%= editTemplateURL %>" id="tableIteratorObjName"><%= HtmlUtil.escape(tableIteratorObj.getName(locale)) %></aui:a>
 						</liferay-util:buffer>
 
 						<aui:input checked="<%= templateChecked %>" label="<%= linkContent %>" name="overideTemplateId" onChange='<%= "if (this.checked) {document." + renderResponse.getNamespace() + "fm." + renderResponse.getNamespace() + "ddmTemplateKey.value = this.value;}" %>' type="radio" value="<%= tableIteratorObj.getTemplateKey() %>" />
@@ -119,7 +144,7 @@ catch (NoSuchArticleException nsae) {
 						<c:if test="<%= tableIteratorObj.isSmallImage() %>">
 							<br />
 
-							<img border="0" hspace="0" src="<%= Validator.isNotNull(tableIteratorObj.getSmallImageURL()) ? tableIteratorObj.getSmallImageURL() : themeDisplay.getPathImage() + "/journal/template?img_id=" + tableIteratorObj.getSmallImageId() + "&t=" + WebServerServletTokenUtil.getToken(tableIteratorObj.getSmallImageId()) %>" vspace="0" />
+							<img alt="" border="0" hspace="0" src="<%= Validator.isNotNull(tableIteratorObj.getSmallImageURL()) ? HtmlUtil.escapeHREF(tableIteratorObj.getSmallImageURL()) : themeDisplay.getPathImage() + "/journal/template?img_id=" + tableIteratorObj.getSmallImageId() + "&t=" + WebServerServletTokenUtil.getToken(tableIteratorObj.getSmallImageId()) %>" vspace="0" />
 						</c:if>
 					</liferay-ui:table-iterator>
 
@@ -143,12 +168,15 @@ catch (NoSuchArticleException nsae) {
 
 	ArticleSearch searchContainer = new ArticleSearch(dynamicRenderRequest, configurationRenderURL);
 
+	searchContainer.setEmptyResultsMessage("no-web-content-was-found-that-matched-the-specified-filters");
+
 	List<String> headerNames = searchContainer.getHeaderNames();
 
 	headerNames.clear();
 
 	headerNames.add("id");
 	headerNames.add("title");
+	headerNames.add("status");
 	headerNames.add("modified-date");
 	headerNames.add("display-date");
 	headerNames.add("author");
@@ -170,6 +198,16 @@ catch (NoSuchArticleException nsae) {
 	searchTerms.setFolderIds(new ArrayList<Long>());
 	searchTerms.setVersion(-1);
 
+	boolean showNonindexable = true;
+
+	String searchGroupDescriptiveName = StringPool.BLANK;
+
+	if (searchTerms.getGroupId() != themeDisplay.getScopeGroupId()) {
+		Group searchGroup = GroupLocalServiceUtil.getGroup(searchTerms.getGroupId());
+
+		searchGroupDescriptiveName = searchGroup.getDescriptiveName(locale);
+	}
+
 	List<JournalArticle> results = null;
 	int total = 0;
 	%>
@@ -184,12 +222,14 @@ catch (NoSuchArticleException nsae) {
 
 		ResultRow row = new ResultRow(null, HtmlUtil.escapeAttribute(curArticle.getArticleId()) + EditArticleAction.VERSION_SEPARATOR + curArticle.getVersion(), i);
 
-		StringBundler sb = new StringBundler(9);
+		StringBundler sb = new StringBundler(11);
 
 		sb.append("javascript:");
 		sb.append(renderResponse.getNamespace());
 		sb.append("selectArticle('");
-		sb.append(HtmlUtil.escapeJS(String.valueOf(curArticle.getGroupId())));
+		sb.append(String.valueOf(curArticle.getGroupId()));
+		sb.append("','");
+		sb.append(HtmlUtil.escapeJS(searchGroupDescriptiveName));
 		sb.append("','");
 		sb.append(HtmlUtil.escapeJS(curArticle.getArticleId()));
 		sb.append("','");
@@ -205,6 +245,10 @@ catch (NoSuchArticleException nsae) {
 		// Title
 
 		row.addText(HtmlUtil.escape(curArticle.getTitle(locale)), rowHREF);
+
+		// Status
+
+		row.addStatus(curArticle.getStatus(), curArticle.getStatusByUserId(), curArticle.getStatusDate());
 
 		// Modified date
 
@@ -235,9 +279,7 @@ catch (NoSuchArticleException nsae) {
 	<aui:input name="preferences--ddmTemplateKey--" type="hidden" value="<%= ddmTemplateKey %>" />
 
 	<aui:fieldset>
-		<aui:field-wrapper label="portlet-id">
-			<liferay-ui:input-resource url="<%= portletResource %>" />
-		</aui:field-wrapper>
+		<aui:input name="portletId" type="resource" value="<%= portletResource %>" />
 	</aui:fieldset>
 
 	<aui:fieldset>
@@ -289,7 +331,7 @@ catch (NoSuchArticleException nsae) {
 	Liferay.provide(
 		window,
 		'<portlet:namespace />selectArticle',
-		function(articleGroupId, articleId, articleTitle) {
+		function(articleGroupId, articleGroupDescriptiveName, articleId, articleTitle) {
 			var A = AUI();
 
 			document.<portlet:namespace />fm.<portlet:namespace />groupId.value = articleGroupId;
@@ -301,8 +343,18 @@ catch (NoSuchArticleException nsae) {
 
 			var displayArticleId = A.one('.displaying-article-id');
 
-			displayArticleId.set('innerHTML', articleTitle + ' (<%= UnicodeLanguageUtil.get(pageContext, "modified") %>)');
+			displayArticleId.set('innerHTML', Liferay.Util.escapeHTML(articleTitle) + ' (<%= UnicodeLanguageUtil.get(pageContext, "modified") %>)');
 			displayArticleId.addClass('modified');
+
+			var articleGroupDescriptiveNameWithParentheses = '';
+
+			if (articleGroupDescriptiveName.length) {
+				articleGroupDescriptiveNameWithParentheses = '(' + articleGroupDescriptiveName + ')';
+			}
+
+			var displayArticleGroup = A.one('#display-article-group');
+
+			displayArticleGroup.set('innerHTML', Liferay.Util.escapeHTML(articleGroupDescriptiveNameWithParentheses));
 		},
 		['aui-base']
 	);

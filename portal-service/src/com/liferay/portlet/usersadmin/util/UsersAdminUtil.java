@@ -159,6 +159,12 @@ public class UsersAdminUtil {
 			actionRequest, defaultEmailAddresses);
 	}
 
+	public static long[] getGroupIds(PortletRequest portletRequest)
+		throws PortalException, SystemException {
+
+		return getUsersAdmin().getGroupIds(portletRequest);
+	}
+
 	public static OrderByComparator getGroupOrderByComparator(
 		String orderByCol, String orderByType) {
 
@@ -168,6 +174,12 @@ public class UsersAdminUtil {
 
 	public static Long[] getOrganizationIds(List<Organization> organizations) {
 		return getUsersAdmin().getOrganizationIds(organizations);
+	}
+
+	public static long[] getOrganizationIds(PortletRequest portletRequest)
+		throws PortalException, SystemException {
+
+		return getUsersAdmin().getOrganizationIds(portletRequest);
 	}
 
 	public static OrderByComparator getOrganizationOrderByComparator(
@@ -197,11 +209,23 @@ public class UsersAdminUtil {
 		return getUsersAdmin().getPhones(actionRequest, defaultPhones);
 	}
 
+	public static long[] getRoleIds(PortletRequest portletRequest)
+		throws PortalException, SystemException {
+
+		return getUsersAdmin().getRoleIds(portletRequest);
+	}
+
 	public static OrderByComparator getRoleOrderByComparator(
 		String orderByCol, String orderByType) {
 
 		return getUsersAdmin().getRoleOrderByComparator(
 			orderByCol, orderByType);
+	}
+
+	public static long[] getUserGroupIds(PortletRequest portletRequest)
+		throws PortalException, SystemException {
+
+		return getUsersAdmin().getUserGroupIds(portletRequest);
 	}
 
 	public static OrderByComparator getUserGroupOrderByComparator(
@@ -255,7 +279,8 @@ public class UsersAdminUtil {
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 *             #hasUpdateFieldPermission(User, String)}
+	 *             #hasUpdateFieldPermission(PermissionChecker, User, User,
+	 *             String)}
 	 */
 	public static boolean hasUpdateEmailAddress(
 			PermissionChecker permissionChecker, User user)
@@ -264,6 +289,21 @@ public class UsersAdminUtil {
 		return getUsersAdmin().hasUpdateEmailAddress(permissionChecker, user);
 	}
 
+	public static boolean hasUpdateFieldPermission(
+			PermissionChecker permissionChecker, User updatingUser,
+			User updatedUser, String field)
+		throws PortalException, SystemException {
+
+		return getUsersAdmin().hasUpdateFieldPermission(
+			permissionChecker, updatingUser, updatedUser, field);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #hasUpdateFieldPermission(PermissionChecker, User, User,
+	 *             String)}
+	 */
+	@Deprecated
 	public static boolean hasUpdateFieldPermission(User user, String field)
 		throws PortalException, SystemException {
 
@@ -272,7 +312,8 @@ public class UsersAdminUtil {
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 *             #hasUpdateFieldPermission(User, String)}
+	 *             #hasUpdateFieldPermission(PermissionChecker, User, User,
+	 *             String)}
 	 */
 	public static boolean hasUpdateScreenName(
 			PermissionChecker permissionChecker, User user)

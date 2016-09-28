@@ -505,10 +505,25 @@ public class DLFolderLocalServiceUtil {
 			parentFolderId, name, description, serviceContext);
 	}
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #deleteAllByGroup(long)}
+	*/
 	public static void deleteAll(long groupId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		getService().deleteAll(groupId);
+	}
+
+	public static void deleteAllByGroup(long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().deleteAllByGroup(groupId);
+	}
+
+	public static void deleteAllByRepository(long repositoryId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().deleteAllByRepository(repositoryId);
 	}
 
 	public static com.liferay.portlet.documentlibrary.model.DLFolder deleteFolder(
@@ -820,8 +835,17 @@ public class DLFolderLocalServiceUtil {
 	}
 
 	public static void rebuildTree(long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		getService().rebuildTree(companyId);
+	}
+
+	public static void rebuildTree(long companyId, long parentFolderId,
+		java.lang.String parentTreePath, boolean reindex)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService()
+			.rebuildTree(companyId, parentFolderId, parentTreePath, reindex);
 	}
 
 	public static void unlockFolder(long groupId, long parentFolderId,
@@ -879,9 +903,6 @@ public class DLFolderLocalServiceUtil {
 			fileEntryTypeIds, overrideFileEntryTypes, serviceContext);
 	}
 
-	/**
-	* @deprecated As of 6.2.0
-	*/
 	public static void updateLastPostDate(long folderId,
 		java.util.Date lastPostDate)
 		throws com.liferay.portal.kernel.exception.PortalException,

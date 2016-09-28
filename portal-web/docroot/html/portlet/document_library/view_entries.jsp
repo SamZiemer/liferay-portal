@@ -31,7 +31,7 @@ String dlFileEntryTypeName = LanguageUtil.get(pageContext, "basic-document");
 
 int status = WorkflowConstants.STATUS_APPROVED;
 
-if (permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGroupId)) {
+if (permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId)) {
 	status = WorkflowConstants.STATUS_ANY;
 }
 
@@ -190,6 +190,7 @@ else {
 
 			AssetEntryQuery assetEntryQuery = new AssetEntryQuery(classNameIds, searchContainer);
 
+			assetEntryQuery.setEnablePermissions(true);
 			assetEntryQuery.setEnd(entryEnd);
 			assetEntryQuery.setExcludeZeroViewCount(false);
 			assetEntryQuery.setStart(entryStart);
@@ -226,6 +227,8 @@ else {
 
 		if (navigation.equals("mine") && themeDisplay.isSignedIn()) {
 			groupFileEntriesUserId = user.getUserId();
+
+			status = WorkflowConstants.STATUS_ANY;
 		}
 
 		total = DLAppServiceUtil.getGroupFileEntriesCount(repositoryId, groupFileEntriesUserId, folderId, null, status);
@@ -382,7 +385,7 @@ for (int i = 0; i < results.size(); i++) {
 
 						<c:otherwise>
 							<div style="float: left; margin: 100px 10px 0px;">
-								<img alt="<liferay-ui:message key="image" />" border="no" src="<%= themeDisplay.getPathThemeImages() %>/application/forbidden_action.png" />
+								<img alt="<liferay-ui:message key="error" />" border="no" src="<%= themeDisplay.getPathThemeImages() %>/application/forbidden_action.png" />
 							</div>
 						</c:otherwise>
 					</c:choose>
@@ -393,7 +396,7 @@ for (int i = 0; i < results.size(); i++) {
 					<%
 					FileVersion latestFileVersion = fileEntry.getFileVersion();
 
-					if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGroupId) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE)) {
+					if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE)) {
 						latestFileVersion = fileEntry.getLatestFileVersion();
 					}
 					%>
@@ -526,11 +529,6 @@ for (int i = 0; i < results.size(); i++) {
 							folderImage = "folder_full_document";
 						}
 
-						Map<String, Object> data = new HashMap<String, Object>();
-
-						data.put("folder", true);
-						data.put("folder-id", curFolder.getFolderId());
-
 						PortletURL rowURL = liferayPortletResponse.createRenderURL();
 
 						rowURL.setParameter("struts_action", "/document_library/view");
@@ -539,7 +537,6 @@ for (int i = 0; i < results.size(); i++) {
 						%>
 
 						<liferay-ui:app-view-entry
-							data="<%= data %>"
 							displayStyle="list"
 							folder="<%= true %>"
 							showCheckbox="<%= false %>"

@@ -47,19 +47,18 @@ if (!selectableTree) {
 	var GET_LAYOUTS_URL = themeDisplay.getPathMain() + '/layouts_admin/get_layouts';
 
 	var LAYOUT_URL = '<%= portletURL + StringPool.AMPERSAND + portletDisplay.getNamespace() + "selPlid={selPlid}" + StringPool.AMPERSAND + portletDisplay.getNamespace() + "historyKey={historyKey}" %>';
+
 	var STR_CHILDREN = 'children';
 
 	var TREE_CSS_CLASSES = {
-		pages: {
-			iconCheck: 'tree-icon icon-check',
-			iconCollapsed: 'icon-file',
-			iconExpanded: 'icon-file',
-			iconHitAreaCollapsed: 'tree-hitarea icon-plus',
-			iconHitAreaExpanded: 'tree-hitarea icon-minus',
-			iconLeaf: 'icon-leaf',
-			iconLoading: 'icon-refresh',
-			iconUncheck: 'icon-check'
-		}
+		iconCheck: 'tree-icon icon-check',
+		iconCollapsed: 'icon-file',
+		iconExpanded: 'icon-file',
+		iconHitAreaCollapsed: 'tree-hitarea icon-plus',
+		iconHitAreaExpanded: 'tree-hitarea icon-minus',
+		iconLeaf: 'icon-leaf',
+		iconLoading: 'icon-refresh',
+		iconUncheck: 'icon-check'
 	};
 
 	<%
@@ -89,6 +88,9 @@ if (!selectableTree) {
 		PREFIX_LAYOUT_ID: '_layoutId_',
 		PREFIX_PLID: '_plid_',
 
+		localCheckedNodes: [],
+		localUncheckedNodes: [],
+
 		afterRenderTree: function(event) {
 			var rootNode = event.target.item(0);
 
@@ -110,6 +112,23 @@ if (!selectableTree) {
 			rootNode.eachChildren(TreeUtil.restoreSelectedNode);
 		},
 
+		checkNodeState: function(node) {
+			var plid = TreeUtil.extractPlid(node);
+
+			var checked;
+
+			if (AArray.indexOf(TreeUtil.localCheckedNodes, plid) > -1) {
+				checked = true;
+			}
+			else if (AArray.indexOf(TreeUtil.localUncheckedNodes, plid) > -1) {
+				checked = false;
+			}
+
+			if (!Lang.isUndefined(checked)) {
+				TreeUtil.updateCheckedNodes(node, checked, true);
+			}
+		},
+
 		createLabel: function(data) {
 			return '<span class="' + data.cssClass + '" title="' + data.title + '">' + data.label + '</span>';
 		},
@@ -129,6 +148,14 @@ if (!selectableTree) {
 				className += ' ' + data.cssClass;
 			}
 
+			if (!data.uuid) {
+				data.uuid = "";
+			}
+
+			if (!data.id) {
+				data.id = "";
+			}
+
 			if (<%= checkContentDisplayPage %> && !data.contentDisplayPage) {
 				className += ' layout-page-invalid';
 			}
@@ -141,7 +168,21 @@ if (!selectableTree) {
 				}
 			);
 
-			return '<a class="' + className + '" data-uuid="' + data.uuid + '" href="' + href + '" id="' + data.id + '" title="' + data.title + '">' + data.label + '</a>';
+			return '<a class="' + className + '" data-uuid="' + Util.escapeHTML(data.uuid) + '" href="' + href + '" id="' + Util.escapeHTML(data.id) + '" title="' + data.title + '">' + data.label + '</a>';
+		},
+
+		displayNotice: function(message, type, timeout, useAnimation) {
+			new Liferay.Notice(
+				{
+					closeText: false,
+					content: message + '<button type="button" class="close">&times;</button>',
+					noticeClass: 'hide',
+					timeout: timeout || 10000,
+					toggleText: false,
+					type: type || 'warning',
+					useAnimation: Lang.isValue(useAnimation) ? useAnimation : true
+				}
+			).show();
 		},
 
 		extractGroupId: function(node) {
@@ -176,7 +217,7 @@ if (!selectableTree) {
 						(nodeType === 'link_to_layout') ||
 						(nodeType === 'url')) {
 
-						cssIcons.pages = {
+						cssIcons = {
 							iconCollapsed: iconCssClassName,
 							iconExpanded: iconCssClassName,
 							iconLeaf: iconCssClassName
@@ -188,12 +229,12 @@ if (!selectableTree) {
 						total = nodeChildren.total;
 					}
 
-					var expanded = (total > 0);
+					var expanded = (childLayouts.length > 0);
 
 					var type = 'task';
 
 					<c:if test="<%= !selectableTree %>">
-						type = (nodeChildren && expanded) ? 'node' : 'io';
+						type = (total > 0) ? 'io' : 'node';
 					</c:if>
 
 					var newNode = {
@@ -209,7 +250,7 @@ if (!selectableTree) {
 
 											TreeUtil.updateSessionTreeCheckedState('<%= HtmlUtil.escape(treeId) %>SelectedNode', plid, newVal);
 
-											TreeUtil.updateCheckedNodes(target, newVal);
+											TreeUtil.updateCheckedNodes(target, newVal, true);
 										}
 									},
 								</c:if>
@@ -223,7 +264,7 @@ if (!selectableTree) {
 
 									<c:if test="<%= selectableTree %>">
 										if (target.get('checked')) {
-											TreeUtil.updateCheckedNodes(target, true);
+											TreeUtil.updateCheckedNodes(target, true, false);
 										}
 
 										TreeUtil.restoreCheckedNode(target);
@@ -231,20 +272,33 @@ if (!selectableTree) {
 								},
 
 								expandedChange: function(event) {
-									var layoutId = TreeUtil.extractLayoutId(event.target);
+									var target = event.target;
+
+									var layoutId = TreeUtil.extractLayoutId(target);
 
 									TreeUtil.updateSessionTreeOpenedState('<%= HtmlUtil.escape(treeId) %>', layoutId, event.newVal);
+
+									<c:if test="<%= selectableTree %>">
+										TreeUtil.checkNodeState(target);
+									</c:if>
 								}
 							},
 						</c:if>
 
 						alwaysShowHitArea: hasChildren,
 
-						<c:if test="<%= !saveState && defaultStateChecked %>">
-							checked: true,
-						</c:if>
+						<c:choose>
+							<c:when test="<%= !saveState && defaultStateChecked %>">
+								checked: true,
+							</c:when>
+							<c:when test="<%= saveState && selectableTree %>">
+								checked: (AArray.indexOf(TreeUtil.CHECKED_NODES, String(node.plid)) > -1) ? true : false,
+							</c:when>
+						</c:choose>
 
-						cssClasses: A.merge(TREE_CSS_CLASSES, cssIcons),
+						cssClasses: {
+							pages: A.merge(TREE_CSS_CLASSES, cssIcons)
+						},
 						draggable: node.sortable,
 						expanded: expanded,
 						id: TreeUtil.createListItemId(node.groupId, node.layoutId, node.plid),
@@ -252,9 +306,14 @@ if (!selectableTree) {
 							cfg: {
 								data: function(node) {
 									return {
+										cmd: 'get',
+										controlPanelCategory: 'current_site.pages',
+										doAsGroupId: themeDisplay.getScopeGroupId(),
 										groupId: TreeUtil.extractGroupId(node),
 										incomplete: <%= incomplete %>,
 										p_auth: Liferay.authToken,
+										p_l_id: themeDisplay.getPlid(),
+										p_p_id: '88',
 										parentLayoutId: TreeUtil.extractLayoutId(node),
 										privateLayout: <%= privateLayout %>,
 										selPlid: '<%= selPlid %>',
@@ -282,6 +341,10 @@ if (!selectableTree) {
 
 										<c:if test="<%= saveState %>">
 											TreeUtil.updatePagination(instance);
+
+											<c:if test="<%= selectableTree %>">
+												TreeUtil.checkNodeState(instance);
+											</c:if>
 										</c:if>
 									}
 								}
@@ -378,6 +441,46 @@ if (!selectableTree) {
 			AArray.each(node.get(STR_CHILDREN), TreeUtil.restoreCheckedNode);
 		},
 
+		restoreNodePosition: function(response) {
+			TreeUtil.displayNotice(response.message, 'warning', 10000, true);
+
+			var nodeId = TreeUtil.createListItemId(response.groupId, response.layoutId, response.plid);
+			var parentNodeId = TreeUtil.createListItemId(response.groupId, response.originalParentLayoutId, response.originalParentPlid);
+
+			var action = 'append';
+
+			var index = response.originalPriority;
+
+			var node = treeview.getNodeById(nodeId);
+			var parentNode = treeview.getNodeById(parentNodeId);
+
+			var sibling;
+
+			if (index > 0) {
+				if (index === parentNode.childrenLength) {
+					action = 'append';
+				}
+				else {
+					var siblingIndex = index;
+
+					if (node.get('parentNode').get('id') !== parentNodeId) {
+						siblingIndex -= 1;
+					}
+
+					sibling = parentNode.item(siblingIndex);
+
+					action = 'after';
+				}
+			}
+
+			if (sibling) {
+				treeview.insert(node, sibling, action);
+			}
+			else {
+				parentNode.appendChild(node);
+			}
+		},
+
 		restoreSelectedNode: function(node) {
 			var plid = TreeUtil.extractPlid(node);
 
@@ -396,9 +499,29 @@ if (!selectableTree) {
 					data: A.mix(
 						data,
 						{
-							p_auth: Liferay.authToken
+							controlPanelCategory: 'current_site.pages',
+							doAsGroupId: themeDisplay.getScopeGroupId(),
+							p_auth: Liferay.authToken,
+							p_l_id: themeDisplay.getPlid(),
+							p_p_id: '88'
 						}
-					)
+					),
+					dataType: 'JSON',
+					on: {
+						success: function(event, id, xhr) {
+							var response;
+
+							try {
+								response = A.JSON.parse(xhr.responseText);
+
+								if (response.status === Liferay.STATUS_CODE.BAD_REQUEST) {
+									TreeUtil.restoreNodePosition(response);
+								}
+							}
+							catch (e) {
+							}
+						}
+					}
 				}
 			);
 		},
@@ -419,6 +542,7 @@ if (!selectableTree) {
 				A.mix(
 					data,
 					{
+						p_auth: Liferay.authToken,
 						useHttpSession: true
 					}
 				);
@@ -453,7 +577,7 @@ if (!selectableTree) {
 
 						map[layoutId] = Math.ceil(children.length / paginationLimit) * paginationLimit;
 					}
-				}
+				};
 
 				TreeUtil.invokeSessionClick(
 					{
@@ -467,7 +591,7 @@ if (!selectableTree) {
 						catch (e) {
 						}
 
-						updatePaginationMap(paginationMap, node)
+						updatePaginationMap(paginationMap, node);
 
 						node.eachParent(
 							function(parent) {
@@ -484,20 +608,51 @@ if (!selectableTree) {
 				);
 			},
 
-			updateCheckedNodes: function(node, state) {
+			updateCheckedNodes: function(node, state, recursive) {
 				var plid = TreeUtil.extractPlid(node);
 
 				var checkedNodes = TreeUtil.CHECKED_NODES;
+				var localCheckedNodes = TreeUtil.localCheckedNodes;
+				var localUncheckedNodes = TreeUtil.localUncheckedNodes;
 
-				var index = AArray.indexOf(checkedNodes, plid);
+				var checkedIndex = AArray.indexOf(checkedNodes, plid);
+				var localCheckedIndex = AArray.indexOf(localCheckedNodes, plid);
+				var localUncheckedIndex = AArray.indexOf(localUncheckedNodes, plid);
 
 				if (state) {
-					if (index == -1) {
+					if (checkedIndex === -1) {
 						checkedNodes.push(plid);
 					}
+
+					if ((localCheckedIndex == -1) && recursive) {
+						localCheckedNodes.push(plid);
+					}
+
+					if (localUncheckedIndex > -1) {
+						AArray.remove(localUncheckedNodes, localUncheckedIndex);
+					}
 				}
-				else if (index > -1) {
-					AArray.remove(checkedNodes, index);
+				else if (checkedIndex > -1) {
+					AArray.remove(checkedNodes, checkedIndex);
+
+					localUncheckedNodes.push(plid);
+
+					if (localCheckedIndex > -1) {
+						AArray.remove(localCheckedNodes, localCheckedIndex);
+					}
+				}
+
+				node.set('checked', state);
+
+				var children = node.get(STR_CHILDREN);
+
+				if (children.length && recursive) {
+					A.each(
+						children,
+						function(child) {
+							TreeUtil.updateCheckedNodes(child, state, true);
+						}
+					);
 				}
 			},
 
@@ -573,7 +728,7 @@ if (!selectableTree) {
 
 							TreeUtil.updateSessionTreeCheckedState('<%= HtmlUtil.escape(treeId) %>SelectedNode', <%= LayoutConstants.DEFAULT_PLID %>, newVal);
 
-							TreeUtil.updateCheckedNodes(event.target, newVal);
+							TreeUtil.updateCheckedNodes(event.target, newVal, true);
 						},
 					</c:if>
 
@@ -592,11 +747,13 @@ if (!selectableTree) {
 			<%
 			long[] openNodes = StringUtil.split(SessionTreeJSClicks.getOpenNodes(request, treeId), 0L);
 
-			JSONObject layoutsJSON = JSONFactoryUtil.createJSONObject(LayoutsTreeUtil.getLayoutsJSON(request, groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, openNodes, true));
+			JSONObject layoutsJSON = JSONFactoryUtil.createJSONObject(LayoutsTreeUtil.getLayoutsJSON(request, groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, openNodes, true, treeId));
 			%>
 
 			children: TreeUtil.formatJSONResults(<%= layoutsJSON %>),
-			cssClasses: TREE_CSS_CLASSES,
+			cssClasses: {
+				pages: TREE_CSS_CLASSES
+			},
 			draggable: false,
 
 			<c:choose>
@@ -638,9 +795,14 @@ if (!selectableTree) {
 				cfg: {
 					data: function(node) {
 						return {
+							cmd: 'get',
+							controlPanelCategory: 'current_site.pages',
+							doAsGroupId: themeDisplay.getScopeGroupId(),
 							groupId: TreeUtil.extractGroupId(node),
 							incomplete: <%= incomplete %>,
 							p_auth: Liferay.authToken,
+							p_l_id: themeDisplay.getPlid(),
+							p_p_id: '88',
 							parentLayoutId: TreeUtil.extractLayoutId(node),
 							privateLayout: <%= privateLayout %>,
 							selPlid: '<%= selPlid %>',
@@ -668,6 +830,10 @@ if (!selectableTree) {
 
 							<c:if test="<%= saveState %>">
 								TreeUtil.updatePagination(instance);
+
+								<c:if test="<%= selectableTree %>">
+									TreeUtil.checkNodeState(instance);
+								</c:if>
 							</c:if>
 						}
 					}
@@ -675,6 +841,11 @@ if (!selectableTree) {
 				formatter: TreeUtil.formatJSONResults,
 				url: GET_LAYOUTS_URL
 			},
+
+			<c:if test="<%= draggableTree %>">
+				lazyLoad: false,
+			</c:if>
+
 			on: {
 				<c:if test="<%= saveState && selectableTree %>">
 					append: function(event) {

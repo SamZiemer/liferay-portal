@@ -15,10 +15,12 @@
 --%>
 
 <%
-List<WorkflowDefinition> workflowDefinitions = WorkflowDefinitionManagerUtil.getWorkflowDefinitions(company.getCompanyId(), 0, 100, null);
+List<WorkflowDefinition> workflowDefinitions = WorkflowDefinitionManagerUtil.getWorkflowDefinitions(company.getCompanyId(), QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 
 portletURL.setParameter("struts_action", "/workflow_definitions/view");
 %>
+
+<liferay-ui:error exception="<%= RequiredWorkflowDefinitionException.class %>" message="you-cannot-deactivate-or-delete-this-definition" />
 
 <liferay-util:include page="/html/portlet/workflow_definitions/toolbar.jsp" />
 
@@ -38,12 +40,12 @@ portletURL.setParameter("struts_action", "/workflow_definitions/view");
 
 		<liferay-ui:search-container-column-text
 			name="name"
-			value="<%= workflowDefinition.getName() %>"
+			value="<%= HtmlUtil.escape(workflowDefinition.getName()) %>"
 		/>
 
 		<liferay-ui:search-container-column-text
 			name="title"
-			value="<%= workflowDefinition.getTitle(themeDisplay.getLanguageId()) %>"
+			value="<%= HtmlUtil.escape(workflowDefinition.getTitle(themeDisplay.getLanguageId())) %>"
 		/>
 
 		<liferay-ui:search-container-column-text

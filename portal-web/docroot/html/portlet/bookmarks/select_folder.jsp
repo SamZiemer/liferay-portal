@@ -37,7 +37,7 @@ if (folder != null) {
 		title="home"
 	/>
 
-	<liferay-ui:breadcrumb showGuestGroup="<%= false %>" showLayout="<%= false %>" showParentGroups="<%= false %>" />
+	<liferay-ui:breadcrumb showCurrentGroup="<%= false %>" showGuestGroup="<%= false %>" showLayout="<%= false %>" showParentGroups="<%= false %>" />
 
 	<%
 	PortletURL portletURL = renderResponse.createRenderURL();
@@ -72,7 +72,7 @@ if (folder != null) {
 
 			subfolderIds.add(curFolder.getFolderId());
 
-			BookmarksFolderServiceUtil.getSubfolderIds(subfolderIds, scopeGroupId, curFolder.getFolderId());
+			BookmarksFolderServiceUtil.getSubfolderIds(subfolderIds, scopeGroupId, curFolder.getFolderId(), true);
 
 			int foldersCount = subfolderIds.size() - 1;
 			int entriesCount = BookmarksEntryServiceUtil.getFoldersEntriesCount(scopeGroupId, subfolderIds);
@@ -102,7 +102,7 @@ if (folder != null) {
 				Map<String, Object> data = new HashMap<String, Object>();
 
 				data.put("folderid", curFolder.getFolderId());
-				data.put("name", HtmlUtil.escapeAttribute(curFolder.getName()));
+				data.put("name", curFolder.getName());
 				%>
 
 				<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />
@@ -124,7 +124,7 @@ if (folder != null) {
 			Map<String, Object> data = new HashMap<String, Object>();
 
 			data.put("folderid", folderId);
-			data.put("name", HtmlUtil.escapeAttribute(folderName));
+			data.put("name", folderName);
 			%>
 
 			<aui:button cssClass="selector-button" data="<%= data %>" value="choose-this-folder" />
@@ -135,17 +135,5 @@ if (folder != null) {
 </aui:form>
 
 <aui:script use="aui-base">
-	var Util = Liferay.Util;
-
-	A.one('#<portlet:namespace />selectFolderFm').delegate(
-		'click',
-		function(event) {
-			var result = Util.getAttributes(event.currentTarget, 'data-');
-
-			Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
-
-			Util.getWindow().hide();
-		},
-		'.selector-button'
-	);
+	Liferay.Util.selectEntityHandler('#<portlet:namespace />selectFolderFm', '<%= HtmlUtil.escapeJS(eventName) %>');
 </aui:script>

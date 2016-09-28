@@ -20,12 +20,15 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.PersistedModel;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.PermissionPropagator;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.PermissionServiceUtil;
+import com.liferay.portal.service.PersistedModelLocalService;
+import com.liferay.portal.service.PersistedModelLocalServiceRegistryUtil;
 import com.liferay.portal.service.PortletLocalServiceUtil;
 import com.liferay.portal.service.ResourceBlockLocalServiceUtil;
 import com.liferay.portal.service.ResourceBlockServiceUtil;
@@ -36,6 +39,11 @@ import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.StrictPortletPreferencesImpl;
+import com.liferay.portlet.blogs.model.BlogsEntry;
+import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
+import com.liferay.portlet.documentlibrary.model.DLFileEntry;
+import com.liferay.portlet.documentlibrary.model.DLFileVersion;
+import com.liferay.portlet.documentlibrary.service.DLFileVersionLocalServiceUtil;
 import com.liferay.portlet.portletconfiguration.util.ConfigurationActionRequest;
 import com.liferay.portlet.portletconfiguration.util.ConfigurationRenderRequest;
 
@@ -187,6 +195,65 @@ public class EditPermissionsAction extends PortletAction {
 		return actionIds;
 	}
 
+	protected void updateLayoutModifiedDate(
+			String selResource, String resourcePrimKey)
+		throws Exception {
+
+		long plid = 0;
+
+		int pos = resourcePrimKey.indexOf(PortletConstants.LAYOUT_SEPARATOR);
+
+		if (pos != -1) {
+			plid = GetterUtil.getLong(resourcePrimKey.substring(0, pos));
+		}
+		else if (selResource.equals(Layout.class.getName())) {
+			plid = GetterUtil.getLong(resourcePrimKey);
+		}
+
+		if (plid <= 0) {
+			return;
+		}
+
+		Layout layout = LayoutLocalServiceUtil.fetchLayout(plid);
+
+		if (layout != null) {
+			layout.setModifiedDate(new Date());
+
+			LayoutLocalServiceUtil.updateLayout(layout);
+
+			CacheUtil.clearCache(layout.getCompanyId());
+		}
+	}
+
+	protected void updateModifiedDate(String className, String classPK)
+		throws Exception {
+
+		PersistedModelLocalService persistedModelLocalService =
+			PersistedModelLocalServiceRegistryUtil.
+				getPersistedModelLocalService(className);
+
+		PersistedModel persistedModel =
+			persistedModelLocalService.getPersistedModel(Long.valueOf(classPK));
+
+		if (persistedModel instanceof DLFileEntry) {
+			DLFileEntry dlFileEntry = (DLFileEntry)persistedModel;
+
+			DLFileVersion dlFileVersion = dlFileEntry.getFileVersion();
+
+			dlFileVersion.setModifiedDate(new Date());
+			dlFileVersion.setStatusDate(new Date());
+
+			DLFileVersionLocalServiceUtil.updateDLFileVersion(dlFileVersion);
+		}
+		else if (persistedModel instanceof BlogsEntry) {
+			BlogsEntry blogsEntry = (BlogsEntry)persistedModel;
+
+			blogsEntry.setModifiedDate(new Date());
+
+			BlogsEntryLocalServiceUtil.updateBlogsEntry(blogsEntry);
+		}
+	}
+
 	protected void updateRolePermissions(ActionRequest actionRequest)
 		throws Exception {
 
@@ -239,21 +306,13 @@ public class EditPermissionsAction extends PortletAction {
 				resourcePrimKey, roleIdsToActionIds);
 		}
 
-		int pos = resourcePrimKey.indexOf(PortletConstants.LAYOUT_SEPARATOR);
-
-		if (pos != -1) {
-			long plid = GetterUtil.getLong(resourcePrimKey.substring(0, pos));
-
-			Layout layout = LayoutLocalServiceUtil.fetchLayout(plid);
-
-			if (layout != null) {
-				layout.setModifiedDate(new Date());
-
-				LayoutLocalServiceUtil.updateLayout(layout);
-
-				CacheUtil.clearCache(layout.getCompanyId());
-			}
+		try {
+			updateModifiedDate(selResource, resourcePrimKey);
 		}
+		catch (Exception e) {
+		}
+
+		updateLayoutModifiedDate(selResource, resourcePrimKey);
 
 		if (PropsValues.PERMISSIONS_PROPAGATION_ENABLED) {
 			Portlet portlet = PortletLocalServiceUtil.getPortletById(

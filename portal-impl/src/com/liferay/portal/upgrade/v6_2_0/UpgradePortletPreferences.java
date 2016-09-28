@@ -51,14 +51,15 @@ public class UpgradePortletPreferences extends UpgradeProcess {
 		try {
 			con = DataAccess.getUpgradeOptimizedConnection();
 
-			StringBundler sb = new StringBundler(4);
+			StringBundler sb = new StringBundler(7);
 
 			sb.append("select PortletPreferences.portletPreferencesId, ");
 			sb.append("PortletPreferences.plid,");
 			sb.append("PortletPreferences.portletId, Layout.typeSettings ");
 			sb.append("from PortletPreferences inner join Layout on ");
 			sb.append("PortletPreferences.plid = Layout.plid where ");
-			sb.append("preferences like '%<portlet-preferences />%'");
+			sb.append("preferences like '%<portlet-preferences />%' or ");
+			sb.append("preferences like '' or preferences is null");
 
 			String sql = sb.toString();
 
@@ -68,7 +69,8 @@ public class UpgradePortletPreferences extends UpgradeProcess {
 
 			while (rs.next()) {
 				long portletPreferencesId = rs.getLong("portletPreferencesId");
-				String portletId = rs.getString("portletId");
+				String portletId = GetterUtil.getString(
+					rs.getString("portletId"));
 				String typeSettings = GetterUtil.getString(
 					rs.getString("typeSettings"));
 

@@ -79,7 +79,16 @@ public class RSSAction extends com.liferay.portal.struts.RSSAction {
 		syndFeed.setEntries(syndEntries);
 
 		for (AssetEntry assetEntry : assetEntries) {
+			String link = getEntryURL(
+				portletRequest, portletResponse, linkBehavior, assetEntry);
+
+			if (Validator.isBlank(link)) {
+				continue;
+			}
+
 			SyndEntry syndEntry = new SyndEntryImpl();
+
+			syndEntry.setLink(link);
 
 			String author = PortalUtil.getUserName(assetEntry);
 
@@ -103,11 +112,6 @@ public class RSSAction extends com.liferay.portal.struts.RSSAction {
 			syndContent.setValue(value);
 
 			syndEntry.setDescription(syndContent);
-
-			String link = getEntryURL(
-				portletRequest, portletResponse, linkBehavior, assetEntry);
-
-			syndEntry.setLink(link);
 
 			syndEntry.setPublishedDate(assetEntry.getPublishDate());
 			syndEntry.setTitle(assetEntry.getTitle(languageId, true));
@@ -217,6 +221,10 @@ public class RSSAction extends com.liferay.portal.struts.RSSAction {
 			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
 				assetEntry.getClassName());
 
+		if (assetRendererFactory == null) {
+			return StringPool.BLANK;
+		}
+
 		StringBundler sb = new StringBundler(4);
 
 		sb.append(getAssetPublisherURL(portletRequest));
@@ -235,6 +243,10 @@ public class RSSAction extends com.liferay.portal.struts.RSSAction {
 		AssetRendererFactory assetRendererFactory =
 			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
 				assetEntry.getClassName());
+
+		if (assetRendererFactory == null) {
+			return StringPool.BLANK;
+		}
 
 		AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(
 			assetEntry.getClassPK());
@@ -296,6 +308,20 @@ public class RSSAction extends com.liferay.portal.struts.RSSAction {
 			getAssetEntries(portletRequest, portletPreferences));
 
 		return rss.getBytes(StringPool.UTF8);
+	}
+
+	@Override
+	protected boolean isRSSFeedsEnabled(PortletRequest portletRequest)
+		throws Exception {
+
+		if (!super.isRSSFeedsEnabled(portletRequest)) {
+			return false;
+		}
+
+		PortletPreferences portletPreferences = portletRequest.getPreferences();
+
+		return GetterUtil.getBoolean(
+			portletPreferences.getValue("enableRss", null));
 	}
 
 }

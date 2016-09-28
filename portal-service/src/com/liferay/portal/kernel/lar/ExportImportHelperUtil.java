@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermissio
 import com.liferay.portal.kernel.util.DateRange;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
+import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.StagedModel;
@@ -46,6 +47,13 @@ public class ExportImportHelperUtil {
 
 		return getExportImportHelper().getCalendar(
 			portletRequest, paramPrefix, timeZoneSensitive);
+	}
+
+	public static void reindex(
+			PortletDataContext portletDataContext, long userId)
+		throws PortalException, SystemException {
+
+		getExportImportHelper().reindex(portletDataContext, userId);
 	}
 
 	public static DateRange getDateRange(
@@ -90,6 +98,10 @@ public class ExportImportHelperUtil {
 		return getExportImportHelper().getLayoutIds(layouts);
 	}
 
+	public static ZipWriter getLayoutSetZipWriter(long groupId) {
+		return getExportImportHelper().getLayoutSetZipWriter(groupId);
+	}
+
 	public static ManifestSummary getManifestSummary(
 			long userId, long groupId, Map<String, String[]> parameterMap,
 			File file)
@@ -115,6 +127,18 @@ public class ExportImportHelperUtil {
 
 		return getExportImportHelper().getModelDeletionCount(
 			portletDataContext, stagedModelType);
+	}
+
+	public static ZipWriter getPortletZipWriter(String portletId) {
+		return getExportImportHelper().getPortletZipWriter(portletId);
+	}
+
+	public static String getSelectedLayoutsJSON(
+			long groupId, boolean privateLayout, String selectedNodes)
+		throws SystemException {
+
+		return getExportImportHelper().getSelectedLayoutsJSON(
+			groupId, privateLayout, selectedNodes);
 	}
 
 	public static FileEntry getTempFileEntry(

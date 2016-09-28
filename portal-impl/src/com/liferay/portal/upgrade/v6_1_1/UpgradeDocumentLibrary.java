@@ -17,11 +17,13 @@ package com.liferay.portal.upgrade.v6_1_1;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringPool;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * @author Sergio González
@@ -87,7 +89,8 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 				long groupId = rs.getLong("groupId");
 				long folderId = rs.getLong("folderId");
 				String title = rs.getString("title");
-				String extension = rs.getString("extension");
+				String extension = GetterUtil.getString(
+					rs.getString("extension"));
 				String version = rs.getString("version");
 
 				String periodAndExtension = StringPool.PERIOD.concat(extension);
@@ -119,17 +122,46 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 
 				uniqueTitle += periodAndExtension;
 
-				runSQL(
-					"update DLFileEntry set title = '" + uniqueTitle +
-						"' where fileEntryId = " + fileEntryId);
-				runSQL(
-					"update DLFileVersion set title = '" + uniqueTitle +
-						"' where fileEntryId = " + fileEntryId +
-							" and DLFileVersion.version = '" + version + "'");
+				updateFileEntry(fileEntryId, version, uniqueTitle);
 			}
 		}
 		finally {
 			DataAccess.cleanUp(con, ps, rs);
+		}
+	}
+
+	protected void updateFileEntry(
+			long fileEntryId, String version, String newTitle)
+		throws SQLException {
+
+		Connection con = null;
+		PreparedStatement ps = null;
+
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection();
+
+			ps = con.prepareStatement(
+				"update DLFileEntry set title = ? where fileEntryId = ?");
+
+			ps.setString(1, newTitle);
+			ps.setLong(2, fileEntryId);
+
+			ps.executeUpdate();
+
+			DataAccess.cleanUp(ps);
+
+			ps = con.prepareStatement(
+				"update DLFileVersion set title = ? where fileEntryId = " +
+					"? and version = ?");
+
+			ps.setString(1, newTitle);
+			ps.setLong(2, fileEntryId);
+			ps.setString(3, version);
+
+			ps.executeUpdate();
+		}
+		finally {
+			DataAccess.cleanUp(con, ps);
 		}
 	}
 

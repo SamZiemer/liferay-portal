@@ -1,8 +1,8 @@
 AUI.add(
 	'liferay-form-placeholders',
 	function(A) {
-		var AObject = A.Object;
 		var ANode = A.Node;
+		var AObject = A.Object;
 
 		var CSS_PLACEHOLDER = 'text-placeholder';
 
@@ -90,7 +90,7 @@ AUI.add(
 
 						placeholder.attr(STR_DATA_TYPE_PASSWORD_PLACEHOLDER, true);
 
-						field.placeAfter(placeholder);
+						field.placeBefore(placeholder);
 
 						field.hide();
 					},
@@ -111,6 +111,25 @@ AUI.add(
 						);
 					},
 
+					_toggleLocalizedPlaceholders: function(event, currentTarget) {
+						var placeholder = currentTarget.attr(STR_PLACEHOLDER);
+
+						if (placeholder) {
+							var value = currentTarget.val();
+
+							if (event.type === STR_FOCUS) {
+								if (value === placeholder) {
+									currentTarget.removeClass(CSS_PLACEHOLDER);
+								}
+							}
+							else if (!value) {
+								currentTarget.val(placeholder);
+
+								currentTarget.addClass(CSS_PLACEHOLDER);
+							}
+						}
+					},
+
 					_togglePasswordPlaceholders: function(event, currentTarget) {
 						var placeholder = currentTarget.attr(STR_PLACEHOLDER);
 
@@ -119,7 +138,7 @@ AUI.add(
 								if (currentTarget.hasAttribute(STR_DATA_TYPE_PASSWORD_PLACEHOLDER)) {
 									currentTarget.hide();
 
-									var passwordField = currentTarget.previous();
+									var passwordField = currentTarget.next();
 
 									passwordField.show();
 
@@ -137,7 +156,7 @@ AUI.add(
 								if (!value) {
 									currentTarget.hide();
 
-									currentTarget.next().show();
+									currentTarget.previous().show();
 								}
 							}
 						}
@@ -150,6 +169,9 @@ AUI.add(
 
 						if (currentTarget.hasAttribute(STR_DATA_TYPE_PASSWORD_PLACEHOLDER) || currentTarget.attr(STR_TYPE) === STR_PASSWORD) {
 							instance._togglePasswordPlaceholders(event, currentTarget);
+						}
+						else if (currentTarget.hasClass('language-value')) {
+							instance._toggleLocalizedPlaceholders(event, currentTarget);
 						}
 						else {
 							var placeholder = currentTarget.attr(STR_PLACEHOLDER);

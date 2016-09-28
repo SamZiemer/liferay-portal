@@ -258,6 +258,16 @@ public class DDMStructureServiceUtil {
 		return getService().fetchStructure(groupId, classNameId, structureKey);
 	}
 
+	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructure fetchStructure(
+		long groupId, long classNameId, java.lang.String structureKey,
+		boolean includeAncestorStructures)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .fetchStructure(groupId, classNameId, structureKey,
+			includeAncestorStructures);
+	}
+
 	/**
 	* Returns the structure with the ID.
 	*
@@ -351,6 +361,18 @@ public class DDMStructureServiceUtil {
 		long[] groupIds)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().getStructures(groupIds);
+	}
+
+	public static java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getStructures(
+		long[] groupIds, long classNameId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getStructures(groupIds, classNameId);
+	}
+
+	public static java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getStructures(
+		long[] groupIds, long classNameId, int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getStructures(groupIds, classNameId, start, end);
 	}
 
 	/**
