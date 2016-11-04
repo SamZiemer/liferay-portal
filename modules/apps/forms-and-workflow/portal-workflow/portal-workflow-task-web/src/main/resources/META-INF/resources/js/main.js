@@ -51,6 +51,52 @@ AUI.add(
 					comments.show();
 				}
 
+				var moveFormDataFromDialog =  function(form) {
+					if (form) {
+						if (form.hasChildNodes()) {
+							if (form.get('children')._nodes.length >= 2) {
+								var updatedContent = form.get(
+									'children')._nodes[0];
+								var updatedComments = form.get(
+									'children')._nodes[1];
+							}
+						}
+					}
+
+					if (updatedContent) {
+						var originalColumnId;
+						if (updatedContent.id.search('[a-zA-Z]{4}update(Asignee|AsigneeToMe)') != -1) {
+							originalColumnId = updatedContent.id.substring(0, 4) +
+											   "updateDueDate";
+						}
+
+						else if (updatedContent.id.search('[a-zA-Z]{4}updateDueDate') != -1) {
+							originalColumnId = updatedContent.id.substring(0, 4) +
+											   "updateAsignee";
+						}
+
+						if (originalColumnId) {
+							var entryActionColumn = document.getElementById(
+								originalColumnId).parentNode;
+							var copiedContent = updatedContent.cloneNode(true);
+							copiedContent.id = copiedContent.id + "Clone";
+							form.append(copiedContent);
+							entryActionColumn.appendChild(
+								updatedContent);
+							updatedContent.hidden  = true;
+						}
+					}
+
+					if (updatedComments && entryActionColumn) {
+						var copiedComments = updatedComments.cloneNode(true);
+						copiedComments.id = copiedComments.id + "Clone";
+						form.append(copiedComments);
+						entryActionColumn.appendChild(
+							updatedComments);
+						updatedComments.hidden  = true;
+					}
+				};
+
 				var dialog = Liferay.Util.Window.getWindow(
 					{
 						dialog: {
@@ -64,44 +110,8 @@ AUI.add(
 										label: Liferay.Language.get('done'),
 										on: {
 											click: function() {
-												if (form) {
-													if (form.hasChildNodes()) {
-														if (form.get('children')._nodes.length >= 2) {
-															var updatedContent = form.get(
-																'children')._nodes[0];
-															var updatedComments = form.get(
-																'children')._nodes[1];
-														}
-													}
-												}
-
-												if (updatedContent) {
-													var originalColumnId;
-													if (updatedContent.id.search('[a-zA-Z0-9]{4}update(Asignee|AsigneeToMe)') != -1) {
-														originalColumnId = updatedContent.id.substring(0, 4) +
-																		   "updateDueDate";
-													}
-
-													else if (updatedContent.id.search('[a-zA-Z0-9]{4}updateDueDate') != -1) {
-														originalColumnId = updatedContent.id.substring(0, 4) +
-																		   "updateAsignee";
-													}
-
-													if (originalColumnId) {
-														var entryActionColumn = document.getElementById(
-															originalColumnId).parentNode;
-
-														entryActionColumn.appendChild(
-															updatedContent);
-													}
-												}
-
-												if (updatedComments && entryActionColumn) {
-													entryActionColumn.appendChild(
-														updatedComments);
-												}
-
 												submitForm(form);
+												moveFormDataFromDialog(form);
 											}
 										}
 									},
@@ -110,6 +120,7 @@ AUI.add(
 										label: Liferay.Language.get('cancel'),
 										on: {
 											click: function() {
+												moveFormDataFromDialog(form);
 												dialog.hide();
 											}
 										}
@@ -122,6 +133,7 @@ AUI.add(
 										labelHTML: '<span> \u00D7 </span>',
 										on: {
 											click: function(event) {
+												moveFormDataFromDialog(form);
 												dialog.hide();
 											}
 										}
@@ -133,9 +145,9 @@ AUI.add(
 						title: A.Lang.String.escapeHTML(title)
 					}
 				);
+				dialog.on('keypress', moveFormDataFromDialog(A.one(dialog.get('bodyContent')._nodes[0])), 'esc');
 			}
 		};
-
 		Liferay.WorkflowTasks = WorkflowTasks;
 	},
 	'',
