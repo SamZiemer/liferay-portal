@@ -56,6 +56,7 @@ AUI.add(
 						dialog: {
 							bodyContent: form,
 							height: height,
+							destroyOnHide: true,
 							toolbars: {
 								footer: [
 									{
@@ -63,6 +64,43 @@ AUI.add(
 										label: Liferay.Language.get('done'),
 										on: {
 											click: function() {
+												if (form) {
+													if (form.hasChildNodes()) {
+														if (form.get('children')._nodes.length >= 2) {
+															var updatedContent = form.get(
+																'children')._nodes[0];
+															var updatedComments = form.get(
+																'children')._nodes[1];
+														}
+													}
+												}
+
+												if (updatedContent) {
+													var originalColumnId;
+													if (updatedContent.id.search('[a-zA-Z0-9]{4}update(Asignee|AsigneeToMe)') != -1) {
+														originalColumnId = updatedContent.id.substring(0, 4) +
+																		   "updateDueDate";
+													}
+
+													else if (updatedContent.id.search('[a-zA-Z0-9]{4}updateDueDate') != -1) {
+														originalColumnId = updatedContent.id.substring(0, 4) +
+																		   "updateAsignee";
+													}
+
+													if (originalColumnId) {
+														var entryActionColumn = document.getElementById(
+															originalColumnId).parentNode;
+
+														entryActionColumn.appendChild(
+															updatedContent);
+													}
+												}
+
+												if (updatedComments && entryActionColumn) {
+													entryActionColumn.appendChild(
+														updatedComments);
+												}
+
 												submitForm(form);
 											}
 										}
