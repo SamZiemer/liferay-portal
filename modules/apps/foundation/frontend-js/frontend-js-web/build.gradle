@@ -118,7 +118,6 @@ buildLexicon {
 
 	include "META-INF/resources/webjars/lexicon/${lexiconVersion}/release/js/"
 	includeEmptyDirs = false
-
 	into lexiconDestinationDir
 }
 
