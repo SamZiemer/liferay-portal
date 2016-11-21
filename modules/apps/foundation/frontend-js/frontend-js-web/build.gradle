@@ -106,12 +106,19 @@ buildLexicon {
 
 	eachFile new StripPathSegmentsAction(7)
 
+	filter {
+		String line ->
+
+		line.replace ".offsetWidth // force reflow", ".offsetWidth += 0 // force reflow"
+	}
+
 	from {
 		zipTree(configurations.lexicon.singleFile)
 	}
 
 	include "META-INF/resources/webjars/lexicon/${lexiconVersion}/release/js/"
 	includeEmptyDirs = false
+
 	into lexiconDestinationDir
 }
 
