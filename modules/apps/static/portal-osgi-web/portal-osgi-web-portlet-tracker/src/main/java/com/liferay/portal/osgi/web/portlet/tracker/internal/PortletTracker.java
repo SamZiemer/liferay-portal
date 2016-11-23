@@ -116,9 +116,7 @@ public class PortletTracker
 			"javax.portlet.name");
 
 		if (Validator.isNull(portletName)) {
-			Class<?> clazz = portlet.getClass();
-
-			portletName = clazz.getName();
+			portletName = portlet.getClass().getName();
 		}
 
 		String portletId = PortalUtil.getJsSafePortletId(portletName);
