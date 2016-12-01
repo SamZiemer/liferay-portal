@@ -986,7 +986,13 @@ public class LanguageImpl implements Language, Serializable {
 	public Set<Locale> getAvailableLocales() {
 		CompanyLocalesBag companyLocalesBag = _getCompanyLocalesBag();
 
-		return companyLocalesBag.getAvailableLocales();
+		Set<Locale> availableLocales = new HashSet<>();
+
+		availableLocales.addAll(companyLocalesBag.getAvailableLocales());
+
+		availableLocales.add(LocaleUtil.getDefault());
+
+		return Collections.unmodifiableSet(availableLocales);
 	}
 
 	@Override
@@ -1005,6 +1011,10 @@ public class LanguageImpl implements Language, Serializable {
 
 		Map<String, Locale> groupLanguageIdLocalesMap =
 			_getGroupLanguageIdLocalesMap(groupId);
+
+		Locale defaultLocale = LocaleUtil.getDefault();
+
+		groupLanguageIdLocalesMap.put(defaultLocale.toString(), defaultLocale);
 
 		return new HashSet<>(groupLanguageIdLocalesMap.values());
 	}
@@ -1501,6 +1511,12 @@ public class LanguageImpl implements Language, Serializable {
 	@Override
 	public boolean isAvailableLocale(String languageId) {
 		CompanyLocalesBag companyLocalesBag = _getCompanyLocalesBag();
+
+		Locale defaultLocale = LocaleUtil.getDefault();
+
+		if (languageId.equals(defaultLocale.toString())) {
+			return true;
+		}
 
 		return companyLocalesBag.containsLanguageId(languageId);
 	}
