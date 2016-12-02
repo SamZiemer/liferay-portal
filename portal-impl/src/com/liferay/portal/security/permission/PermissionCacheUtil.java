@@ -643,6 +643,10 @@ public class PermissionCacheUtil {
 
 		@Override
 		public boolean equals(Object obj) {
+			if (!(obj instanceof UserRoleKey)) {
+				return false;
+			}
+
 			UserRoleKey userRoleKey = (UserRoleKey)obj;
 
 			if ((userRoleKey._userId == _userId) &&
