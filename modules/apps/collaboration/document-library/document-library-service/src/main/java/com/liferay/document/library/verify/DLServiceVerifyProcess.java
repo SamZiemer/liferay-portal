@@ -34,6 +34,7 @@ import com.liferay.document.library.kernel.util.DLUtil;
 import com.liferay.document.library.kernel.util.DLValidatorUtil;
 import com.liferay.document.library.kernel.util.comparator.DLFileVersionVersionComparator;
 import com.liferay.portal.instances.service.PortalInstancesLocalService;
+import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Criterion;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
@@ -45,6 +46,8 @@ import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.security.auth.FullNameGenerator;
+import com.liferay.portal.kernel.security.auth.FullNameGeneratorFactory;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -62,6 +65,9 @@ import com.liferay.portal.verify.VerifyProcess;
 import com.liferay.portlet.documentlibrary.webdav.DLWebDAVUtil;
 
 import java.io.InputStream;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 import java.util.Collections;
 import java.util.Date;
@@ -523,6 +529,7 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 		updateClassNameId();
 		updateFileEntryAssets();
 		updateFolderAssets();
+		updateFolderUserName();
 		verifyTree();
 	}
 
@@ -537,6 +544,31 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 		}
 
 		return mimeType;
+	}
+
+	protected String getUserName(long userId) throws Exception {
+		try (PreparedStatement ps = connection.prepareStatement(
+				"select firstName, middleName, lastName from User_ where " +
+					"userId = ?")) {
+
+			ps.setLong(1, userId);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					String firstName = rs.getString("firstName");
+					String middleName = rs.getString("middleName");
+					String lastName = rs.getString("lastName");
+
+					FullNameGenerator fullNameGenerator =
+						FullNameGeneratorFactory.getInstance();
+
+					return fullNameGenerator.getFullName(
+						firstName, middleName, lastName);
+				}
+
+				return null;
+			}
+		}
 	}
 
 	protected void renameDuplicateTitle(DLFileEntry dlFileEntry)
@@ -749,6 +781,42 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 			if (_log.isDebugEnabled()) {
 				_log.debug("Assets verified for folders");
 			}
+		}
+	}
+
+	protected void updateFolderUserName() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer();
+			PreparedStatement ps1 = connection.prepareStatement(
+				"select distinct userId from DLFolder where userName IS NULL");
+			ResultSet rs = ps1.executeQuery();
+			PreparedStatement ps2 = AutoBatchPreparedStatementUtil.autoBatch(
+				connection.prepareStatement(
+					"update DLFolder set userName = ? where userId = ? and " +
+						"userName IS NULL"))) {
+
+			while (rs.next()) {
+				long userId = rs.getLong("userId");
+
+				String userName = getUserName(userId);
+
+				if (userName != null) {
+					ps2.setString(1, userName);
+
+					ps2.setLong(2, userId);
+
+					ps2.addBatch();
+				}
+				else {
+					if (_log.isInfoEnabled()) {
+						_log.info(
+							"User " + userId + " does not exist in the " +
+								"database. The userNames of DLFolders with " +
+									"this userId will not be updated.");
+					}
+				}
+			}
+
+			ps2.executeBatch();
 		}
 	}
 
