@@ -14,6 +14,17 @@
 
 package com.liferay.portal.service.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
 import com.liferay.admin.kernel.util.PortalMyAccountApplicationType;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.portal.kernel.cache.thread.local.Lifecycle;
@@ -52,6 +63,7 @@ import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.spring.aop.Skip;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
@@ -73,17 +85,6 @@ import com.liferay.portal.service.base.RoleLocalServiceBaseImpl;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.users.admin.kernel.util.UsersAdminUtil;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Provides the local service for accessing, adding, checking, deleting, and
@@ -734,6 +735,29 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 		return roleFinder.findByGroupRoleAndTeamRole(
 			companyId, keywords, excludedNames, types, excludedTeamRoleId,
 			teamGroupId, start, end);
+	}
+
+	public List<Role> getGroupRolesAndTeamRolesByRoleId(
+		long companyId, java.lang.String keywords,
+		java.util.List<java.lang.String> excludedNames, int[] types,
+		long excludedTeamRoleId, long teamGroupId, long[] roleIds, int start, int end)
+				throws PortalException{
+
+		List<Role> results1 = RoleLocalServiceUtil.getGroupRolesAndTeamRoles(companyId, keywords,
+			excludedNames, types, excludedTeamRoleId, teamGroupId, start, end);
+
+		List<Role> results2 = roleLocalService.getRoles(roleIds);
+
+		List<Role> finalResults = new ArrayList<Role>();
+
+		//Intersect
+		for(Role result : results2){
+			if(results1.contains(result)){
+				finalResults.add(result);
+			}
+		}
+
+		return finalResults;
 	}
 
 	@Override

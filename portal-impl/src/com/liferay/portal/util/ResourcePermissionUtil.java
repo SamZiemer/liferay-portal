@@ -14,16 +14,21 @@
 
 package com.liferay.portal.util;
 
+import java.util.List;
+
+import com.liferay.portal.kernel.dao.orm.DynamicQuery;
+import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Resource;
 import com.liferay.portal.kernel.model.ResourceBlock;
 import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.service.ResourceBlockLocalServiceUtil;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
-
-import java.util.List;
+import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 /**
  * @author Juan Fernández
@@ -99,4 +104,21 @@ public class ResourcePermissionUtil {
 		}
 	}
 
+	public static List<ResourcePermission> getResourcePermissions(
+		long companyId, String name, int scope, String primKey) {
+
+		DynamicQuery resoucePermissionQuery = DynamicQueryFactoryUtil.forClass(
+				ResourcePermission.class, PortalClassLoaderUtil.getClassLoader());
+
+		resoucePermissionQuery.add(PropertyFactoryUtil.forName("companyId").eq(companyId));
+		resoucePermissionQuery.add(PropertyFactoryUtil.forName("scope").eq(scope));
+		resoucePermissionQuery.add(PropertyFactoryUtil.forName("name").eq(name));
+		//TODO: parameter for primKey
+		//select active users (resourcePermission table stores everyone that has been assigned permissions at some point)
+		resoucePermissionQuery.add(PropertyFactoryUtil.forName("actionIds").ne(new Long ("0")));
+
+		List<ResourcePermission> results = ResourcePermissionLocalServiceUtil.dynamicQuery(resoucePermissionQuery);
+
+		return results;
+	}
 }
