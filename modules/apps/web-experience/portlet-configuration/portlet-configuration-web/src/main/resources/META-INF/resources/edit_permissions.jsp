@@ -328,7 +328,7 @@ RoleSearchTerms searchTerms = (RoleSearchTerms)roleSearchContainer.getSearchTerm
 
 			List<Role> roles = null;
 			
-			if(tabs1.equals("current") && !Validator.isNull(portlet)) {
+			if(tabs1.equals("current") && !Validator.isNull(portlet) && false) {
 				//calls custom method to return all active roles for this: CompanyId, portlet, scope, primKey AND actionId != 0
 				List<ResourcePermission> resourcePermissions = ResourcePermissionUtil.getResourcePermissions(portlet.getCompanyId(), portlet.getPortletName(), PortletKeys.PREFS_OWNER_TYPE_USER, portlet.getModelClassName());
 				
@@ -340,10 +340,10 @@ RoleSearchTerms searchTerms = (RoleSearchTerms)roleSearchContainer.getSearchTerm
 				}
 				
 				//Testing method
-				//roles = RoleLocalServiceUtil.getRoles(resourcePermissionIds);
+				roles = RoleLocalServiceUtil.getRoles(resourcePermissionIds);
 				
 				//returns roles that intersect RoleLocalServiceUtil.getGroupRolesAndTeamRoles and the roleIds
-				roles = RoleUtil.getGroupRolesAndTeamRoles(company.getCompanyId(), searchTerms.getKeywords(), excludedRoleNames, roleTypes, modelResourceRoleId, teamGroupId, roleSearchContainer.getStart(), roleIds, roleSearchContainer.getResultEnd());
+				//roles = RoleUtil.getGroupRolesAndTeamRoles(company.getCompanyId(), searchTerms.getKeywords(), excludedRoleNames, roleTypes, modelResourceRoleId, teamGroupId, roleSearchContainer.getStart(), roleIds, roleSearchContainer.getResultEnd());
 			} else {
 				roles = RoleLocalServiceUtil.getGroupRolesAndTeamRoles(company.getCompanyId(), searchTerms.getKeywords(), excludedRoleNames, roleTypes, modelResourceRoleId, teamGroupId, roleSearchContainer.getStart(), roleSearchContainer.getResultEnd());
 			}
