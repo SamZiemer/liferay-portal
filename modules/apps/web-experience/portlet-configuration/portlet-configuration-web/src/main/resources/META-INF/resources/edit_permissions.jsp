@@ -15,10 +15,17 @@
 --%>
 
 <%@ include file="/init.jsp" %><%@
+page import="com.liferay.portal.util.ResourcePermissionUtil" %><%@
 page import="com.liferay.portal.kernel.model.ResourcePermission" %><%@
 page import="com.liferay.portal.kernel.util.PortletKeys" %>
 
 <%
+String tabs1 = ParamUtil.getString(request, "tabs1", "current");
+
+if (!tabs1.equals("available") && !tabs1.equals("current")) {
+	tabs1 = "current";
+}
+
 String tabs2 = ParamUtil.getString(request, "tabs2", "regular-roles");
 
 int cur = ParamUtil.getInteger(request, SearchContainer.DEFAULT_CUR_PARAM);
@@ -114,17 +121,8 @@ iteratorURL.setParameter("returnToFullPageURL", returnToFullPageURL);
 iteratorURL.setParameter("portletConfiguration", Boolean.TRUE.toString());
 iteratorURL.setParameter("portletResource", portletResource);
 iteratorURL.setParameter("resourcePrimKey", resourcePrimKey);
-iteratorURL.setWindowState(LiferayWindowState.POP_UP);
-
-String tabs1 = ParamUtil.getString(request, "tabs1", "current");
-
-if (!tabs1.equals("current") && !tabs1.equals("available")) {
-	tabs1 = "current";
-}
-
-//PortletURL portletURL = renderResponse.createRenderURL();
-
 iteratorURL.setParameter("tabs1", tabs1);
+iteratorURL.setWindowState(LiferayWindowState.POP_UP);
 
 SearchContainer roleSearchContainer = new RoleSearch(renderRequest, iteratorURL);
 
@@ -161,6 +159,7 @@ RoleSearchTerms searchTerms = (RoleSearchTerms)roleSearchContainer.getSearchTerm
 
 		<portlet:actionURL name="updateRolePermissions" var="updateRolePermissionsURL">
 			<portlet:param name="mvcPath" value="/edit_permissions.jsp" />
+			<portlet:param name="tabs1" value="<%= tabs1 %>" />
 			<portlet:param name="tabs2" value="<%= tabs2 %>" />
 			<portlet:param name="cur" value="<%= String.valueOf(cur) %>" />
 			<portlet:param name="delta" value="<%= String.valueOf(delta) %>" />
@@ -328,9 +327,9 @@ RoleSearchTerms searchTerms = (RoleSearchTerms)roleSearchContainer.getSearchTerm
 
 			List<Role> roles = null;
 			
-			if(tabs1.equals("current") && !Validator.isNull(portlet) && false) {
+			if(tabs1.equals("current") && !Validator.isNull(portlet)) {
 				//calls custom method to return all active roles for this: CompanyId, portlet, scope, primKey AND actionId != 0
-				List<ResourcePermission> resourcePermissions = ResourcePermissionUtil.getResourcePermissions(portlet.getCompanyId(), portlet.getPortletName(), PortletKeys.PREFS_OWNER_TYPE_USER, portlet.getModelClassName());
+				List<ResourcePermission> resourcePermissions = ResourcePermissionUtil.getResourcePermissions(portlet.getCompanyId(), portlet.getPortletName(), PortletKeys.PREFS_OWNER_TYPE_USER, themeDisplay.getPlid() + "_LAYOUT_" + portlet.getPortletId());
 				
 				//store roleIds to get roles
 				long[] resourcePermissionIds = new long[resourcePermissions.size()];
@@ -339,11 +338,14 @@ RoleSearchTerms searchTerms = (RoleSearchTerms)roleSearchContainer.getSearchTerm
 					resourcePermissionIds[i++] = resourcePermission.getRoleId();
 				}
 				
+				//Original method
+				//roles = RoleLocalServiceUtil.getGroupRolesAndTeamRoles(company.getCompanyId(), searchTerms.getKeywords(), excludedRoleNames, roleTypes, modelResourceRoleId, teamGroupId, roleSearchContainer.getStart(), roleSearchContainer.getResultEnd());
+				
 				//Testing method
-				roles = RoleLocalServiceUtil.getRoles(resourcePermissionIds);
+				//roles = RoleLocalServiceUtil.getRoles(resourcePermissionIds);
 				
 				//returns roles that intersect RoleLocalServiceUtil.getGroupRolesAndTeamRoles and the roleIds
-				//roles = RoleUtil.getGroupRolesAndTeamRoles(company.getCompanyId(), searchTerms.getKeywords(), excludedRoleNames, roleTypes, modelResourceRoleId, teamGroupId, roleSearchContainer.getStart(), roleIds, roleSearchContainer.getResultEnd());
+				roles = RoleLocalServiceUtil.getGroupRolesAndTeamRolesByRoleId(company.getCompanyId(), searchTerms.getKeywords(), excludedRoleNames, roleTypes, modelResourceRoleId, teamGroupId, resourcePermissionIds, roleSearchContainer.getStart(), roleSearchContainer.getResultEnd());
 			} else {
 				roles = RoleLocalServiceUtil.getGroupRolesAndTeamRoles(company.getCompanyId(), searchTerms.getKeywords(), excludedRoleNames, roleTypes, modelResourceRoleId, teamGroupId, roleSearchContainer.getStart(), roleSearchContainer.getResultEnd());
 			}

@@ -751,8 +751,8 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 		List<Role> finalResults = new ArrayList<Role>();
 
 		//Intersect
-		for(Role result : results2){
-			if(results1.contains(result)){
+		for(Role result : results1){
+			if(results2.contains(result)){
 				finalResults.add(result);
 			}
 		}
