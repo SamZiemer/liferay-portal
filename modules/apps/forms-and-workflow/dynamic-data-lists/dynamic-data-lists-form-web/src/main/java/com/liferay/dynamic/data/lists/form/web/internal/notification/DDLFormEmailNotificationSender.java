@@ -54,8 +54,8 @@ import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PrefsPropsUtil;
 
 import java.io.Writer;
@@ -261,8 +261,7 @@ public class DDLFormEmailNotificationSender {
 
 			Value value = ddmFormFieldValue.getValue();
 
-			if (value == null) {
-			}else {
+			if (value != null) {
 				int counterLocalesSeen = 0;
 
 				for (Locale availableLocale : value.getAvailableLocales()) {
