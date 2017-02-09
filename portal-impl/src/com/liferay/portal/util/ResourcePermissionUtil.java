@@ -51,9 +51,6 @@ public class ResourcePermissionUtil {
 			PropertyFactoryUtil.forName("name").eq(name));
 		resoucePermissionQuery.add(
 			PropertyFactoryUtil.forName("primKey").eq(primKey));
-		//TODO: parameter for primKey - in database = 33570_LAYOUT_com_liferay_site_my_sites_web_portlet_MySitesPortlet or com_liferay_site_my_sites_web_portlet_MySitesPortlet
-		//passed from JSP = com.liferay.portal.kernel.model.Portlet
-		//select active users (resourcePermission table stores everyone that has been assigned permissions at some point)
 		resoucePermissionQuery.add(
 			PropertyFactoryUtil.forName("actionIds").ne(new Long ("0")));
 
