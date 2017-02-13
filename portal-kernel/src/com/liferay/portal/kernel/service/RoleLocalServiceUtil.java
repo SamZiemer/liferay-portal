@@ -14,12 +14,12 @@
 
 package com.liferay.portal.kernel.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
-
-import aQute.bnd.annotation.ProviderType;
 
 /**
  * Provides the local service utility for Role. This utility wraps
