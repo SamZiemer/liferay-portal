@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 
 import java.sql.PreparedStatement;
@@ -34,12 +35,6 @@ import java.sql.ResultSet;
  * @author Alec Shay
  */
 public class UpgradeLayoutType extends UpgradeProcess {
-
-	protected void addPortletPreference(
-		StringBundler portletPreferences, String name, long value) {
-
-		addPortletPreference(portletPreferences, name, "" + value);
-	}
 
 	protected void addPortletPreference(
 		StringBundler portletPreferences, String name, String value) {
@@ -149,13 +144,17 @@ public class UpgradeLayoutType extends UpgradeProcess {
 
 		portletPreferences.append("<portlet-preferences>");
 
-		addPortletPreference(portletPreferences, "articleId", articleId);
-		addPortletPreference(portletPreferences, "assetEntryId", assetEntryId);
+		addPortletPreference(
+			portletPreferences, "articleId", StringUtil.valueOf(articleId));
+		addPortletPreference(
+			portletPreferences, "assetEntryId",
+			StringUtil.valueOf(assetEntryId));
 		addPortletPreference(
 			portletPreferences, "contentMetadataAssetAddonEntryKeys", "");
 		addPortletPreference(
 			portletPreferences, "enableViewCountIncrement", "true");
-		addPortletPreference(portletPreferences, "groupId", groupId);
+		addPortletPreference(
+			portletPreferences, "groupId", StringUtil.valueOf(groupId));
 		addPortletPreference(
 			portletPreferences, "userToolAssetAddonEntryKeys", "");
 
