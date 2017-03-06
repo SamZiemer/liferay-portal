@@ -992,14 +992,14 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 
 	@Override
 	public List<Role> getUserGroupGroupRoles(long userId, List<Long> groupIds) {
-		if (PropsValues.SQL_DATA_MAX_PARAMETERS <= 1) {
+		int threshold = PropsValues.SQL_DATA_MAX_PARAMETERS - 1;
+
+		if ((groupIds.size() <= threshold) || (threshold <= 0)) {
 			return roleFinder.findByUserGroupGroupRoleAllGroups(
 				userId, ArrayUtil.toLongArray(groupIds));
 		}
 
 		Set<Role> roles = new HashSet<>();
-
-		int threshold = PropsValues.SQL_DATA_MAX_PARAMETERS - 1;
 
 		for (int i = 0; i < groupIds.size(); i += threshold) {
 			int toIndex = i + threshold;
@@ -1022,14 +1022,14 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	public List<Role> getUserGroupGroupRoles(
 		long userId, List<Long> groupIds, int start, int end) {
 
-		if (PropsValues.SQL_DATA_MAX_PARAMETERS <= 1) {
+		int threshold = PropsValues.SQL_DATA_MAX_PARAMETERS - 1;
+
+		if ((groupIds.size() <= threshold) || (threshold <= 0)) {
 			return roleFinder.findByUserGroupGroupRoleAllGroups(
 				userId, ArrayUtil.toLongArray(groupIds), start, end);
 		}
 
 		Set<Role> roles = new HashSet<>();
-
-		int threshold = PropsValues.SQL_DATA_MAX_PARAMETERS - 1;
 
 		for (int i = 0; i < groupIds.size(); i += threshold) {
 			int toIndex = i + threshold;
@@ -1086,14 +1086,14 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 */
 	@Override
 	public List<Role> getUserGroupRoles(long userId, List<Long> groupIds) {
-		if (PropsValues.SQL_DATA_MAX_PARAMETERS <= 1) {
+		int threshold = PropsValues.SQL_DATA_MAX_PARAMETERS - 1;
+
+		if ((groupIds.size() <= threshold) || (threshold <= 0)) {
 			return roleFinder.findByUserGroupRoleAllGroups(
 				userId, ArrayUtil.toLongArray(groupIds));
 		}
 
 		Set<Role> roles = new HashSet<>();
-
-		int threshold = PropsValues.SQL_DATA_MAX_PARAMETERS - 1;
 
 		for (int i = 0; i < groupIds.size(); i += threshold) {
 			int toIndex = i + threshold;
