@@ -132,8 +132,21 @@ public class WikiNodeStagedModelDataHandler
 		WikiNode existingNode = fetchStagedModelByUuidAndGroupId(
 			node.getUuid(), portletDataContext.getScopeGroupId());
 
+		String initialNodeName =
+			wikiGroupServiceConfiguration.initialNodeName();
+
 		if (portletDataContext.isDataStrategyMirror()) {
-			if (existingNode == null) {
+			WikiNode initialNode = _wikiNodeLocalService.fetchNode(
+				portletDataContext.getScopeGroupId(), initialNodeName);
+
+			if ((initialNode != null) &&
+				initialNodeName.equals(node.getName())) {
+
+				importedNode = _wikiNodeLocalService.updateNode(
+					initialNode.getNodeId(), node.getName(),
+					node.getDescription(), serviceContext);
+			}
+			else if (existingNode == null) {
 				serviceContext.setUuid(node.getUuid());
 
 				importedNode = _wikiNodeLocalService.addNode(
@@ -147,9 +160,6 @@ public class WikiNodeStagedModelDataHandler
 			}
 		}
 		else {
-			String initialNodeName =
-				wikiGroupServiceConfiguration.initialNodeName();
-
 			if ((existingNode != null) &&
 				initialNodeName.equals(existingNode.getName())) {
 
