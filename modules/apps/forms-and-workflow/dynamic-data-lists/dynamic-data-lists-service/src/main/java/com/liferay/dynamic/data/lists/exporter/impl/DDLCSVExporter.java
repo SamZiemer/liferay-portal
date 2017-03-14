@@ -114,11 +114,11 @@ public class DDLCSVExporter extends BaseDDLExporter {
 
 			sb.append(CharPool.COMMA);
 
-			sb.append(recordVersion.getStatusDate());
+			sb.append(record.getModifiedDate());
 
 			sb.append(CharPool.COMMA);
 
-			sb.append(recordVersion.getUserName());
+			sb.append(CSVUtil.encode(recordVersion.getUserName()));
 
 			if (iterator.hasNext()) {
 				sb.append(StringPool.NEW_LINE);
