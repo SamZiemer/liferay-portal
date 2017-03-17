@@ -1,7 +1,7 @@
 <#assign VOID = freeMarkerPortletPreferences.setValue("portletSetupPortletDecoratorId", "barebone") />
 
 <div aria-expanded="false" class="collapse navbar-collapse" id="navigationCollapse">
-	<#if has_navigation && is_setup_complete>
+	<#if has_navigation && (is_setup_complete || themeDisplay.isImpersonated())>
 		<nav class="${nav_css_class} site-navigation" id="navigation" role="navigation">
 			<#if show_header_search>
 				<div class="navbar-form navbar-right" role="search">

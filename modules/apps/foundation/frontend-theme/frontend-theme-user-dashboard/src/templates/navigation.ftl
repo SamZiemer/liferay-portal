@@ -1,4 +1,4 @@
-<#if has_navigation && is_setup_complete>
+<#if has_navigation && (is_setup_complete || themeDisplay.isImpersonated())>
 	<nav class="${nav_css_class} site-navigation" id="navigation" role="navigation">
 		<#assign VOID = freeMarkerPortletPreferences.setValue("portletSetupPortletDecoratorId", "barebone") />
 
