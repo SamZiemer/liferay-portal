@@ -24,7 +24,7 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
-import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.template.TemplateHandlerRegistryUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -84,11 +84,11 @@ public class PortletDisplayTemplateDDMDisplay extends BaseDDMDisplay {
 
 		long ddmTemplateGroupId = themeDisplay.getScopeGroupId();
 
-		Group ddmTemplateGroup = GroupLocalServiceUtil.getGroup(
+		Group ddmTemplateGroup = _groupLocalService.getGroup(
 			ddmTemplateGroupId);
 
 		if (ddmTemplateGroup.isLayoutPrototype()) {
-			ddmTemplateGroup = GroupLocalServiceUtil.getCompanyGroup(
+			ddmTemplateGroup = _groupLocalService.getCompanyGroup(
 				ddmTemplateGroup.getCompanyId());
 
 			ddmTemplateGroupId = ddmTemplateGroup.getGroupId();
@@ -203,6 +203,11 @@ public class PortletDisplayTemplateDDMDisplay extends BaseDDMDisplay {
 	}
 
 	@Reference(unbind = "-")
+	protected void setGroupLocalService(GroupLocalService groupLocalService) {
+		_groupLocalService = groupLocalService;
+	}
+
+	@Reference(unbind = "-")
 	protected void setPortletDisplayTemplate(
 		PortletDisplayTemplate portletDisplayTemplate) {
 
@@ -213,6 +218,8 @@ public class PortletDisplayTemplateDDMDisplay extends BaseDDMDisplay {
 
 	private static final Set<String> _viewTemplateExcludedColumnNames =
 		SetUtil.fromArray(new String[] {"language", "mode", "structure"});
+
+	private GroupLocalService _groupLocalService;
 
 	@Reference
 	private Portal _portal;
