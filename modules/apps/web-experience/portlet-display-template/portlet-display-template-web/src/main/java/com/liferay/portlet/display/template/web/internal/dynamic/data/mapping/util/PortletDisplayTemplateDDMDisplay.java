@@ -20,9 +20,11 @@ import com.liferay.dynamic.data.mapping.model.DDMTemplateConstants;
 import com.liferay.dynamic.data.mapping.util.BaseDDMDisplay;
 import com.liferay.dynamic.data.mapping.util.DDMDisplay;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.template.TemplateHandlerRegistryUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -80,14 +82,25 @@ public class PortletDisplayTemplateDDMDisplay extends BaseDDMDisplay {
 			ThemeDisplay themeDisplay, boolean includeAncestorTemplates)
 		throws Exception {
 
+		long ddmTemplateGroupId = themeDisplay.getScopeGroupId();
+
+		Group ddmTemplateGroup = GroupLocalServiceUtil.getGroup(
+			ddmTemplateGroupId);
+
+		if (ddmTemplateGroup.isLayoutPrototype()) {
+			ddmTemplateGroup = GroupLocalServiceUtil.getCompanyGroup(
+				ddmTemplateGroup.getCompanyId());
+
+			ddmTemplateGroupId = ddmTemplateGroup.getGroupId();
+		}
+
 		if (includeAncestorTemplates) {
 			return _portal.getCurrentAndAncestorSiteGroupIds(
-				themeDisplay.getScopeGroupId());
+				ddmTemplateGroupId);
 		}
 
 		return new long[] {
-			portletDisplayTemplate.getDDMTemplateGroupId(
-				themeDisplay.getScopeGroupId())
+			portletDisplayTemplate.getDDMTemplateGroupId(ddmTemplateGroupId)
 		};
 	}
 
