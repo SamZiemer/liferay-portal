@@ -162,6 +162,7 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 			new PortletDataHandlerBoolean(
 				NAMESPACE, "folders", true, false, null,
 				JournalFolder.class.getName()));
+		setSupportsDataStrategyMirrorWithOverwriting(false);
 	}
 
 	@Override
