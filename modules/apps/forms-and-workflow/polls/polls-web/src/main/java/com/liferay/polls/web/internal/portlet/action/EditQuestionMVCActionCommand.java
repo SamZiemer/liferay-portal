@@ -179,8 +179,10 @@ public class EditQuestionMVCActionCommand extends BaseMVCActionCommand {
 
 				hideDefaultErrorMessage(actionRequest);
 
-				actionResponse.setRenderParameter(
-					"mvcPath", "/polls/edit_question.jsp");
+				if (!(e instanceof NoSuchChoiceException)) {
+					actionResponse.setRenderParameter(
+						"mvcPath", "/polls/edit_question.jsp");
+				}
 			}
 			else if (e instanceof QuestionExpiredException) {
 			}
