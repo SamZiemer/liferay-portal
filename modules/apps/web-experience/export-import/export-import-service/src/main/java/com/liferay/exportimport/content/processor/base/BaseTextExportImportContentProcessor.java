@@ -1326,55 +1326,39 @@ public class BaseTextExportImportContentProcessor
 				privateLayout = layoutSet.isPrivateLayout();
 			}
 
-			String groupFriendlyURL = group.getFriendlyURL();
-
-			if (url.equals(groupFriendlyURL)) {
-				continue;
-			}
-
-			if (url.startsWith(groupFriendlyURL + StringPool.SLASH)) {
-				url = url.substring(groupFriendlyURL.length());
-			}
-
-			while (true) {
-				pos = url.indexOf(StringPool.SLASH, 1);
-
-				if (pos == -1) {
-					break;
-				}
-
-				String groupName = url.substring(1, pos);
-
-				groupFriendlyURL = StringPool.SLASH + groupName;
-
-				Group urlGroup = GroupLocalServiceUtil.fetchFriendlyURLGroup(
-					group.getCompanyId(), groupFriendlyURL);
-
-				if (urlGroup != null) {
-					group = urlGroup;
-					groupId = urlGroup.getGroupId();
-
-					url = url.substring(groupFriendlyURL.length());
-				}
-				else {
-					throw new NoSuchLayoutException();
-				}
-			}
-
-			if (Validator.isNull(url)) {
-				continue;
-			}
-
 			Layout layout = LayoutLocalServiceUtil.fetchLayoutByFriendlyURL(
 				groupId, privateLayout, url);
 
-			if (layout == null) {
-				group = GroupLocalServiceUtil.fetchFriendlyURLGroup(
-					group.getCompanyId(), url);
+			if (layout != null) {
+				continue;
+			}
 
-				if (group == null) {
-					throw new NoSuchLayoutException();
-				}
+			pos = url.indexOf(StringPool.SLASH, 1);
+
+			String groupFriendlyURL = url;
+
+			if (pos != -1) {
+				groupFriendlyURL = url.substring(0, pos);
+			}
+
+			Group urlGroup = GroupLocalServiceUtil.fetchFriendlyURLGroup(
+				group.getCompanyId(), groupFriendlyURL);
+
+			if (urlGroup == null) {
+				throw new NoSuchLayoutException();
+			}
+
+			if (pos == -1) {
+				continue;
+			}
+
+			url = url.substring(pos);
+
+			layout = LayoutLocalServiceUtil.fetchLayoutByFriendlyURL(
+				urlGroup.getGroupId(), privateLayout, url);
+
+			if (layout == null) {
+				throw new NoSuchLayoutException();
 			}
 		}
 	}
