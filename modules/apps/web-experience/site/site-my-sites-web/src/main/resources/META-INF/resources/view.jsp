@@ -88,6 +88,16 @@ Map<Long, Integer> groupUsersCounts = UserLocalServiceUtil.searchCounts(company.
 		%>
 
 		<aui:nav-item href="<%= availableSitesURL.toString() %>" id="availableSites" label="available-sites" selected='<%= tabs1.equals("available-sites") %>' />
+
+		<c:choose>
+			<c:when test="<%= tabs1.equals("my-sites") && Validator.isNotNull(searchTerms.getKeywords())%>">
+				<aui:nav-item href="<%= mySitesURL.toString() %>" id="back" label="back" />
+			</c:when>
+			<c:when test="<%= tabs1.equals("available-sites") && Validator.isNotNull(searchTerms.getKeywords())%>">
+				<aui:nav-item href="<%= availableSitesURL.toString() %>" id="back" label="back" />
+			</c:when>
+		</c:choose>
+
 	</aui:nav>
 
 	<aui:nav-bar-search>
