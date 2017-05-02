@@ -31,6 +31,10 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
+import java.io.IOException;
+
+import java.util.List;
+
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.EventRequest;
@@ -47,9 +51,8 @@ import javax.portlet.RenderResponse;
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
 import javax.portlet.WindowState;
+
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.List;
 
 /**
  * @author Brian Wing Shun Chan
@@ -293,27 +296,33 @@ public class MVCPortlet extends LiferayPortlet {
 				return;
 			}
 
-			HttpServletRequest baseReq = PortalUtil.getHttpServletRequest(renderRequest);
-			HttpServletRequest origReq = PortalUtil.getOriginalServletRequest(baseReq);
+			HttpServletRequest baseReq = PortalUtil.getHttpServletRequest(
+				renderRequest);
+			HttpServletRequest origReq = PortalUtil.getOriginalServletRequest(
+				baseReq);
 
 			if (Validator.isNotNull(mvcPath)) {
 				renderRequest.setAttribute(
 					getMVCPathAttributeName(renderResponse.getNamespace()),
 					mvcPath);
-				origReq.setAttribute("mvcRenderCommandNameIsErrored", false);
-			} else if (!mvcRenderCommandName.equals("/")){
+				origReq.setAttribute(
+					"mvcRenderCommandNameIsErrored", Boolean.FALSE);
+			} else if (!mvcRenderCommandName.equals("/")) {
 				if (_log.isWarnEnabled()) {
-					origReq.setAttribute("mvcRenderCommandNameIsErrored", true);
-					origReq.setAttribute("mvcRenderCommandInvalidName", mvcRenderCommandName);
+					origReq.setAttribute(
+						"mvcRenderCommandInvalidName", mvcRenderCommandName);
+					origReq.setAttribute(
+						"mvcRenderCommandNameIsErrored", Boolean.TRUE);
 					ThemeDisplay themeDisplay =
 						(ThemeDisplay)renderRequest.getAttribute(
 							WebKeys.THEME_DISPLAY);
+
 					String portletId = themeDisplay.getPortletDisplay().getId();
 					String warningMessage = LanguageUtil.format(
 						baseReq, _NO_SUCH_MVC_RNDR_CMD_X,
-						HtmlUtil.escape(mvcRenderCommandName),
-						false);
+						HtmlUtil.escape(mvcRenderCommandName), false);
 					StringBundler sb = new StringBundler("Portlet ");
+
 					sb.append(portletId);
 					sb.append(", ");
 					sb.append(warningMessage);
@@ -674,8 +683,10 @@ public class MVCPortlet extends LiferayPortlet {
 		return null;
 	}
 
+	private static final String _NO_SUCH_MVC_RNDR_CMD_X =
+		"no-such-mvc-render-command-x";
+
 	private static final Log _log = LogFactoryUtil.getLog(MVCPortlet.class);
-	private static final String _NO_SUCH_MVC_RNDR_CMD_X = "no-such-mvc-render-command-x";
 
 	private MVCCommandCache _actionMVCCommandCache;
 	private MVCCommandCache _renderMVCCommandCache;
