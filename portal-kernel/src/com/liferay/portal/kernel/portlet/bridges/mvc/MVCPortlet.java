@@ -294,13 +294,17 @@ public class MVCPortlet extends LiferayPortlet {
 			}
 
 			HttpServletRequest baseReq = PortalUtil.getHttpServletRequest(renderRequest);
-			
+			HttpServletRequest origReq = PortalUtil.getOriginalServletRequest(baseReq);
+
 			if (Validator.isNotNull(mvcPath)) {
 				renderRequest.setAttribute(
 					getMVCPathAttributeName(renderResponse.getNamespace()),
 					mvcPath);
+				origReq.setAttribute("mvcRenderCommandNameIsErrored", false);
 			} else if (!mvcRenderCommandName.equals("/")){
 				if (_log.isWarnEnabled()) {
+					origReq.setAttribute("mvcRenderCommandNameIsErrored", true);
+					origReq.setAttribute("mvcRenderCommandInvalidName", mvcRenderCommandName);
 					ThemeDisplay themeDisplay =
 						(ThemeDisplay)renderRequest.getAttribute(
 							WebKeys.THEME_DISPLAY);
