@@ -34,7 +34,9 @@ public abstract class BaseUpgradeWebModuleRelease extends UpgradeProcess {
 	@Override
 	public void upgrade() throws UpgradeException {
 		try (Connection con = DataAccess.getUpgradeOptimizedConnection()) {
-			if (hasAnyPortletId(con, getPortletIds())) {
+			if (!hasRelease(con, getBundleSymbolicName()) &&
+				hasAnyPortletId(con, getPortletIds())) {
+
 				super.upgrade();
 			}
 		}
@@ -86,6 +88,20 @@ public abstract class BaseUpgradeWebModuleRelease extends UpgradeProcess {
 				}
 
 				return false;
+			}
+		}
+	}
+
+	protected boolean hasRelease(Connection con, String bundleSymbolicName)
+		throws SQLException {
+
+		try (PreparedStatement ps = con.prepareStatement(
+				"select * from Release_ where servletContextName = ?")) {
+
+			ps.setString(1, bundleSymbolicName);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
 			}
 		}
 	}

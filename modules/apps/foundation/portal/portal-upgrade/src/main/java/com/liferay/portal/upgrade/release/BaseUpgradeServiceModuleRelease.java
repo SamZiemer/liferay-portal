@@ -14,12 +14,15 @@
 
 package com.liferay.portal.upgrade.release;
 
+import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.model.dao.ReleaseDAO;
+import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,6 +31,18 @@ import java.sql.SQLException;
  * @author Adolfo Pérez
  */
 public abstract class BaseUpgradeServiceModuleRelease extends UpgradeProcess {
+
+	@Override
+	public void upgrade() throws UpgradeException {
+		try (Connection con = DataAccess.getUpgradeOptimizedConnection()) {
+			if (!hasNewRelease(con, getNewBundleSymbolicName())) {
+				super.upgrade();
+			}
+		}
+		catch (SQLException sqle) {
+			throw new UpgradeException(sqle);
+		}
+	}
 
 	@Override
 	protected void doUpgrade() throws Exception {
@@ -57,6 +72,20 @@ public abstract class BaseUpgradeServiceModuleRelease extends UpgradeProcess {
 	protected abstract String getNewBundleSymbolicName();
 
 	protected abstract String getOldBundleSymbolicName();
+
+	protected boolean hasNewRelease(Connection con, String bundleSymbolicName)
+		throws SQLException {
+
+		try (PreparedStatement ps = con.prepareStatement(
+				"select * from Release_ where servletContextName = ?")) {
+
+			ps.setString(1, bundleSymbolicName);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+		}
+	}
 
 	private void _createRelease() throws SQLException {
 		ReleaseDAO releaseDAO = new ReleaseDAO();
