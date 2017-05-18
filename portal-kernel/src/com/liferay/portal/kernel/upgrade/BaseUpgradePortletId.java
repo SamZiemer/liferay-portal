@@ -414,7 +414,7 @@ public abstract class BaseUpgradePortletId extends UpgradeProcess {
 		List<String> actionIds = new ArrayList<>();
 
 		try (PreparedStatement ps = connection.prepareStatement(
-				"select actionId from ResourceAction where name = '" + oldName +
+				"select actionId from ResourceAction where name = '" + newName +
 					"'");
 			ResultSet rs = ps.executeQuery()) {
 
