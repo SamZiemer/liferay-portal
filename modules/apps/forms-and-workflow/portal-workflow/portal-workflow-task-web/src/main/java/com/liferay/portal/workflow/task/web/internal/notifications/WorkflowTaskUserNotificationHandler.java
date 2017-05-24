@@ -62,14 +62,17 @@ public class WorkflowTaskUserNotificationHandler
 
 		long workflowTaskId = jsonObject.getLong("workflowTaskId");
 
-		WorkflowTask workflowTask = WorkflowTaskManagerUtil.fetchWorkflowTask(
-			serviceContext.getCompanyId(), workflowTaskId);
+		if (workflowTaskId > 0) {
+			WorkflowTask workflowTask =
+				WorkflowTaskManagerUtil.fetchWorkflowTask(
+					serviceContext.getCompanyId(), workflowTaskId);
 
-		if (!isWorkflowTaskVisible(workflowTask, serviceContext)) {
-			_userNotificationEventLocalService.deleteUserNotificationEvent(
-				userNotificationEvent.getUserNotificationEventId());
+			if (!isWorkflowTaskVisible(workflowTask, serviceContext)) {
+				_userNotificationEventLocalService.deleteUserNotificationEvent(
+					userNotificationEvent.getUserNotificationEventId());
 
-			return null;
+				return null;
+			}
 		}
 
 		return HtmlUtil.escape(jsonObject.getString("notificationMessage"));
@@ -94,6 +97,10 @@ public class WorkflowTaskUserNotificationHandler
 		}
 
 		long workflowTaskId = jsonObject.getLong("workflowTaskId");
+
+		if (workflowTaskId <= 0) {
+			return null;
+		}
 
 		return workflowHandler.getURLEditWorkflowTask(
 			workflowTaskId, serviceContext);
