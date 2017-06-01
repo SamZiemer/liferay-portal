@@ -242,76 +242,77 @@ if (layout != null) {
 						</div>
 
 						<ul class="control-menu-level-2-nav control-menu-nav">
-							<c:if test="<%= (group.isStagingGroup() || group.isStagedRemotely()) && (stagingGroup != null) %>">
-								<c:choose>
-									<c:when test="<%= (group.isStagingGroup() || group.isStagedRemotely()) && branchingEnabled %>">
+							<c:choose>
+								<c:when test="<%= group.isStagingGroup() || group.isStagedRemotely() %>">
+									<c:if test="<%= stagingGroup != null %>">
+										<c:choose>
+											<c:when test="<%= branchingEnabled %>">
+
+												<%
+												request.setAttribute(WebKeys.PRIVATE_LAYOUT, privateLayout);
+												request.setAttribute("view.jsp-layoutBranch", layoutBranch);
+												request.setAttribute("view.jsp-layoutRevision", layoutRevision);
+												request.setAttribute("view.jsp-layoutSetBranch", layoutSetBranch);
+												request.setAttribute("view.jsp-layoutSetBranches", layoutSetBranches);
+												request.setAttribute("view.jsp-stagingURL", stagingURL);
+												%>
+
+												<c:if test="<%= !layoutRevision.isIncomplete() %>">
+													<liferay-util:include page="/view_layout_set_branch_details.jsp" servletContext="<%= application %>" />
+
+													<liferay-util:include page="/view_layout_branch_details.jsp" servletContext="<%= application %>" />
+												</c:if>
+
+												<li class="staging-layout-revision-details" id="<portlet:namespace />layoutRevisionDetails">
+													<aui:model-context bean="<%= layoutRevision %>" model="<%= LayoutRevision.class %>" />
+
+													<liferay-util:include page="/view_layout_revision_details.jsp" servletContext="<%= application %>" />
+												</li>
+											</c:when>
+											<c:otherwise>
+
+												<%
+												request.setAttribute(StagingProcessesWebKeys.BRANCHING_ENABLED, String.valueOf(false));
+												%>
+
+												<liferay-staging:menu cssClass="publish-link" onlyActions="<%= true %>" />
+
+												<li>
+													<c:choose>
+														<c:when test="<%= liveLayout == null %>">
+															<span class="last-publication-branch">
+																<liferay-ui:message arguments='<%= "<strong>" + HtmlUtil.escape(layout.getName(locale)) + "</strong>" %>' key="page-x-has-not-been-published-to-live-yet" translateArguments="<%= false %>" />
+															</span>
+														</c:when>
+														<c:otherwise>
+
+															<%
+															request.setAttribute("privateLayout", privateLayout);
+															request.setAttribute("view.jsp-typeSettingsProperties", liveLayout.getTypeSettingsProperties());
+															%>
+
+															<liferay-util:include page="/last_publication_date_message.jsp" servletContext="<%= application %>" />
+														</c:otherwise>
+													</c:choose>
+												</li>
+											</c:otherwise>
+										</c:choose>
+									</c:if>
+								</c:when>
+								<c:otherwise>
+									<li class="control-menu-nav-item staging-message">
+										<div class="alert alert-warning hide warning-content" id="<portlet:namespace />warningMessage">
+											<liferay-ui:message key="an-inital-staging-publication-is-in-progress" />
+										</div>
 
 										<%
-										request.setAttribute(WebKeys.PRIVATE_LAYOUT, privateLayout);
-										request.setAttribute("view.jsp-layoutBranch", layoutBranch);
-										request.setAttribute("view.jsp-layoutRevision", layoutRevision);
-										request.setAttribute("view.jsp-layoutSetBranch", layoutSetBranch);
-										request.setAttribute("view.jsp-layoutSetBranches", layoutSetBranches);
-										request.setAttribute("view.jsp-stagingURL", stagingURL);
+										request.setAttribute("view.jsp-typeSettingsProperties", liveLayout.getTypeSettingsProperties());
 										%>
 
-										<c:if test="<%= !layoutRevision.isIncomplete() %>">
-											<liferay-util:include page="/view_layout_set_branch_details.jsp" servletContext="<%= application %>" />
-
-											<liferay-util:include page="/view_layout_branch_details.jsp" servletContext="<%= application %>" />
-										</c:if>
-
-										<li class="staging-layout-revision-details" id="<portlet:namespace />layoutRevisionDetails">
-											<aui:model-context bean="<%= layoutRevision %>" model="<%= LayoutRevision.class %>" />
-
-											<liferay-util:include page="/view_layout_revision_details.jsp" servletContext="<%= application %>" />
-										</li>
-									</c:when>
-									<c:otherwise>
-										<c:if test="<%= group.isStagingGroup() || group.isStagedRemotely() %>">
-
-											<%
-											request.setAttribute(StagingProcessesWebKeys.BRANCHING_ENABLED, String.valueOf(false));
-											%>
-
-											<liferay-staging:menu cssClass="publish-link" onlyActions="<%= true %>" />
-										</c:if>
-
-										<li>
-											<c:choose>
-												<c:when test="<%= liveLayout == null %>">
-													<span class="last-publication-branch">
-														<liferay-ui:message arguments='<%= "<strong>" + HtmlUtil.escape(layout.getName(locale)) + "</strong>" %>' key="page-x-has-not-been-published-to-live-yet" translateArguments="<%= false %>" />
-													</span>
-												</c:when>
-												<c:otherwise>
-
-													<%
-													request.setAttribute("privateLayout", privateLayout);
-													request.setAttribute("view.jsp-typeSettingsProperties", liveLayout.getTypeSettingsProperties());
-													%>
-
-													<liferay-util:include page="/last_publication_date_message.jsp" servletContext="<%= application %>" />
-												</c:otherwise>
-											</c:choose>
-										</li>
-									</c:otherwise>
-								</c:choose>
-							</c:if>
-
-							<c:if test="<%= !group.isStagedRemotely() && !group.isStagingGroup() %>">
-								<li class="control-menu-nav-item staging-message">
-									<div class="alert alert-warning hide warning-content" id="<portlet:namespace />warningMessage">
-										<liferay-ui:message key="an-inital-staging-publication-is-in-progress" />
-									</div>
-
-									<%
-									request.setAttribute("view.jsp-typeSettingsProperties", liveLayout.getTypeSettingsProperties());
-									%>
-
-									<liferay-util:include page="/last_publication_date_message.jsp" servletContext="<%= application %>" />
-								</li>
-							</c:if>
+										<liferay-util:include page="/last_publication_date_message.jsp" servletContext="<%= application %>" />
+									</li>
+								</c:otherwise>
+							</c:choose>
 						</ul>
 					</div>
 				</div>
