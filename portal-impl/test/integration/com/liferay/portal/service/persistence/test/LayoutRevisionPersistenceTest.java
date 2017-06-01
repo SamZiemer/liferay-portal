@@ -575,17 +575,6 @@ public class LayoutRevisionPersistenceTest {
 				existingLayoutRevision.getLayoutSetBranchId()),
 			ReflectionTestUtil.<Long>invoke(existingLayoutRevision,
 				"getOriginalLayoutSetBranchId", new Class<?>[0]));
-		Assert.assertEquals(Boolean.valueOf(existingLayoutRevision.getHead()),
-			ReflectionTestUtil.<Boolean>invoke(existingLayoutRevision,
-				"getOriginalHead", new Class<?>[0]));
-		Assert.assertEquals(Long.valueOf(existingLayoutRevision.getPlid()),
-			ReflectionTestUtil.<Long>invoke(existingLayoutRevision,
-				"getOriginalPlid", new Class<?>[0]));
-
-		Assert.assertEquals(Long.valueOf(
-				existingLayoutRevision.getLayoutSetBranchId()),
-			ReflectionTestUtil.<Long>invoke(existingLayoutRevision,
-				"getOriginalLayoutSetBranchId", new Class<?>[0]));
 		Assert.assertEquals(Long.valueOf(
 				existingLayoutRevision.getLayoutBranchId()),
 			ReflectionTestUtil.<Long>invoke(existingLayoutRevision,
