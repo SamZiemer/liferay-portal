@@ -208,7 +208,7 @@ name = HtmlUtil.escapeJS(name);
 			data = <%= HtmlUtil.escapeJS(namespace + initMethod) %>();
 		}
 		else {
-			data = '<%= contents != null ? HtmlUtil.escapeJS(contents) : StringPool.BLANK %>';
+			data = '<%= contents != null ? HtmlUtil.escapeJS(HtmlUtil.escape(contents)) : StringPool.BLANK %>';
 		}
 
 		return data;
@@ -257,7 +257,7 @@ name = HtmlUtil.escapeJS(name);
 
 		alloyEditor = new A.LiferayAlloyEditor(
 			{
-				contents: '<%= HtmlUtil.escapeJS(contents) %>',
+				contents: '<%= HtmlUtil.escapeJS(HtmlUtil.escape(contents)) %>',
 				editorConfig: editorConfig,
 				namespace: '<%= name %>',
 
