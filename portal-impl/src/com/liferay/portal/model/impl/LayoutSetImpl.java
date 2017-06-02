@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.model.VirtualHost;
 import com.liferay.portal.kernel.model.cache.CacheField;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalServiceUtil;
 import com.liferay.portal.kernel.service.ThemeLocalServiceUtil;
 import com.liferay.portal.kernel.service.VirtualHostLocalServiceUtil;
@@ -210,7 +211,20 @@ public class LayoutSetImpl extends LayoutSetBaseImpl {
 
 	@Override
 	public Theme getTheme() {
-		return ThemeLocalServiceUtil.getTheme(getCompanyId(), getThemeId());
+		Theme theme = ThemeLocalServiceUtil.getTheme(
+			getCompanyId(), getThemeId());
+
+		if (!theme.getThemeId().equals(getThemeId())) {
+			try {
+				LayoutSetLocalServiceUtil.updateLookAndFeel(
+					getGroupId(), theme.getThemeId(), null, null);
+			}
+			catch (PortalException pe) {
+				_log.error(pe, pe);
+			}
+		}
+
+		return theme;
 	}
 
 	@Override
