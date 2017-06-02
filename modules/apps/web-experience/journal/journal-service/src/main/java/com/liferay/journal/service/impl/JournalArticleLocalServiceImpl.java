@@ -5365,9 +5365,6 @@ public class JournalArticleLocalServiceImpl
 				throw new ArticleVersionException(sb.toString());
 			}
 
-			serviceContext.validateModifiedDate(
-				latestArticle, ArticleVersionException.class);
-
 			if (latestArticle.isApproved() || latestArticle.isExpired() ||
 				latestArticle.isScheduled()) {
 
