@@ -245,6 +245,15 @@ public class PortletDataContextFactoryImpl
 			}
 		}
 
+		Group group = _groupLocalService.fetchGroup(groupId);
+
+		if (group != null) {
+			portletDataContext.setTreePath(group.getTreePath());
+		}
+		else {
+			portletDataContext.setTreePath("/" + groupId + "/");
+		}
+
 		return portletDataContext;
 	}
 
