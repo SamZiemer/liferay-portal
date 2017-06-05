@@ -932,7 +932,7 @@
 			<finder-column name="parentLayoutRevisionId" />
 			<finder-column name="plid" />
 		</finder>
-		<finder name="L_H_P" return-type="LayoutRevision">
+		<finder name="L_H_P" return-type="Collection">
 			<finder-column name="layoutSetBranchId" />
 			<finder-column name="head" />
 			<finder-column name="plid" />

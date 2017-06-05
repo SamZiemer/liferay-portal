@@ -1713,61 +1713,188 @@ public class LayoutRevisionUtil {
 	}
 
 	/**
-	* Returns the layout revision where layoutSetBranchId = &#63; and head = &#63; and plid = &#63; or throws a {@link NoSuchLayoutRevisionException} if it could not be found.
+	* Returns all the layout revisions where layoutSetBranchId = &#63; and head = &#63; and plid = &#63;.
 	*
 	* @param layoutSetBranchId the layout set branch ID
 	* @param head the head
 	* @param plid the plid
-	* @return the matching layout revision
-	* @throws NoSuchLayoutRevisionException if a matching layout revision could not be found
+	* @return the matching layout revisions
 	*/
-	public static LayoutRevision findByL_H_P(long layoutSetBranchId,
-		boolean head, long plid)
-		throws com.liferay.portal.kernel.exception.NoSuchLayoutRevisionException {
+	public static List<LayoutRevision> findByL_H_P(long layoutSetBranchId,
+		boolean head, long plid) {
 		return getPersistence().findByL_H_P(layoutSetBranchId, head, plid);
 	}
 
 	/**
-	* Returns the layout revision where layoutSetBranchId = &#63; and head = &#63; and plid = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	* Returns a range of all the layout revisions where layoutSetBranchId = &#63; and head = &#63; and plid = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link LayoutRevisionModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
 	*
 	* @param layoutSetBranchId the layout set branch ID
 	* @param head the head
 	* @param plid the plid
-	* @return the matching layout revision, or <code>null</code> if a matching layout revision could not be found
+	* @param start the lower bound of the range of layout revisions
+	* @param end the upper bound of the range of layout revisions (not inclusive)
+	* @return the range of matching layout revisions
 	*/
-	public static LayoutRevision fetchByL_H_P(long layoutSetBranchId,
-		boolean head, long plid) {
-		return getPersistence().fetchByL_H_P(layoutSetBranchId, head, plid);
-	}
-
-	/**
-	* Returns the layout revision where layoutSetBranchId = &#63; and head = &#63; and plid = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
-	*
-	* @param layoutSetBranchId the layout set branch ID
-	* @param head the head
-	* @param plid the plid
-	* @param retrieveFromCache whether to retrieve from the finder cache
-	* @return the matching layout revision, or <code>null</code> if a matching layout revision could not be found
-	*/
-	public static LayoutRevision fetchByL_H_P(long layoutSetBranchId,
-		boolean head, long plid, boolean retrieveFromCache) {
+	public static List<LayoutRevision> findByL_H_P(long layoutSetBranchId,
+		boolean head, long plid, int start, int end) {
 		return getPersistence()
-				   .fetchByL_H_P(layoutSetBranchId, head, plid,
-			retrieveFromCache);
+				   .findByL_H_P(layoutSetBranchId, head, plid, start, end);
 	}
 
 	/**
-	* Removes the layout revision where layoutSetBranchId = &#63; and head = &#63; and plid = &#63; from the database.
+	* Returns an ordered range of all the layout revisions where layoutSetBranchId = &#63; and head = &#63; and plid = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link LayoutRevisionModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
 	*
 	* @param layoutSetBranchId the layout set branch ID
 	* @param head the head
 	* @param plid the plid
-	* @return the layout revision that was removed
+	* @param start the lower bound of the range of layout revisions
+	* @param end the upper bound of the range of layout revisions (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the ordered range of matching layout revisions
 	*/
-	public static LayoutRevision removeByL_H_P(long layoutSetBranchId,
-		boolean head, long plid)
+	public static List<LayoutRevision> findByL_H_P(long layoutSetBranchId,
+		boolean head, long plid, int start, int end,
+		OrderByComparator<LayoutRevision> orderByComparator) {
+		return getPersistence()
+				   .findByL_H_P(layoutSetBranchId, head, plid, start, end,
+			orderByComparator);
+	}
+
+	/**
+	* Returns an ordered range of all the layout revisions where layoutSetBranchId = &#63; and head = &#63; and plid = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link LayoutRevisionModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param layoutSetBranchId the layout set branch ID
+	* @param head the head
+	* @param plid the plid
+	* @param start the lower bound of the range of layout revisions
+	* @param end the upper bound of the range of layout revisions (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @param retrieveFromCache whether to retrieve from the finder cache
+	* @return the ordered range of matching layout revisions
+	*/
+	public static List<LayoutRevision> findByL_H_P(long layoutSetBranchId,
+		boolean head, long plid, int start, int end,
+		OrderByComparator<LayoutRevision> orderByComparator,
+		boolean retrieveFromCache) {
+		return getPersistence()
+				   .findByL_H_P(layoutSetBranchId, head, plid, start, end,
+			orderByComparator, retrieveFromCache);
+	}
+
+	/**
+	* Returns the first layout revision in the ordered set where layoutSetBranchId = &#63; and head = &#63; and plid = &#63;.
+	*
+	* @param layoutSetBranchId the layout set branch ID
+	* @param head the head
+	* @param plid the plid
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the first matching layout revision
+	* @throws NoSuchLayoutRevisionException if a matching layout revision could not be found
+	*/
+	public static LayoutRevision findByL_H_P_First(long layoutSetBranchId,
+		boolean head, long plid,
+		OrderByComparator<LayoutRevision> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchLayoutRevisionException {
-		return getPersistence().removeByL_H_P(layoutSetBranchId, head, plid);
+		return getPersistence()
+				   .findByL_H_P_First(layoutSetBranchId, head, plid,
+			orderByComparator);
+	}
+
+	/**
+	* Returns the first layout revision in the ordered set where layoutSetBranchId = &#63; and head = &#63; and plid = &#63;.
+	*
+	* @param layoutSetBranchId the layout set branch ID
+	* @param head the head
+	* @param plid the plid
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the first matching layout revision, or <code>null</code> if a matching layout revision could not be found
+	*/
+	public static LayoutRevision fetchByL_H_P_First(long layoutSetBranchId,
+		boolean head, long plid,
+		OrderByComparator<LayoutRevision> orderByComparator) {
+		return getPersistence()
+				   .fetchByL_H_P_First(layoutSetBranchId, head, plid,
+			orderByComparator);
+	}
+
+	/**
+	* Returns the last layout revision in the ordered set where layoutSetBranchId = &#63; and head = &#63; and plid = &#63;.
+	*
+	* @param layoutSetBranchId the layout set branch ID
+	* @param head the head
+	* @param plid the plid
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the last matching layout revision
+	* @throws NoSuchLayoutRevisionException if a matching layout revision could not be found
+	*/
+	public static LayoutRevision findByL_H_P_Last(long layoutSetBranchId,
+		boolean head, long plid,
+		OrderByComparator<LayoutRevision> orderByComparator)
+		throws com.liferay.portal.kernel.exception.NoSuchLayoutRevisionException {
+		return getPersistence()
+				   .findByL_H_P_Last(layoutSetBranchId, head, plid,
+			orderByComparator);
+	}
+
+	/**
+	* Returns the last layout revision in the ordered set where layoutSetBranchId = &#63; and head = &#63; and plid = &#63;.
+	*
+	* @param layoutSetBranchId the layout set branch ID
+	* @param head the head
+	* @param plid the plid
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the last matching layout revision, or <code>null</code> if a matching layout revision could not be found
+	*/
+	public static LayoutRevision fetchByL_H_P_Last(long layoutSetBranchId,
+		boolean head, long plid,
+		OrderByComparator<LayoutRevision> orderByComparator) {
+		return getPersistence()
+				   .fetchByL_H_P_Last(layoutSetBranchId, head, plid,
+			orderByComparator);
+	}
+
+	/**
+	* Returns the layout revisions before and after the current layout revision in the ordered set where layoutSetBranchId = &#63; and head = &#63; and plid = &#63;.
+	*
+	* @param layoutRevisionId the primary key of the current layout revision
+	* @param layoutSetBranchId the layout set branch ID
+	* @param head the head
+	* @param plid the plid
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the previous, current, and next layout revision
+	* @throws NoSuchLayoutRevisionException if a layout revision with the primary key could not be found
+	*/
+	public static LayoutRevision[] findByL_H_P_PrevAndNext(
+		long layoutRevisionId, long layoutSetBranchId, boolean head, long plid,
+		OrderByComparator<LayoutRevision> orderByComparator)
+		throws com.liferay.portal.kernel.exception.NoSuchLayoutRevisionException {
+		return getPersistence()
+				   .findByL_H_P_PrevAndNext(layoutRevisionId,
+			layoutSetBranchId, head, plid, orderByComparator);
+	}
+
+	/**
+	* Removes all the layout revisions where layoutSetBranchId = &#63; and head = &#63; and plid = &#63; from the database.
+	*
+	* @param layoutSetBranchId the layout set branch ID
+	* @param head the head
+	* @param plid the plid
+	*/
+	public static void removeByL_H_P(long layoutSetBranchId, boolean head,
+		long plid) {
+		getPersistence().removeByL_H_P(layoutSetBranchId, head, plid);
 	}
 
 	/**
