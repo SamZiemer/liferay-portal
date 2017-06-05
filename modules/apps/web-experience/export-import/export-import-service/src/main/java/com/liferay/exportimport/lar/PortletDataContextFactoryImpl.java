@@ -31,6 +31,8 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
@@ -41,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -169,6 +172,11 @@ public class PortletDataContextFactoryImpl
 			portletDataContext.getSourceCompanyGroupId(),
 			portletDataContext.getCompanyGroupId());
 
+		groupIds.putAll(
+			getAncestorGroupIds(
+				portletDataContext.getSourceTreePath(),
+				portletDataContext.getTreePath()));
+
 		return portletDataContext;
 	}
 
@@ -255,6 +263,32 @@ public class PortletDataContextFactoryImpl
 		}
 
 		return portletDataContext;
+	}
+
+	protected Map<Long, Long> getAncestorGroupIds(
+		String sourceTreePath, String treePath) {
+
+		String[] sourceGroupIds = StringUtil.split(
+			sourceTreePath, StringPool.SLASH);
+		String[] groupIds = StringUtil.split(treePath, StringPool.SLASH);
+
+		int sourceGroupIdsIndex = sourceGroupIds.length - 1;
+		int groupIdsIndex = groupIds.length - 1;
+
+		Map<Long, Long> ancestorGroupIds = new HashMap<>();
+
+		while ((sourceGroupIdsIndex > 0) && (groupIdsIndex > 0)) {
+			long sourceGroupId = GetterUtil.getLong(
+				sourceGroupIds[sourceGroupIdsIndex]);
+			long groupId = GetterUtil.getLong(groupIds[groupIdsIndex]);
+
+			ancestorGroupIds.put(sourceGroupId, groupId);
+
+			sourceGroupIdsIndex--;
+			groupIdsIndex--;
+		}
+
+		return ancestorGroupIds;
 	}
 
 	protected void readXML(PortletDataContext portletDataContext)
