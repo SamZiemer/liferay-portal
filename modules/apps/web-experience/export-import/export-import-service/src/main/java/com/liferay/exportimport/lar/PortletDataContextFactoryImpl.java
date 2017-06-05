@@ -301,6 +301,11 @@ public class PortletDataContextFactoryImpl
 		portletDataContext.setSourceUserPersonalSiteGroupId(
 			sourceUserPersonalSiteGroupId);
 
+		String sourceTreePath = GetterUtil.getString(
+			headerElement.attributeValue("tree-path"));
+
+		portletDataContext.setSourceTreePath(sourceTreePath);
+
 		Element missingReferencesElement = rootElement.element(
 			"missing-references");
 
