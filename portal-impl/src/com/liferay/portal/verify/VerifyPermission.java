@@ -103,9 +103,9 @@ public class VerifyPermission extends VerifyProcess {
 		throws Exception {
 
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			StringBundler sb = new StringBundler(14);
+			StringBundler sb = new StringBundler(12);
 
-			sb.append("select resourcePermission1.resourcePermissionId from ");
+			/*sb.append("select resourcePermission1.resourcePermissionId from ");
 			sb.append("ResourcePermission resourcePermission1 inner join ");
 			sb.append("ResourcePermission resourcePermission2 on ");
 			sb.append("resourcePermission1.companyId = ");
@@ -134,26 +134,67 @@ public class VerifyPermission extends VerifyProcess {
 			sb.append(userClassNameId);
 			sb.append(" or Group_.classNameId = ");
 			sb.append(userGroupClassNameId);
+			sb.append(")");*/
+
+			sb.append("select resourcePermissionId, companyId, primKey,");
+			sb.append(
+				"CAST(SUBSTRING(primKey, 1, CHARINDEX('_LAYOUT_', primKey)");
+			sb.append(" -1) AS BIGINT as plid, roleId into Verify_TMP1");
+			sb.append("from ResourcePermission where companyId = ");
+			sb.append(companyId);
+			sb.append("and primKey like '%_LAYOUT_%' and scope = ");
+			sb.append(ResourceConstants.SCOPE_INDIVIDUAL);
+			sb.append("and (roleId = ");
+			sb.append(powerUserRoleId);
+			sb.append("or roleId = ");
+			sb.append(userRoleId);
 			sb.append(")");
 
 			try (Statement ps1 = connection.createStatement();
-				PreparedStatement ps2 =
+				/*PreparedStatement ps2 =
 					AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 						connection,
 						"delete from ResourcePermission where " +
-							"resourcePermissionId = ?")) {
+							"resourcePermissionId = ?"))*/
+				Statement ps2 = connection.createStatement()) {
 
 				String sql = SQLTransformer.transform(sb.toString());
 
 				try (ResultSet rs = ps1.executeQuery(sql)) {
-					while (rs.next()) {
+					/*while (rs.next()) {
 						ps2.setLong(1, rs.getLong(1));
 
 						ps2.addBatch();
+					}*/
+					if (rs.next()) {
+						sb = new StringBundler(11);
+
+						sb.append("create index IX_TMP1_1");
+						sb.append("on Verify_TMP1 (plid); delete from");
+						sb.append("Verify_TMP1 where plid not in (");
+						sb.append("select plid from Layout inner join");
+						sb.append("Group_ on Layout.groupId = ");
+						sb.append("Group_.groupId where");
+						sb.append("(Group_.classNameId = ");
+						sb.append(userClassNameId);
+						sb.append("or Group_.classNameId = ");
+						sb.append(userGroupClassNameId);
+						sb.append(") and Layout.type_ = 'portlet')");
+
+						runSQL(sb.toString());
+
+						sb = new StringBundler(6);
+
+						sb.append("delete from ResourcePermission where");
+						sb.append("resourcePermissionId in (select");
+						sb.append("resourcePermissionId from Verify_TMP1");
+						sb.append("where roleId = ");
+						sb.append(userRoleId);
+						sb.append(")");
+
+						runSQL(sb.toString());
 					}
 				}
-
-				ps2.executeBatch();
 			}
 		}
 	}
@@ -327,9 +368,9 @@ public class VerifyPermission extends VerifyProcess {
 					companyId, powerUserRole.getRoleId(), userRole.getRoleId(),
 					userClassNameId, userGroupClassNameId);
 
-				StringBundler sb = new StringBundler(20);
+				StringBundler sb = new StringBundler(4);
 
-				sb.append("update ResourcePermission set roleId = ");
+				/*sb.append("update ResourcePermission set roleId = ");
 				sb.append(userRole.getRoleId());
 				sb.append(" where resourcePermissionId in (select ");
 				sb.append("resourcePermissionId from ResourcePermission ");
@@ -348,12 +389,45 @@ public class VerifyPermission extends VerifyProcess {
 				sb.append(userGroupClassNameId);
 				sb.append(") and Layout.type_ = '");
 				sb.append(LayoutConstants.TYPE_PORTLET);
-				sb.append("')");
+				sb.append("')");*/
+
+				sb.append("create index IX_TMP1_2 on Verify_TMP1 (companyId, ");
+				sb.append("primKey); select companyId, primKey into");
+				sb.append("Verify_TMP2 from Verify_TMP1 group by companyId,");
+				sb.append("primKey having count(*) > 1");
+
+				runSQL(sb.toString());
+
+				sb = new StringBundler(9);
+
+				sb.append("create index IX_TMP2_1 on Verify_TMP2 (companyId,");
+				sb.append("primKey); delete from Verify_TMP1 where not exists");
+				sb.append(" (select 1 from Verify_TMP2 where");
+				sb.append("Verify_TMP1.companyId = Verify_TMP2.companyId and");
+				sb.append("Verify_TMP1.primKey = VerifyTMP2.primKey ) and ");
+				sb.append("roleId = ");
+				sb.append(userRole.getRoleId());
+				sb.append("; create index IX_TMP1_3 on Verify_TMP1 (roleId,");
+				sb.append("resourcePermissionId);");
+
+				runSQL(sb.toString());
+
+				sb = new StringBundler(8);
+
+				sb.append("update ResourcePermission set roleId = ");
+				sb.append(userRole.getRoleId());
+				sb.append("where resourcePermissionId in (select");
+				sb.append("resourcePermissionId from Verify_TMP1");
+				sb.append("where roleId = ");
+				sb.append(powerUserRole.getRoleId());
+				sb.append(")");
 
 				runSQL(sb.toString());
 			}
 		}
 		finally {
+			runSQL("drop table if exists VerifyTMP1;" +
+				"drop table if exists VerifyTMP2;");
 			EntityCacheUtil.clearCache();
 			FinderCacheUtil.clearCache();
 		}
