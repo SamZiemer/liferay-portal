@@ -54,7 +54,7 @@ public class BaseAlloyEditorConfigContributor
 
 		jsonObject.put(
 			"extraPlugins",
-			"ae_autolink,ae_dragresize,ae_addimages,ae_placeholder," +
+			"ae_autolink,ae_dragresize,ae_imagealignment,ae_addimages,ae_placeholder," +
 				"ae_selectionregion,ae_tableresize,ae_tabletools,ae_uicore");
 
 		jsonObject.put("imageScaleResize", "scale");
