@@ -84,6 +84,8 @@ public class SearchPortlet extends MVCPortlet {
 		renderRequest.setAttribute(
 			SearchDisplayContext.class.getName(), searchDisplayContext);
 
+		renderResponse.addProperty("X-Robots-Tag", "noindex, nofollow");
+
 		super.render(renderRequest, renderResponse);
 	}
 
