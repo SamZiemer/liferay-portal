@@ -12,7 +12,7 @@
  * details.
  */
 
-package com.liferay.portal.upgrade.v7_0_3;
+package com.liferay.portal.upgrade.v7_0_4;
 
 /**
  * @author Shuyang Zhou
