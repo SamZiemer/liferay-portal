@@ -22,7 +22,6 @@ import com.liferay.portal.upgrade.v7_0_3.UpgradeExpando;
 import com.liferay.portal.upgrade.v7_0_3.UpgradeGroup;
 import com.liferay.portal.upgrade.v7_0_3.UpgradeMBMailingList;
 import com.liferay.portal.upgrade.v7_0_3.UpgradeMessageBoards;
-import com.liferay.portal.upgrade.v7_0_3.UpgradeModules;
 import com.liferay.portal.upgrade.v7_0_3.UpgradeOracle;
 import com.liferay.portal.upgrade.v7_0_3.UpgradeOrganization;
 import com.liferay.portal.upgrade.v7_0_3.UpgradeSQLServer;
@@ -50,7 +49,6 @@ public class UpgradeProcess_7_0_3 extends UpgradeProcess {
 		upgrade(UpgradeGroup.class);
 		upgrade(UpgradeMBMailingList.class);
 		upgrade(UpgradeMessageBoards.class);
-		upgrade(UpgradeModules.class);
 		upgrade(UpgradeOrganization.class);
 		upgrade(UpgradeOracle.class);
 		upgrade(UpgradeSQLServer.class);
