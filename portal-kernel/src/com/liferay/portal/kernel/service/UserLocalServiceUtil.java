@@ -157,6 +157,19 @@ public class UserLocalServiceUtil {
 	}
 
 	/**
+	 * Returns the number of days remaining until the user's password is expired.
+	 *
+	 * @param  user the user
+	 * @return the number of days until the user's password expires;
+	 *         -1 when the user's password does not expire.
+	 */
+	public static int passwordRemainingDays(
+		com.liferay.portal.kernel.model.User user)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().passwordRemainingDays(user);
+	}
+
+	/**
 	* Sends the password email to the user with the email address. The content
 	* of this email can be specified in <code>portal.properties</code> with the
 	* <code>admin.email.password</code> keys.

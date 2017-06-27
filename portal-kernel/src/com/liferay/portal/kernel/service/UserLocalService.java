@@ -165,6 +165,16 @@ public interface UserLocalService extends BaseLocalService,
 	public boolean isPasswordExpiringSoon(User user) throws PortalException;
 
 	/**
+	 * Returns the number of days remaining until the user's password is expired.
+	 *
+	 * @param  user the user
+	 * @return the number of days until the user's password expires;
+	 *         -1 when the user's password does not expire.
+	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int passwordRemainingDays(User user) throws PortalException;
+
+	/**
 	* Sends the password email to the user with the email address. The content
 	* of this email can be specified in <code>portal.properties</code> with the
 	* <code>admin.email.password</code> keys.
