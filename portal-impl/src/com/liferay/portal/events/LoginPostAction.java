@@ -112,7 +112,10 @@ public class LoginPostAction extends Action {
 			User user = PortalUtil.getUser(request);
 
 			if (UserLocalServiceUtil.isPasswordExpiringSoon(user)) {
-				SessionMessages.add(request, "passwordExpiringSoon");
+				int expireInXDays = _passwordRemainingDays(user);
+
+				SessionMessages.add(
+					request, "passwordExpireInXDays", expireInXDays);
 			}
 		}
 		catch (Exception e) {
