@@ -153,7 +153,29 @@ String successURL = portletPreferences.getValue("successURL", StringPool.BLANK);
 	var fieldValidationErrorMessages = {};
 	var fieldValidationFunctions = {};
 
-	var fieldsMap = {};
+	var getFieldsMap = function() {
+		var fieldsMap = {};
+
+		keys.forEach(
+			function(key) {
+				var field = A.one('[name="<portlet:namespace />' + key + '"]');
+
+				if ((field.attr('type') === 'checkbox') || (field.attr('type') === 'radio')) {
+					field = A.one('[name="<portlet:namespace />' + key + '"]:checked');
+
+					fieldsMap[key] = '';
+
+					if (field) {
+						fieldsMap[key] = field.val();
+					}
+				}
+				else {
+					fieldsMap[key] = (field && field.val()) || '';
+				}
+			});
+
+		return fieldsMap;
+	}
 
 	<%
 	int i = 1;
@@ -163,7 +185,6 @@ String successURL = portletPreferences.getValue("successURL", StringPool.BLANK);
 
 	while ((i == 1) || Validator.isNotNull(fieldLabel)) {
 		boolean fieldOptional = PrefsParamUtil.getBoolean(portletPreferences, request, "fieldOptional" + i, false);
-		String fieldType = portletPreferences.getValue("fieldType" + i, "text");
 		String fieldValidationScript = portletPreferences.getValue("fieldValidationScript" + i, StringPool.BLANK);
 		String fieldValidationErrorMessage = portletPreferences.getValue("fieldValidationErrorMessage" + i, StringPool.BLANK);
 	%>
@@ -189,23 +210,6 @@ String successURL = portletPreferences.getValue("successURL", StringPool.BLANK);
 		fieldOptional[fieldKey] = <%= fieldOptional %>;
 		fieldValidationFunctions[fieldKey] = fieldValidationFunction<%= i %>;
 
-		<c:choose>
-			<c:when test='<%= fieldType.equals("checkbox") || fieldType.equals("radio") %>'>
-				var checkedField = A.one('input[name=<portlet:namespace />field<%= i %>]:checked');
-
-				fieldsMap[fieldKey] = '';
-
-				if (checkedField) {
-					fieldsMap[fieldKey] = checkedField.val();
-				}
-			</c:when>
-			<c:otherwise>
-				var inputField = A.one('#<portlet:namespace />field<%= i %>');
-
-				fieldsMap[fieldKey] = (inputField && inputField.val()) || '';
-			</c:otherwise>
-		</c:choose>
-
 	<%
 		i++;
 
@@ -220,6 +224,8 @@ String successURL = portletPreferences.getValue("successURL", StringPool.BLANK);
 		form.on(
 			'submit',
 			function(event) {
+				var fieldsMap = getFieldsMap();
+
 				var validationErrors = false;
 
 				for (var i = 1; i < keys.length; i++) {
