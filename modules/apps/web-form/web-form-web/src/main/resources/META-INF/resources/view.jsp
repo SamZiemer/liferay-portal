@@ -146,80 +146,80 @@ String successURL = portletPreferences.getValue("successURL", StringPool.BLANK);
 </aui:form>
 
 <aui:script use="aui-base,selector-css3">
+	var keys = [];
+
+	var fieldLabels = {};
+	var fieldOptional = {};
+	var fieldValidationErrorMessages = {};
+	var fieldValidationFunctions = {};
+
+	var fieldsMap = {};
+
+	<%
+	int i = 1;
+
+	String fieldName = "field" + i;
+	String fieldLabel = portletPreferences.getValue("fieldLabel" + i, StringPool.BLANK);
+
+	while ((i == 1) || Validator.isNotNull(fieldLabel)) {
+		boolean fieldOptional = PrefsParamUtil.getBoolean(portletPreferences, request, "fieldOptional" + i, false);
+		String fieldType = portletPreferences.getValue("fieldType" + i, "text");
+		String fieldValidationScript = portletPreferences.getValue("fieldValidationScript" + i, StringPool.BLANK);
+		String fieldValidationErrorMessage = portletPreferences.getValue("fieldValidationErrorMessage" + i, StringPool.BLANK);
+	%>
+
+		var fieldKey = '<%= fieldName %>';
+
+		keys[<%= i %>] = fieldKey;
+
+		fieldLabels[fieldKey] = '<%= HtmlUtil.escapeJS(fieldLabel) %>';
+		fieldValidationErrorMessages[fieldKey] = '<%= HtmlUtil.escapeJS(fieldValidationErrorMessage) %>';
+
+		function fieldValidationFunction<%= i %>(currentFieldValue, fieldsMap) {
+			<c:choose>
+				<c:when test="<%= webFormGroupServiceConfiguration.validationScriptEnable() && Validator.isNotNull(fieldValidationScript) %>">
+					<%= fieldValidationScript %>
+				</c:when>
+				<c:otherwise>
+					return true;
+				</c:otherwise>
+			</c:choose>
+		}
+
+		fieldOptional[fieldKey] = <%= fieldOptional %>;
+		fieldValidationFunctions[fieldKey] = fieldValidationFunction<%= i %>;
+
+		<c:choose>
+			<c:when test='<%= fieldType.equals("checkbox") || fieldType.equals("radio") %>'>
+				var checkedField = A.one('input[name=<portlet:namespace />field<%= i %>]:checked');
+
+				fieldsMap[fieldKey] = '';
+
+				if (checkedField) {
+					fieldsMap[fieldKey] = checkedField.val();
+				}
+			</c:when>
+			<c:otherwise>
+				var inputField = A.one('#<portlet:namespace />field<%= i %>');
+
+				fieldsMap[fieldKey] = (inputField && inputField.val()) || '';
+			</c:otherwise>
+		</c:choose>
+
+	<%
+		i++;
+
+		fieldName = "field" + i;
+		fieldLabel = portletPreferences.getValue("fieldLabel" + i, "");
+	}
+	%>
+
 	var form = A.one('#<portlet:namespace />fm');
 
 	if (form) {
 		form.on(
 			'submit',
 			function(event) {
-				var keys = [];
-
-				var fieldLabels = {};
-				var fieldOptional = {};
-				var fieldValidationErrorMessages = {};
-				var fieldValidationFunctions = {};
-
-				var fieldsMap = {};
-
-				<%
-				int i = 1;
-
-				String fieldName = "field" + i;
-				String fieldLabel = portletPreferences.getValue("fieldLabel" + i, StringPool.BLANK);
-
-				while ((i == 1) || Validator.isNotNull(fieldLabel)) {
-					boolean fieldOptional = PrefsParamUtil.getBoolean(portletPreferences, request, "fieldOptional" + i, false);
-					String fieldType = portletPreferences.getValue("fieldType" + i, "text");
-					String fieldValidationScript = portletPreferences.getValue("fieldValidationScript" + i, StringPool.BLANK);
-					String fieldValidationErrorMessage = portletPreferences.getValue("fieldValidationErrorMessage" + i, StringPool.BLANK);
-				%>
-
-					var fieldKey = '<%= fieldName %>';
-
-					keys[<%= i %>] = fieldKey;
-
-					fieldLabels[fieldKey] = '<%= HtmlUtil.escapeJS(fieldLabel) %>';
-					fieldValidationErrorMessages[fieldKey] = '<%= HtmlUtil.escapeJS(fieldValidationErrorMessage) %>';
-
-					function fieldValidationFunction<%= i %>(currentFieldValue, fieldsMap) {
-						<c:choose>
-							<c:when test="<%= webFormGroupServiceConfiguration.validationScriptEnable() && Validator.isNotNull(fieldValidationScript) %>">
-								<%= fieldValidationScript %>
-							</c:when>
-							<c:otherwise>
-								return true;
-							</c:otherwise>
-						</c:choose>
-					}
-
-					fieldOptional[fieldKey] = <%= fieldOptional %>;
-					fieldValidationFunctions[fieldKey] = fieldValidationFunction<%= i %>;
-
-					<c:choose>
-						<c:when test='<%= fieldType.equals("checkbox") || fieldType.equals("radio") %>'>
-							var checkedField = A.one('input[name=<portlet:namespace />field<%= i %>]:checked');
-
-							fieldsMap[fieldKey] = '';
-
-							if (checkedField) {
-								fieldsMap[fieldKey] = checkedField.val();
-							}
-						</c:when>
-						<c:otherwise>
-							var inputField = A.one('#<portlet:namespace />field<%= i %>');
-
-							fieldsMap[fieldKey] = (inputField && inputField.val()) || '';
-						</c:otherwise>
-					</c:choose>
-
-				<%
-					i++;
-
-					fieldName = "field" + i;
-					fieldLabel = portletPreferences.getValue("fieldLabel" + i, "");
-				}
-				%>
-
 				var validationErrors = false;
 
 				for (var i = 1; i < keys.length; i++) {
