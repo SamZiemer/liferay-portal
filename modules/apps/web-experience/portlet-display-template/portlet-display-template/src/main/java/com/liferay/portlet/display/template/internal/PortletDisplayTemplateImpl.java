@@ -23,6 +23,8 @@ import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
+import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.portletdisplaytemplate.BasePortletDisplayTemplateHandler;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
@@ -34,14 +36,11 @@ import com.liferay.portal.kernel.template.TemplateManager;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.template.TemplateVariableGroup;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.JavaConstants;
-import com.liferay.portal.kernel.util.PortletKeys;
-import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.ProxyUtil;
-import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.kernel.util.*;
 import com.liferay.portal.templateparser.Transformer;
+import com.liferay.portlet.PortletServletRequest;
+import com.liferay.portlet.PortletServletResponse;
+import com.liferay.portlet.RenderRequestFactory;
 import com.liferay.portlet.display.template.PortletDisplayTemplate;
 import com.liferay.portlet.display.template.PortletDisplayTemplateConstants;
 import com.liferay.taglib.servlet.PipingServletResponse;
@@ -56,10 +55,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.portlet.PortletPreferences;
-import javax.portlet.PortletURL;
-import javax.portlet.RenderRequest;
-import javax.portlet.RenderResponse;
+import javax.portlet.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -397,17 +393,29 @@ public class PortletDisplayTemplateImpl implements PortletDisplayTemplate {
 		contextObjects.put(
 			PortletDisplayTemplateConstants.LOCALE, request.getLocale());
 
-		RenderRequest renderRequest = (RenderRequest)request.getAttribute(
+		PortletRequest portletRequest = (PortletRequest) request.getAttribute(
 			JavaConstants.JAVAX_PORTLET_REQUEST);
 
-		contextObjects.put(
-			PortletDisplayTemplateConstants.RENDER_REQUEST, renderRequest);
+		RenderRequest renderRequest = null;
 
-		RenderResponse renderResponse = (RenderResponse)request.getAttribute(
+		if (portletRequest instanceof RenderRequest) {
+			renderRequest = (RenderRequest) portletRequest;
+
+			contextObjects.put(
+				PortletDisplayTemplateConstants.RENDER_REQUEST, renderRequest);
+		}
+
+		PortletResponse portletResponse = (PortletResponse) request.getAttribute(
 			JavaConstants.JAVAX_PORTLET_RESPONSE);
 
-		contextObjects.put(
-			PortletDisplayTemplateConstants.RENDER_RESPONSE, renderResponse);
+		RenderResponse renderResponse = null;
+
+		if (portletResponse instanceof RenderResponse) {
+			renderResponse = (RenderResponse) portletResponse;
+
+			contextObjects.put(
+				PortletDisplayTemplateConstants.RENDER_RESPONSE, renderResponse);
+		}
 
 		if ((renderRequest != null) && (renderResponse != null)) {
 			PortletURL currentURL = PortletURLUtil.getCurrent(
@@ -453,8 +461,8 @@ public class PortletDisplayTemplateImpl implements PortletDisplayTemplate {
 
 		contextObjects.put(TemplateConstants.WRITER, unsyncStringWriter);
 
-		if (renderRequest != null) {
-			_mergePortletPreferences(renderRequest, contextObjects);
+		if (portletRequest != null) {
+			_mergePortletPreferences(portletRequest, contextObjects);
 		}
 
 		return transformer.transform(
@@ -501,9 +509,9 @@ public class PortletDisplayTemplateImpl implements PortletDisplayTemplate {
 	}
 
 	private Map<String, Object> _mergePortletPreferences(
-		RenderRequest renderRequest, Map<String, Object> contextObjects) {
+		PortletRequest portletRequest, Map<String, Object> contextObjects) {
 
-		PortletPreferences portletPreferences = renderRequest.getPreferences();
+		PortletPreferences portletPreferences = portletRequest.getPreferences();
 
 		Map<String, String[]> map = portletPreferences.getMap();
 
