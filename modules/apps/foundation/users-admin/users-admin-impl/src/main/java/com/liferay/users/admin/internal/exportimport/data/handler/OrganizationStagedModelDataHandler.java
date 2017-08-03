@@ -479,11 +479,6 @@ public class OrganizationStagedModelDataHandler
 			importedOrganization.getOrganizationId(), phones);
 	}
 
-	@Override
-	protected void importReferenceStagedModels(
-		PortletDataContext portletDataContext, Organization organization) {
-	}
-
 	protected void importWebsites(
 			PortletDataContext portletDataContext, Organization organization,
 			Organization importedOrganization)
