@@ -8183,9 +8183,20 @@ public class PortalImpl implements Portal {
 		}
 
 		if ((pos <= 0) || (pos >= canonicalURL.length())) {
+			Locale siteDefaultLocale = getSiteDefaultLocale(
+				layout.getGroupId());
+
 			for (Locale locale : availableLocales) {
-				alternateURLs.put(
-					locale, canonicalURL.concat(buildI18NPath(locale)));
+				if ((PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 2) ||
+					!siteDefaultLocale.equals(locale)) {
+
+					alternateURLs.put(
+						locale, canonicalURL.concat(buildI18NPath(locale)));
+
+					continue;
+				}
+
+				alternateURLs.put(locale, canonicalURL);
 			}
 
 			return alternateURLs;
