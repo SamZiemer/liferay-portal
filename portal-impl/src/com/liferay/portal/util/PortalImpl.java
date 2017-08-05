@@ -8245,12 +8245,11 @@ public class PortalImpl implements Portal {
 		String canonicalURLPrefix = canonicalURL.substring(0, pos);
 		String canonicalURLSuffix = canonicalURL.substring(pos);
 
-		if (PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 2) {
-			String defaultLocalePath = _buildI18NPath(
-				siteDefaultLocale.getLanguage(), siteDefaultLocale);
+		String i18nPath = buildI18NPath(themeDisplay.getLocale());
 
-			canonicalURLSuffix = canonicalURL.substring(
-				pos + defaultLocalePath.length());
+		if (themeDisplay.isI18n() && canonicalURLSuffix.startsWith(i18nPath)) {
+			canonicalURLSuffix = canonicalURLSuffix.substring(
+				i18nPath.length());
 		}
 
 		for (Locale locale : availableLocales) {
