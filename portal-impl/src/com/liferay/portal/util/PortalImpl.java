@@ -8462,8 +8462,20 @@ public class PortalImpl implements Portal {
 		sb.append(portalURL);
 		sb.append(_pathContext);
 
-		if (themeDisplay.isI18n() && !canonicalURL) {
-			sb.append(themeDisplay.getI18nPath());
+		if (themeDisplay.isI18n()) {
+			if (canonicalURL) {
+				Locale siteDefaultLocale = getSiteDefaultLocale(
+					group.getGroupId());
+
+				if ((PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 2) ||
+					!siteDefaultLocale.equals(themeDisplay.getLocale())) {
+
+					sb.append(buildI18NPath(themeDisplay.getLocale()));
+				}
+			}
+			else {
+				sb.append(themeDisplay.getI18nPath());
+			}
 		}
 
 		if (themeDisplay.isWidget()) {
