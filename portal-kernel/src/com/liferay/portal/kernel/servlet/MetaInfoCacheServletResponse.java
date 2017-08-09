@@ -14,6 +14,7 @@
 
 package com.liferay.portal.kernel.servlet;
 
+import com.liferay.portal.kernel.concurrent.ConcurrentHashSet;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -25,12 +26,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletResponse;
@@ -118,7 +118,7 @@ public class MetaInfoCacheServletResponse extends HttpServletResponseWrapper {
 		Set<Header> values = _metaData._headers.get(HttpHeaders.SET_COOKIE);
 
 		if (values == null) {
-			values = new HashSet<>();
+			values = new ConcurrentHashSet<>();
 
 			_metaData._headers.put(HttpHeaders.SET_COOKIE, values);
 		}
@@ -135,7 +135,7 @@ public class MetaInfoCacheServletResponse extends HttpServletResponseWrapper {
 		Set<Header> values = _metaData._headers.get(name);
 
 		if (values == null) {
-			values = new HashSet<>();
+			values = new ConcurrentHashSet<>();
 
 			_metaData._headers.put(name, values);
 		}
@@ -158,7 +158,7 @@ public class MetaInfoCacheServletResponse extends HttpServletResponseWrapper {
 		Set<Header> values = _metaData._headers.get(name);
 
 		if (values == null) {
-			values = new HashSet<>();
+			values = new ConcurrentHashSet<>();
 
 			_metaData._headers.put(name, values);
 		}
@@ -175,7 +175,7 @@ public class MetaInfoCacheServletResponse extends HttpServletResponseWrapper {
 		Set<Header> values = _metaData._headers.get(name);
 
 		if (values == null) {
-			values = new HashSet<>();
+			values = new ConcurrentHashSet<>();
 
 			_metaData._headers.put(name, values);
 		}
@@ -496,7 +496,7 @@ public class MetaInfoCacheServletResponse extends HttpServletResponseWrapper {
 
 	@Override
 	public void setDateHeader(String name, long value) {
-		Set<Header> values = new HashSet<>();
+		Set<Header> values = new ConcurrentHashSet<>();
 
 		_metaData._headers.put(name, values);
 
@@ -515,7 +515,7 @@ public class MetaInfoCacheServletResponse extends HttpServletResponseWrapper {
 			return;
 		}
 
-		Set<Header> values = new HashSet<>();
+		Set<Header> values = new ConcurrentHashSet<>();
 
 		_metaData._headers.put(name, values);
 
@@ -528,7 +528,7 @@ public class MetaInfoCacheServletResponse extends HttpServletResponseWrapper {
 
 	@Override
 	public void setIntHeader(String name, int value) {
-		Set<Header> values = new HashSet<>();
+		Set<Header> values = new ConcurrentHashSet<>();
 
 		_metaData._headers.put(name, values);
 
@@ -613,7 +613,8 @@ public class MetaInfoCacheServletResponse extends HttpServletResponseWrapper {
 		private String _contentType;
 		private boolean _error;
 		private String _errorMessage;
-		private final Map<String, Set<Header>> _headers = new HashMap<>();
+		private final Map<String, Set<Header>> _headers =
+			new ConcurrentHashMap<>();
 		private Locale _locale;
 		private String _location;
 		private int _status = SC_OK;
