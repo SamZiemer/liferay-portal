@@ -78,10 +78,7 @@ public class UserModelListener extends BaseModelListener<User> {
 			exportToLDAP(user);
 		}
 		catch (Exception e) {
-			_log.error(
-				"Unable to export user " + user.getUserId() +
-					" to LDAP on after create",
-				e);
+			throw new ModelListenerException(e);
 		}
 	}
 
