@@ -113,28 +113,17 @@ public class UserModelListener extends BaseModelListener<User> {
 			return;
 		}
 
-		Callable<Void> callable = new Callable<Void>() {
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.getServiceContext();
 
-			@Override
-			public Void call() throws Exception {
-				ServiceContext serviceContext =
-					ServiceContextThreadLocal.getServiceContext();
+		Map<String, Serializable> expandoBridgeAttributes = null;
 
-				Map<String, Serializable> expandoBridgeAttributes = null;
+		if (serviceContext != null) {
+			expandoBridgeAttributes =
+				serviceContext.getExpandoBridgeAttributes();
+		}
 
-				if (serviceContext != null) {
-					expandoBridgeAttributes =
-						serviceContext.getExpandoBridgeAttributes();
-				}
-
-				_userExporter.exportUser(user, expandoBridgeAttributes);
-
-				return null;
-			}
-
-		};
-
-		TransactionCommitCallbackUtil.registerCallback(callable);
+		_userExporter.exportUser(user, expandoBridgeAttributes);
 	}
 
 	protected void updateMembershipRequestStatus(long userId, long groupId)
