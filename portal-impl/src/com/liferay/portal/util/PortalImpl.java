@@ -8264,10 +8264,25 @@ public class PortalImpl implements Portal {
 			}
 		}
 
+		Locale siteDefaultLocale = getSiteDefaultLocale(layout.getGroupId());
+
 		if ((pos <= 0) || (pos >= canonicalURL.length())) {
 			for (Locale locale : availableLocales) {
-				alternateURLs.put(
-					locale, canonicalURL.concat(buildI18NPath(locale)));
+				if ((PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 2) ||
+					!siteDefaultLocale.equals(locale)) {
+
+					StringBundler sb = new StringBundler(3);
+
+					sb.append(canonicalURL);
+					sb.append(buildI18NPath(locale));
+					sb.append(StringPool.SLASH);
+
+					alternateURLs.put(locale, sb.toString());
+
+					continue;
+				}
+
+				alternateURLs.put(locale, canonicalURL);
 			}
 
 			return alternateURLs;
@@ -8288,8 +8303,6 @@ public class PortalImpl implements Portal {
 				replaceFriendlyURL = false;
 			}
 		}
-
-		Locale siteDefaultLocale = getSiteDefaultLocale(layout.getGroupId());
 
 		List<LayoutFriendlyURL> layoutFriendlyURLs = null;
 
