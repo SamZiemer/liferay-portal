@@ -48,7 +48,7 @@ if (!themeDisplay.isSignedIn() && layout.isPublicLayout()) {
 	%>
 
 			<c:if test="<%= availableLocale.equals(defaultLocale) %>">
-				<link data-senna-track="temporary" href="<%= HtmlUtil.escapeAttribute(canonicalURL) %>" hreflang="x-default" rel="alternate" />
+				<link data-senna-track="temporary" href="<%= HtmlUtil.escapeAttribute(alternateURL) %>" hreflang="x-default" rel="alternate" />
 			</c:if>
 
 			<link data-senna-track="temporary" href="<%= HtmlUtil.escapeAttribute(alternateURL) %>" hreflang="<%= LocaleUtil.toW3cLanguageId(availableLocale) %>" rel="alternate" />
