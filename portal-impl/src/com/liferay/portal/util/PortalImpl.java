@@ -1380,17 +1380,66 @@ public class PortalImpl implements Portal {
 			layout.getLayoutSet(), themeDisplay, true,
 			layout.isTypeControlPanel());
 
-		if (PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 2) {
-			StringBundler sb = new StringBundler(4);
+		String groupFriendlyURLDomain = HttpUtil.getDomain(groupFriendlyURL);
 
-			sb.append(groupFriendlyURL);
-			sb.append(
-				_buildI18NPath(
-					siteDefaultLocale.getLanguage(), siteDefaultLocale));
-			sb.append(canonicalLayoutFriendlyURL);
-			sb.append(parametersURL);
+		int pos = groupFriendlyURL.indexOf(groupFriendlyURLDomain);
 
-			return sb.toString();
+		if (pos > 0) {
+			pos = groupFriendlyURL.indexOf(
+				CharPool.SLASH, pos + groupFriendlyURLDomain.length());
+
+			if (Validator.isNotNull(_pathContext)) {
+				pos = groupFriendlyURL.indexOf(
+					CharPool.SLASH, pos + _pathContext.length());
+			}
+		}
+
+		boolean rootURL = false;
+
+		if ((pos <= 0) || (pos >= groupFriendlyURL.length())) {
+			rootURL = true;
+		}
+
+		if (themeDisplay.isI18n() ||
+			(PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 2)) {
+
+			Locale locale = null;
+
+			if (themeDisplay.isI18n() &&
+				!siteDefaultLocale.equals(themeDisplay.getLocale())) {
+
+				locale = themeDisplay.getLocale();
+			}
+			else if (PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 2) {
+				locale = siteDefaultLocale;
+			}
+
+			if (locale != null) {
+				if (rootURL) {
+					groupFriendlyURL += buildI18NPath(locale);
+
+					if (!canonicalLayoutFriendlyURL.startsWith(
+							StringPool.SLASH)) {
+
+						groupFriendlyURL += StringPool.SLASH;
+					}
+				}
+				else {
+					String groupFriendlyURLPrefix = groupFriendlyURL.substring(
+						0, pos);
+
+					String groupFriendlyURLSuffix = groupFriendlyURL.substring(
+						pos);
+
+					StringBundler sb = new StringBundler(3);
+
+					sb.append(groupFriendlyURLPrefix);
+					sb.append(buildI18NPath(locale));
+					sb.append(groupFriendlyURLSuffix);
+
+					groupFriendlyURL = sb.toString();
+				}
+			}
 		}
 
 		return groupFriendlyURL.concat(canonicalLayoutFriendlyURL).concat(
