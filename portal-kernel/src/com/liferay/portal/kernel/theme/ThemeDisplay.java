@@ -930,8 +930,15 @@ public class ThemeDisplay
 		}
 
 		if (portletPreferences == null) {
-			return PortletPreferencesFactoryUtil.getStrictLayoutPortletSetup(
-				layout, portletId);
+			portletPreferences =
+				PortletPreferencesFactoryUtil.getStrictPortletSetup(
+					layout, portletId);
+		}
+
+		if (portletPreferences == null) {
+			portletPreferences =
+				PortletPreferencesFactoryUtil.getStrictLayoutPortletSetup(
+					layout, portletId);
 		}
 
 		return portletPreferences;
