@@ -477,9 +477,8 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 
 				while (rs.next()) {
 					long fileEntryId = rs.getLong("fileEntryId");
-					String extension = GetterUtil.getString(
-						rs.getString("extension"));
-					String title = GetterUtil.getString(rs.getString("title"));
+					String extension = rs.getString("extension");
+					String title = rs.getString("title");
 					String version = rs.getString("version");
 
 					String uniqueFileName = DLUtil.getSanitizedFileName(
