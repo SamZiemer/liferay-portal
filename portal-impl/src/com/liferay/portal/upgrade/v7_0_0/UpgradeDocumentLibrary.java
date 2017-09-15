@@ -432,22 +432,25 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 
 	private void _fixDuplicateFileEntryFileNames() throws Exception {
 		try (PreparedStatement ps = connection.prepareStatement(
-				"select groupId, folderId, fileName from DLFileEntry group " +
-					"by groupId, folderId, fileName having count(*) > 1");
+				"select groupId, folderId, fileName, extension from " +
+					"DLFileEntry group by groupId, folderId, fileName having " +
+						"count(*) > 1");
 			ResultSet rs = ps.executeQuery()) {
 
 			while (rs.next()) {
 				long groupId = rs.getLong("groupId");
 				long folderId = rs.getLong("folderId");
 				String fileName = rs.getString("fileName");
+				String extension = rs.getString("extension");
 
-				_fixDuplicateFileEntryFileNames(groupId, folderId, fileName);
+				_fixDuplicateFileEntryFileNames(
+					groupId, folderId, fileName, extension);
 			}
 		}
 	}
 
 	private void _fixDuplicateFileEntryFileNames(
-			long groupId, long folderId, String fileName)
+			long groupId, long folderId, String fileName, String extension)
 		throws Exception {
 
 		Set<String> generatedUniqueFileNames = new HashSet<>();
@@ -476,7 +479,6 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 
 				while (rs.next()) {
 					long fileEntryId = rs.getLong("fileEntryId");
-					String extension = rs.getString("extension");
 					String title = rs.getString("title");
 					String version = rs.getString("version");
 
