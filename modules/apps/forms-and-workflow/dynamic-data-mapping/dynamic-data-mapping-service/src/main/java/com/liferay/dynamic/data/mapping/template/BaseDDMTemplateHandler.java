@@ -24,12 +24,16 @@ import com.liferay.portal.kernel.template.BaseTemplateHandler;
 import com.liferay.portal.kernel.template.TemplateVariableCodeHandler;
 import com.liferay.portal.kernel.template.TemplateVariableGroup;
 import com.liferay.portal.kernel.templateparser.TemplateNode;
+import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Stack;
 
 /**
  * @author Jorge Ferrer
@@ -107,7 +111,19 @@ public abstract class BaseDDMTemplateHandler extends BaseTemplateHandler {
 		DDMStructure ddmStructure = DDMStructureLocalServiceUtil.getStructure(
 			ddmStructureId);
 
-		List<String> fieldNames = ddmStructure.getRootFieldNames();
+		List<String> fieldNames = ListUtil.fromCollection(
+			ddmStructure.getFieldNames());
+
+		Map<String, String> nestedFields = new HashMap<>();
+
+		for (String fieldName : fieldNames) {
+			List<String> childNames = ddmStructure.getChildrenFieldNames(
+				fieldName);
+
+			for (String childName : childNames) {
+				nestedFields.put(childName, fieldName);
+			}
+		}
 
 		for (String fieldName : fieldNames) {
 			String label = ddmStructure.getFieldLabel(fieldName, locale);
@@ -117,6 +133,29 @@ public abstract class BaseDDMTemplateHandler extends BaseTemplateHandler {
 
 			if (Validator.isNull(dataType)) {
 				continue;
+			}
+
+			if (nestedFields.containsKey(fieldName)) {
+				String parentName = nestedFields.get(fieldName);
+				Stack<String> parentNames = new Stack<>();
+
+				parentNames.push(parentName);
+
+				while (nestedFields.containsKey(parentName)) {
+					parentName = nestedFields.get(parentName);
+
+					parentNames.push(parentName);
+				}
+
+				StringBundler sb = new StringBundler();
+
+				while (!parentNames.isEmpty()) {
+					sb.append(parentNames.pop());
+					sb.append(".");
+				}
+
+				sb.append(fieldName);
+				fieldName = sb.toString();
 			}
 
 			templateVariableGroup.addFieldVariable(
