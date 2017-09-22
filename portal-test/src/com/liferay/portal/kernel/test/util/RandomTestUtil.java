@@ -137,16 +137,7 @@ public class RandomTestUtil {
 				"Max value must be greater than the min value");
 		}
 
-		int value = _random.nextInt(max - min + 1) + min;
-
-		if (value > 0) {
-			return value;
-		}
-		else if (value == 0) {
-			return randomInt(min, max);
-		}
-
-		return -value;
+		return _random.nextInt(max - min + 1) + min;
 	}
 
 	public static Map<Locale, String> randomLocaleStringMap() {
