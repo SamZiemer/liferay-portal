@@ -122,7 +122,7 @@ RoleSearchTerms searchTerms = (RoleSearchTerms)roleSearchContainer.getSearchTerm
 %>
 
 <div class="edit-permissions portlet-configuration-edit-permissions">
-	<div class="portlet-configuration-body-content">
+	<div class="lfr-form-content portlet-configuration-body-content">
 		<aui:nav-bar cssClass="collapse-basic-search" markupView="lexicon">
 			<aui:nav cssClass="navbar-nav">
 				<aui:nav-item label="permissions" selected="<%= true %>" />
