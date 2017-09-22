@@ -111,23 +111,13 @@ public class RandomTestUtil {
 	}
 
 	public static int randomInt() {
-		int value = _random.nextInt();
-
-		if (value > 0) {
-			return value;
-		}
-		else if (value == 0) {
-			return randomInt();
-		}
-		else {
-			return -value;
-		}
+		return randomInt(1, Integer.MAX_VALUE);
 	}
 
 	public static int randomInt(int min, int max)
 		throws IllegalArgumentException {
 
-		if ((min < 0) || (max < 0)) {
+		if ((min <= 0) || (max <= 0)) {
 			throw new IllegalArgumentException(
 				"Both min and max values must be positive");
 		}
@@ -137,16 +127,7 @@ public class RandomTestUtil {
 				"Max value must be greater than the min value");
 		}
 
-		int value = _random.nextInt(max - min + 1) + min;
-
-		if (value > 0) {
-			return value;
-		}
-		else if (value == 0) {
-			return randomInt(min, max);
-		}
-
-		return -value;
+		return _random.nextInt(max - min + 1) + min;
 	}
 
 	public static Map<Locale, String> randomLocaleStringMap() {
