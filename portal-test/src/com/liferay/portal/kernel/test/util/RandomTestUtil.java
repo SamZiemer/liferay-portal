@@ -127,7 +127,7 @@ public class RandomTestUtil {
 	public static int randomInt(int min, int max)
 		throws IllegalArgumentException {
 
-		if ((min < 0) || (max < 0)) {
+		if ((min <= 0) || (max <= 0)) {
 			throw new IllegalArgumentException(
 				"Both min and max values must be positive");
 		}
