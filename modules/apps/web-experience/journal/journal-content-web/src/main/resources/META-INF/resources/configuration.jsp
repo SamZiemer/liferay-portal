@@ -66,7 +66,9 @@ String redirect = ParamUtil.getString(request, "redirect");
 			PortletURL selectWebContentURL = PortletProviderUtil.getPortletURL(request, JournalArticle.class.getName(), PortletProvider.Action.BROWSE);
 
 			selectWebContentURL.setParameter("groupId", String.valueOf(journalContentDisplayContext.getGroupId()));
-			selectWebContentURL.setParameter("selectedGroupIds", StringUtil.merge(journalContentDisplayContext.getSelectedGroupIds()));
+			selectWebContentURL.setParameter("sharedContentCompanyId", String.valueOf(themeDisplay.getCompanyId()));
+			selectWebContentURL.setParameter("sharedContentSiteGroupId", String.valueOf(themeDisplay.getScopeGroupId()));
+			selectWebContentURL.setParameter("sharedContentUserId", String.valueOf(themeDisplay.getUserId()));
 			selectWebContentURL.setParameter("refererAssetEntryId", "[$ARTICLE_REFERER_ASSET_ENTRY_ID$]");
 			selectWebContentURL.setParameter("typeSelection", JournalArticle.class.getName());
 			selectWebContentURL.setParameter("showNonindexable", String.valueOf(Boolean.TRUE));
