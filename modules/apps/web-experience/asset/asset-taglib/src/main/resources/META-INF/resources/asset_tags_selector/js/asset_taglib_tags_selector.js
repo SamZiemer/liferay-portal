@@ -133,7 +133,7 @@ AUI.add(
 
 						instance._renderIcons();
 
-						instance.inputNode.addClass('lfr-tag-selector-input');
+						instance.inputNode.addClass('lfr-tag-selector-textarea');
 
 						instance._overlayAlign.node = instance.entryHolder;
 					},
@@ -303,6 +303,11 @@ AUI.add(
 						event.domEvent.preventDefault();
 
 						instance._addEntries();
+					},
+
+					_onInput: function() {
+						this.style.height = 'auto';
+						this.style.height = (this.scrollHeight) + 'px';
 					},
 
 					_onKeyPress: function(event) {
