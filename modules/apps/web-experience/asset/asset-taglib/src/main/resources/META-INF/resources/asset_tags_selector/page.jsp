@@ -27,13 +27,14 @@ String id = GetterUtil.getString((String)request.getAttribute("liferay-asset:ass
 PortletURL portletURL = (PortletURL)request.getAttribute("liferay-asset:asset-tags-selector:portletURL");
 String removeCallback = GetterUtil.getString((String)request.getAttribute("liferay-asset:asset-tags-selector:removeCallback"));
 String tagNames = GetterUtil.getString((String)request.getAttribute("liferay-asset:asset-tags-selector:tagNames"));
+	boolean changeStructure = GetterUtil.getBoolean(request.getAttribute("edit_article.jsp-changeStructure"));
 %>
 
 <div class="lfr-tags-selector-content" id="<portlet:namespace /><%= id %>assetTagsSelector">
 	<aui:input name="<%= hiddenInput %>" type="hidden" />
 
 	<c:if test="<%= allowAddEntry %>">
-		<input class="form-control lfr-tag-selector-input" id="<%= id %>assetTagNames" size="15" title="<liferay-ui:message key="add-tags" />" type="text" />
+		<textarea class="form-control lfr-tag-selector-textarea" id="<%= id %>assetTagNames" name="assetTagNames" title="<liferay-ui:message key="add-tags" />"></textarea>
 	</c:if>
 </div>
 
@@ -66,6 +67,11 @@ String tagNames = GetterUtil.getString((String)request.getAttribute("liferay-ass
 			tagNames: '<%= HtmlUtil.escapeJS(tagNames) %>'
 		}
 	).render();
+
+	var assetTagNamesTextArea = document.getElementsByName('assetTagNames');
+
+	assetTagNamesTextArea[0].setAttribute('style', 'height:' + (assetTagNamesTextArea[0].scrollHeight) + 'px;overflow-y:hidden;');
+	assetTagNamesTextArea[0].addEventListener("input", assetTaglibTagsSelector._onInput, false);
 
 	Liferay.component('<portlet:namespace />tagsSelector', assetTaglibTagsSelector);
 
