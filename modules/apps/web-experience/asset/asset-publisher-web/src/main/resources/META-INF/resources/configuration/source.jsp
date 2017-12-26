@@ -91,8 +91,18 @@ List<AssetRendererFactory<?>> classTypesAssetRendererFactories = (List<AssetRend
 
 	for (AssetRendererFactory<?> assetRendererFactory : assetRendererFactories) {
 		ClassTypeReader classTypeReader = assetRendererFactory.getClassTypeReader();
+		String portletId = assetRendererFactory.getPortletId();
+		long[] referencedModelsGroupIds = assetPublisherDisplayContext.getReferencedModelsGroupIds();
 
-		List<ClassType> classTypes = classTypeReader.getAvailableClassTypes(assetPublisherDisplayContext.getReferencedModelsGroupIds(), locale);
+		for (int i = 0; i < referencedModelsGroupIds.length; i++) {
+			Group referencedModelsGroup = GroupLocalServiceUtil.getGroup(referencedModelsGroupIds[i]);
+
+			if (referencedModelsGroup.isStagingGroup() && !referencedModelsGroup.isStagedPortlet(portletId)) {
+				referencedModelsGroupIds[i] = referencedModelsGroup.getLiveGroupId();
+			}
+		}
+
+		List<ClassType> classTypes = classTypeReader.getAvailableClassTypes(referencedModelsGroupIds, locale);
 
 		if (classTypes.isEmpty()) {
 			continue;
