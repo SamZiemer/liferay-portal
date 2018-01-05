@@ -69,6 +69,14 @@ public class OrganizationServiceImpl extends OrganizationServiceBaseImpl {
 
 		organizationLocalService.addGroupOrganizations(
 			groupId, organizationIds);
+
+		List<Organization> orgList = organizationLocalService.getOrganizations(
+			organizationIds);
+
+		long[] suborgIds = organizationLocalService.getSuborganizationsIds(
+			orgList);
+
+		organizationLocalService.addGroupOrganizations(groupId, suborgIds);
 	}
 
 	/**
