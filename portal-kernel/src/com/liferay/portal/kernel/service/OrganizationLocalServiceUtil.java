@@ -704,6 +704,18 @@ public class OrganizationLocalServiceUtil {
 	}
 
 	/**
+	* Returns the ids of suborganizations of the organizations.
+	*
+	* @param organizationList the organizations from which to get
+	suborganization ids
+	* @return the ids of suborganizations of the organizations
+	*/
+	public static long[] getSuborganizationsIds(
+		java.util.List<com.liferay.portal.kernel.model.Organization> organizationList) {
+		return getService().getSuborganizationsIds(organizationList);
+	}
+
+	/**
 	* Returns the intersection of <code>allOrganizations</code> and
 	* <code>availableOrganizations</code>.
 	*
