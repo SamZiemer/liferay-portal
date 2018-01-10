@@ -112,9 +112,59 @@ if (!resultRowSplitterEntries.isEmpty()) {
 								}
 							}
 						}
+
+						String orderKey = null;
+						String orderByType = null;
+
+						if (orderableHeaders != null) {
+							orderKey = (String)orderableHeaders.get(headerName);
+
+							if (orderKey != null) {
+								orderByType = searchContainer.getOrderByType();
+							}
+						}
+
+						if (Objects.equals(orderByType, "asc")) {
+							orderByType = "desc";
+						}
+						else {
+							orderByType = "asc";
+						}
 					%>
 
 						<th class="<%= cssClass %>" id="<%= namespace + id %>_col-<%= normalizedHeaderName %>">
+							<c:if test="<%= orderKey != null %>">
+								<div class="table-sort-liner">
+
+									<%
+									String orderByJS = searchContainer.getOrderByJS();
+									%>
+
+									<c:choose>
+										<c:when test="<%= Validator.isNull(orderByJS) %>">
+
+											<%
+											String url = StringPool.BLANK;
+
+											PortletURL iteratorURL = searchContainer.getIteratorURL();
+
+											if (iteratorURL != null) {
+												url = iteratorURL.toString();
+												url = HttpUtil.removeParameter(url, namespace + searchContainer.getOrderByColParam());
+												url = HttpUtil.removeParameter(url, namespace + searchContainer.getOrderByTypeParam());
+											}
+
+											url = HttpUtil.setParameter(url, namespace + searchContainer.getOrderByColParam(), orderKey);
+											url = HttpUtil.setParameter(url, namespace + searchContainer.getOrderByTypeParam(), orderByType);
+											%>
+
+											<a href="<%= url %>">
+										</c:when>
+										<c:otherwise>
+											<a href="<%= StringUtil.replace(orderByJS, new String[] {"orderKey", "orderByType"}, new String[] {orderKey, orderByType}) %>">
+										</c:otherwise>
+									</c:choose>
+							</c:if>
 
 							<%
 							String headerNameValue = null;
@@ -141,6 +191,12 @@ if (!resultRowSplitterEntries.isEmpty()) {
 									<%= headerNameValue %>
 								</c:otherwise>
 							</c:choose>
+
+							<c:if test="<%= orderKey != null %>">
+										<span class="table-sort-indicator"></span>
+									</a>
+								</div>
+							</c:if>
 						</th>
 
 					<%
