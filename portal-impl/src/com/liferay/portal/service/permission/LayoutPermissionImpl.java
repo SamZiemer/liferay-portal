@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.BaseModelPermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.UserBag;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
@@ -44,6 +45,7 @@ import com.liferay.portal.kernel.service.permission.OrganizationPermissionUtil;
 import com.liferay.portal.kernel.service.permission.UserGroupPermissionUtil;
 import com.liferay.portal.kernel.service.permission.UserPermissionUtil;
 import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.util.LayoutTypeControllerTracker;
 import com.liferay.portal.util.PropsValues;
@@ -558,8 +560,23 @@ public class LayoutPermissionImpl
 		else if (!checkViewableGroup && group.isUserGroup() &&
 				 actionId.equals(ActionKeys.VIEW)) {
 
-			return UserGroupLocalServiceUtil.hasUserUserGroup(
-				permissionChecker.getUserId(), group.getClassPK());
+			try {
+				UserBag userBag = permissionChecker.getUserBag();
+
+				if (userBag != null) {
+					return ArrayUtil.contains(
+						userBag.getUserUserGroupsIds(), group.getClassPK());
+				}
+
+				return UserGroupLocalServiceUtil.hasUserUserGroup(
+					permissionChecker.getUserId(), group.getClassPK());
+			}
+			catch (PortalException pe) {
+				throw pe;
+			}
+			catch (Exception e) {
+				throw new PortalException(e);
+			}
 		}
 
 		return containsWithViewableGroup(

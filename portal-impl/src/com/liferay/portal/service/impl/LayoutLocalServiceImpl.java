@@ -78,15 +78,19 @@ import com.liferay.sites.kernel.util.SitesUtil;
 import java.io.File;
 import java.io.InputStream;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 /**
@@ -1219,24 +1223,14 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 
 				LayoutSet sourceLayoutSet = sourceLayout.getLayoutSet();
 
-				List<Layout> layoutList = parentLayoutMap.get(sourceLayoutSet);
-
-				if (layoutList == null) {
-					layoutList = new ArrayList<>();
-
-					parentLayoutMap.put(sourceLayoutSet, layoutList);
-				}
+				List<Layout> layoutList = parentLayoutMap.computeIfAbsent(
+					sourceLayoutSet, key -> new ArrayList<>());
 
 				layoutList.add(sourceLayout);
 			}
 			else {
-				List<Layout> layoutList = parentLayoutMap.get(layoutSet);
-
-				if (layoutList == null) {
-					layoutList = new ArrayList<>();
-
-					parentLayoutMap.put(layoutSet, layoutList);
-				}
+				List<Layout> layoutList = parentLayoutMap.computeIfAbsent(
+					layoutSet, key -> new ArrayList<>());
 
 				layoutList.add(parentLayout);
 			}
@@ -1460,44 +1454,48 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 	 */
 	@Override
 	public List<Layout> getLayouts(
-		long groupId, boolean privateLayout, String type) {
+			long groupId, boolean privateLayout, String type)
+		throws PortalException {
 
-		Group group = groupPersistence.fetchByPrimaryKey(groupId);
+		Group group = groupPersistence.findByPrimaryKey(groupId);
 
 		List<Layout> layouts = layoutPersistence.findByG_P_T(
 			groupId, privateLayout, type);
 
-		if (group.isUser()) {
-			layouts = ListUtil.copy(layouts);
+		if (!group.isUser()) {
+			return layouts;
+		}
 
-			Set<Long> checkedPlids = new HashSet<>();
-			List<Long> checkParentLayoutIds = new ArrayList<>();
+		layouts = new ArrayList<>(layouts);
 
-			checkParentLayoutIds.add(LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
+		Set<Long> checkedPlids = new HashSet<>();
+		Queue<Long> checkParentLayoutIds = new ArrayDeque<>();
 
-			while (!checkParentLayoutIds.isEmpty()) {
-				long parentLayoutId = checkParentLayoutIds.remove(0);
+		checkParentLayoutIds.add(LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
 
-				LayoutSet layoutSet = layoutSetPersistence.fetchByG_P(
-					groupId, privateLayout);
+		while (!checkParentLayoutIds.isEmpty()) {
+			long parentLayoutId = checkParentLayoutIds.poll();
 
-				try {
-					List<Layout> newLayouts = _addUserGroupLayouts(
-						group, layoutSet, new ArrayList<>(), parentLayoutId);
+			LayoutSet layoutSet = layoutSetPersistence.findByG_P(
+				groupId, privateLayout);
 
-					for (Layout newLayout : newLayouts) {
-						long newLayoutPlid = newLayout.getPlid();
-						long newLayoutLayoutId = newLayout.getLayoutId();
+			try {
+				List<Layout> userGroupLayouts = _addUserGroupLayouts(
+					group, layoutSet, Collections.emptyList(), parentLayoutId);
 
-						if (checkedPlids.add(newLayoutPlid)) {
-							layouts.add(newLayout);
-							checkParentLayoutIds.add(newLayoutLayoutId);
-						}
+				for (Layout userGroupLayout : userGroupLayouts) {
+					long userGroupPlid = userGroupLayout.getPlid();
+					long userGroupLayoutId = userGroupLayout.getLayoutId();
+
+					if (checkedPlids.add(userGroupPlid)) {
+						layouts.add(userGroupLayout);
+
+						checkParentLayoutIds.add(userGroupLayoutId);
 					}
 				}
-				catch (PortalException pe) {
-					_log.error(pe, pe);
-				}
+			}
+			catch (PortalException pe) {
+				_log.error(pe, pe);
 			}
 		}
 
