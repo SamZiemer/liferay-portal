@@ -17,6 +17,7 @@ package com.liferay.document.library.kernel.service;
 import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
@@ -800,7 +801,7 @@ public class DLFileEntryLocalServiceUtil {
 
 	public static void incrementViewCounter(
 		com.liferay.document.library.kernel.model.DLFileEntry dlFileEntry,
-		int increment) {
+		int increment) throws PortalException {
 		getService().incrementViewCounter(dlFileEntry, increment);
 	}
 
