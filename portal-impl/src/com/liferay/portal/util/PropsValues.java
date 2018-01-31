@@ -1205,6 +1205,8 @@ public class PropsValues {
 
 	public static final boolean ORGANIZATIONS_SEARCH_WITH_INDEX = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.ORGANIZATIONS_SEARCH_WITH_INDEX));
 
+	public static final boolean ORGANIZATIONS_SITE_MEMBERSHIP_STRICT = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.ORGANIZATIONS_SITE_MEMBERSHIP_STRICT));
+
 	public static String[] ORGANIZATIONS_TYPES = PropsUtil.getArray(PropsKeys.ORGANIZATIONS_TYPES);
 
 	public static final boolean PASSWORDS_DEFAULT_POLICY_ALLOW_DICTIONARY_WORDS = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.PASSWORDS_DEFAULT_POLICY_ALLOW_DICTIONARY_WORDS));

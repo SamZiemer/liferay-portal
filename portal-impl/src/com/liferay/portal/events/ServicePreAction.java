@@ -42,6 +42,7 @@ import com.liferay.portal.kernel.model.LayoutTemplate;
 import com.liferay.portal.kernel.model.LayoutTypeAccessPolicy;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.LayoutTypePortletConstants;
+import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.model.User;
@@ -59,6 +60,7 @@ import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.ImageLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
+import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
@@ -664,6 +666,24 @@ public class ServicePreAction extends Action {
 			}
 			else {
 				siteGroupId = PortalUtil.getSiteGroupId(layout.getGroupId());
+			}
+		}
+
+		if (PropsValues.ORGANIZATIONS_SITE_MEMBERSHIP_STRICT) {
+			long groupid = group.getGroupId();
+
+			List<Organization> organizations =
+				OrganizationLocalServiceUtil.getGroupOrganizations(groupid);
+
+			if(!organizations.isEmpty()) {
+				List<Organization> suborganizations =
+					OrganizationLocalServiceUtil.getSuborganizations(
+						organizations);
+
+				if (!organizations.contains(suborganizations)) {
+					OrganizationLocalServiceUtil.addGroupOrganizations(
+						groupid, suborganizations);
+				}
 			}
 		}
 

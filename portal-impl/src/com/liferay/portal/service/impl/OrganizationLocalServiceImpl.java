@@ -773,6 +773,20 @@ public class OrganizationLocalServiceImpl
 		return organizationPersistence.countByC_P(companyId, organizationId);
 	}
 
+	public long[] getSuborganizationsIds(List<Organization> organizationList) {
+		List<Organization> suborgList = getSuborganizations(organizationList);
+
+		long[] orgIds = new long[suborgList.size()];
+
+		for (int i = 0; i < suborgList.size(); i++) {
+			Organization org = suborgList.get(i);
+
+			orgIds[i] = org.getOrganizationId();
+		}
+
+		return orgIds;
+	}
+
 	/**
 	 * Returns the intersection of <code>allOrganizations</code> and
 	 * <code>availableOrganizations</code>.

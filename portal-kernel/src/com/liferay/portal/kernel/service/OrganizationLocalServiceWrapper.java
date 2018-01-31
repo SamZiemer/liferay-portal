@@ -768,6 +768,19 @@ public class OrganizationLocalServiceWrapper implements OrganizationLocalService
 	}
 
 	/**
+	* Returns the ids of suborganizations of the organizations.
+	*
+	* @param organizationList the organizations from which to get
+	suborganization ids
+	* @return the ids of suborganizations of the organizations
+	*/
+	@Override
+	public long[] getSuborganizationsIds(
+		java.util.List<com.liferay.portal.kernel.model.Organization> organizationList) {
+		return _organizationLocalService.getSuborganizationsIds(organizationList);
+	}
+
+	/**
 	* Returns the intersection of <code>allOrganizations</code> and
 	* <code>availableOrganizations</code>.
 	*
