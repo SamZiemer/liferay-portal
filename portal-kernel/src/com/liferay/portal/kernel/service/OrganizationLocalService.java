@@ -582,6 +582,9 @@ public interface OrganizationLocalService extends BaseLocalService,
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getSuborganizationsCount(long companyId, long organizationId);
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public long[] getSuborganizationsIds(List<Organization> organizationList);
+
 	/**
 	* Returns the intersection of <code>allOrganizations</code> and
 	* <code>availableOrganizations</code>.

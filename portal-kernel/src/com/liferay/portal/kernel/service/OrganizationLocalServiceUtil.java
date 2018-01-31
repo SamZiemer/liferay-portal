@@ -703,6 +703,11 @@ public class OrganizationLocalServiceUtil {
 		return getService().getSuborganizationsCount(companyId, organizationId);
 	}
 
+	public static long[] getSuborganizationsIds(
+		java.util.List<com.liferay.portal.kernel.model.Organization> organizationList) {
+		return getService().getSuborganizationsIds(organizationList);
+	}
+
 	/**
 	* Returns the intersection of <code>allOrganizations</code> and
 	* <code>availableOrganizations</code>.
