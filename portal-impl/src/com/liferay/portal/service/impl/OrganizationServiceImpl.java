@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.service.permission.PasswordPolicyPermissionUtil
 import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
 import com.liferay.portal.kernel.service.permission.UserPermissionUtil;
 import com.liferay.portal.service.base.OrganizationServiceBaseImpl;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.users.admin.kernel.util.UsersAdminUtil;
 
 import java.io.Serializable;
@@ -69,6 +70,16 @@ public class OrganizationServiceImpl extends OrganizationServiceBaseImpl {
 
 		organizationLocalService.addGroupOrganizations(
 			groupId, organizationIds);
+
+		if (PropsValues.ORGANIZATIONS_SITE_MEMBERSHIP_STRICT) {
+			List<Organization> orgList =
+				organizationLocalService.getOrganizations(organizationIds);
+
+			long[] suborgIds = organizationLocalService.getSuborganizationsIds(
+				orgList);
+
+			organizationLocalService.addGroupOrganizations(groupId, suborgIds);
+		}
 	}
 
 	/**
@@ -453,6 +464,18 @@ public class OrganizationServiceImpl extends OrganizationServiceBaseImpl {
 
 		organizationLocalService.unsetGroupOrganizations(
 			groupId, organizationIds);
+
+		if (PropsValues.ORGANIZATIONS_SITE_MEMBERSHIP_STRICT) {
+			List<Organization> organizationList =
+				organizationLocalService.getOrganizations(organizationIds);
+
+			long[] suborganizationsIds =
+				organizationLocalService.getSuborganizationsIds(
+					organizationList);
+
+			organizationLocalService.unsetGroupOrganizations(
+				groupId, suborganizationsIds);
+		}
 	}
 
 	/**
