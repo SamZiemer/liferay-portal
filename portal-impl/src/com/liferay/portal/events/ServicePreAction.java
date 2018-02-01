@@ -675,7 +675,7 @@ public class ServicePreAction extends Action {
 			List<Organization> organizations =
 				OrganizationLocalServiceUtil.getGroupOrganizations(groupid);
 
-			if(!organizations.isEmpty()) {
+			if (!organizations.isEmpty()) {
 				List<Organization> suborganizations =
 					OrganizationLocalServiceUtil.getSuborganizations(
 						organizations);
