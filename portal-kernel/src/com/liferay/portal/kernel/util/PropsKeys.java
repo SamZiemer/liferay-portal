@@ -1712,6 +1712,8 @@ public interface PropsKeys {
 
 	public static final String ORGANIZATIONS_SEARCH_WITH_INDEX = "organizations.search.with.index";
 
+	public static final String ORGANIZATIONS_SITE_MEMBERSHIP_STRICT = "organizations.site.membership.strict";
+
 	public static final String ORGANIZATIONS_TYPES = "organizations.types";
 
 	public static final String PASSWORDS_DEFAULT_POLICY_ALLOW_DICTIONARY_WORDS = "passwords.default.policy.allow.dictionary.words";
