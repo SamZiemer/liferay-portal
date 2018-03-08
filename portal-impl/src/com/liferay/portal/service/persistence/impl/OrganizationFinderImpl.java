@@ -1135,7 +1135,6 @@ public class OrganizationFinderImpl
 						sb.append(StringPool.SLASH);
 						sb.append(organization.getOrganizationId());
 						sb.append(StringPool.SLASH);
-						sb.append(StringPool.PERCENT);
 
 						qPos.add(sb.toString());
 					}
