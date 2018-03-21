@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.security.pacl.NotPrivileged;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.security.lang.DoPrivilegedUtil;
+import com.liferay.portal.util.PropsValues;
 
 import java.io.Serializable;
 
@@ -197,6 +198,8 @@ public class SessionImpl implements Session {
 
 		LockOptions lockOptions = new LockOptions(
 			LockModeTranslator.translate(lockMode));
+
+		lockOptions.setTimeOut(PropsValues.HIBERNATE_LOCK_ACQUISITION_TIMEOUT);
 
 		try {
 			return _session.get(clazz, id, lockOptions);
