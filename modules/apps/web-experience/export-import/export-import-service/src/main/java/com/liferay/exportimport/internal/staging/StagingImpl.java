@@ -1726,6 +1726,15 @@ public class StagingImpl implements Staging {
 
 	@Override
 	public long getRecentLayoutRevisionId(
+			User user, long layoutSetBranchId, boolean head, long plid)
+		throws PortalException {
+
+		return getRecentLayoutRevisionId(
+			user.getUserId(), layoutSetBranchId, head, plid);
+	}
+
+	@Override
+	public long getRecentLayoutRevisionId(
 			User user, long layoutSetBranchId, long plid)
 		throws PortalException {
 
@@ -3315,6 +3324,54 @@ public class StagingImpl implements Staging {
 
 			if (_log.isDebugEnabled()) {
 				_log.debug(nslbe, nslbe);
+			}
+		}
+
+		return 0;
+	}
+
+	protected long getRecentLayoutRevisionId(
+			long userId, long layoutSetBranchId, boolean head, long plid)
+		throws PortalException {
+
+		RecentLayoutRevision recentLayoutRevision =
+			_recentLayoutRevisionLocalService.fetchRecentLayoutRevision(
+				userId, layoutSetBranchId, plid);
+
+		if (recentLayoutRevision != null) {
+			return recentLayoutRevision.getLayoutRevisionId();
+		}
+
+		long layoutBranchId = getRecentLayoutBranchId(
+			userId, layoutSetBranchId, plid);
+
+		LayoutBranch layoutBranch = _layoutBranchLocalService.fetchLayoutBranch(
+			layoutBranchId);
+
+		if (layoutBranch == null) {
+			try {
+				layoutBranch = _layoutBranchLocalService.getMasterLayoutBranch(
+					layoutSetBranchId, plid);
+
+				layoutBranchId = layoutBranch.getLayoutBranchId();
+			}
+			catch (NoSuchLayoutBranchException nslbe) {
+
+				// LPS-52675
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(nslbe, nslbe);
+				}
+			}
+		}
+
+		if (layoutBranchId > 0) {
+			LayoutRevision layoutRevision =
+				_layoutRevisionLocalService.fetchLayoutRevision(
+					layoutSetBranchId, layoutBranchId, head, plid);
+
+			if (layoutRevision != null) {
+				return layoutRevision.getLayoutRevisionId();
 			}
 		}
 
