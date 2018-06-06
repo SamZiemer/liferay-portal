@@ -54,11 +54,16 @@ public class PollsUtil {
 		long questionId = GetterUtil.getLong(
 			portletPreferences.getValue("questionId", StringPool.BLANK));
 
-		if (questionId > 0) {
-			return PollsQuestionServiceUtil.getQuestion(questionId);
+		if (questionId <= 0) {
+			return null;
 		}
 
-		return null;
+		try {
+			return PollsQuestionServiceUtil.getQuestion(questionId);
+		}
+		catch (Exception e) {
+			return null;
+		}
 	}
 
 	public static CategoryDataset getVotesDataset(long questionId) {
