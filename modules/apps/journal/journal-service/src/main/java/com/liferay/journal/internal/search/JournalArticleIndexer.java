@@ -818,6 +818,15 @@ public class JournalArticleIndexer
 
 			HighlightUtil.addSnippet(document, highlights, snippet, "temp");
 
+			if (!snippet.equals(StringPool.BLANK)) {
+				String fieldName = Field.SNIPPET.concat(
+					StringPool.UNDERLINE).concat("temp");
+
+				Field tempField = document.getField(fieldName);
+
+				content = tempField.getValue();
+			}
+
 			content = HighlightUtil.highlight(
 				content, ArrayUtil.toStringArray(highlights),
 				HighlightUtil.HIGHLIGHT_TAG_OPEN,
