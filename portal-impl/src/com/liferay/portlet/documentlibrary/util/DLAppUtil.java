@@ -29,12 +29,8 @@ import java.io.File;
  */
 public class DLAppUtil {
 
-	public static String getExtension(String title, String sourceFileName) {
+	public static String getExtension(String sourceFileName) {
 		String extension = FileUtil.getExtension(sourceFileName);
-
-		if (Validator.isNull(extension)) {
-			extension = FileUtil.getExtension(title);
-		}
 
 		return extension;
 	}
