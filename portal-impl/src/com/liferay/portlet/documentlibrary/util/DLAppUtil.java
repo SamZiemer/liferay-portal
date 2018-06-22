@@ -41,7 +41,7 @@ public class DLAppUtil {
 		if (Validator.isNull(mimeType) ||
 			mimeType.equals(ContentTypes.APPLICATION_OCTET_STREAM)) {
 
-			String extension = getExtension(title, sourceFileName);
+			String extension = getExtension(sourceFileName);
 
 			mimeType = MimeTypesUtil.getContentType(file, "A." + extension);
 		}
