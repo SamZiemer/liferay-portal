@@ -260,8 +260,7 @@ public class DLAppLocalServiceImpl extends DLAppLocalServiceBaseImpl {
 			mimeType.equals(ContentTypes.APPLICATION_OCTET_STREAM)) {
 
 			if (size == 0) {
-				String extension = DLAppUtil.getExtension(
-					title, sourceFileName);
+				String extension = DLAppUtil.getExtension(sourceFileName);
 
 				mimeType = MimeTypesUtil.getExtensionContentType(extension);
 			}
@@ -1049,8 +1048,7 @@ public class DLAppLocalServiceImpl extends DLAppLocalServiceBaseImpl {
 			mimeType.equals(ContentTypes.APPLICATION_OCTET_STREAM)) {
 
 			if (size == 0) {
-				String extension = DLAppUtil.getExtension(
-					title, sourceFileName);
+				String extension = DLAppUtil.getExtension(sourceFileName);
 
 				mimeType = MimeTypesUtil.getExtensionContentType(extension);
 			}
