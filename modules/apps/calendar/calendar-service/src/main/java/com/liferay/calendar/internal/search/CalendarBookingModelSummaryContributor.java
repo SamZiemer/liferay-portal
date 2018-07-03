@@ -18,8 +18,10 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Summary;
+import com.liferay.portal.kernel.search.highlight.HighlightUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.search.spi.model.result.contributor.ModelSummaryContributor;
 import com.liferay.portal.search.summary.SummaryHelper;
@@ -80,14 +82,51 @@ public class CalendarBookingModelSummaryContributor
 				defaultLocale, prefix + Field.DESCRIPTION, Field.DESCRIPTION);
 		}
 
-		description = HtmlUtil.extractText(description);
+		description = _stripAndHighlight(description);
 
 		Summary summary = new Summary(snippetLocale, title, description);
 
-		summary.setMaxContentLength(200);
+		int defaultContentLength = 200;
+
+		if (defaultContentLength < description.length()) {
+			String strippedDescription = HtmlUtil.stripHtml(description);
+
+			int strippedLength = strippedDescription.length();
+
+			if (strippedLength < defaultContentLength) {
+				defaultContentLength = description.length();
+			}
+			else if (strippedLength < description.length()) {
+				String strippedBeginning = HtmlUtil.stripHtml(
+					description.substring(0, defaultContentLength));
+
+				defaultContentLength =
+					defaultContentLength * 2 - strippedBeginning.length();
+			}
+		}
+
+		summary.setMaxContentLength(defaultContentLength);
 
 		return summary;
 	}
+
+	private String _stripAndHighlight(String text) {
+		text = StringUtil.replace(
+			text, _HIGHLIGHT_TAGS, _ESCAPE_SAFE_HIGHLIGHTS);
+
+		text = HtmlUtil.stripHtml(text);
+
+		text = StringUtil.replace(
+			text, _ESCAPE_SAFE_HIGHLIGHTS, _HIGHLIGHT_TAGS);
+
+		return text;
+	}
+
+	private static final String[] _ESCAPE_SAFE_HIGHLIGHTS =
+		{"[@HIGHLIGHT1@]", "[@HIGHLIGHT2@]"};
+
+	private static final String[] _HIGHLIGHT_TAGS =
+		{HighlightUtil.HIGHLIGHT_TAG_OPEN, HighlightUtil.HIGHLIGHT_TAG_CLOSE};
 
 	@Reference
 	protected SummaryHelper summaryHelper;
