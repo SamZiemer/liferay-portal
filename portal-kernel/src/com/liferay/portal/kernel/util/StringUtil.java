@@ -3449,7 +3449,7 @@ public class StringUtil {
 		for (int j = curLength - suffix.length() + 1, offset; j > 0; j--) {
 			offset = s.offsetByCodePoints(0, j);
 
-			if (Character.isWhitespace(s.codePointBefore(offset))) {
+			if (Character.isSpaceChar(s.codePointBefore(offset))) {
 				curLength = j - 1;
 
 				break;
