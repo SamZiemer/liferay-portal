@@ -832,31 +832,40 @@ public class JournalArticleIndexer
 				Field.SNIPPET + StringPool.UNDERLINE + Field.DESCRIPTION,
 				Field.DESCRIPTION);
 
+			String snippet = document.get(
+				snippetLocale,
+				Field.SNIPPET + StringPool.UNDERLINE + Field.CONTENT,
+				Field.CONTENT);
+
 			if (Validator.isNull(description)) {
 				content = HtmlUtil.stripHtml(articleDisplay.getDescription());
+
+				if (Validator.isNotNull(snippet)) {
+					if (Validator.isNotNull(content)) {
+						Set<String> highlights = new HashSet<>();
+
+						HighlightUtil.addSnippet(
+							document, highlights, snippet, "temp");
+
+						content = HighlightUtil.highlight(
+							content, ArrayUtil.toStringArray(highlights),
+							HighlightUtil.HIGHLIGHT_TAG_OPEN,
+							HighlightUtil.HIGHLIGHT_TAG_CLOSE);
+					}
+					else {
+						content = _stripAndHighlight(snippet);
+					}
+				}
+
+				if (Validator.isNull(content)) {
+					content = HtmlUtil.extractText(articleDisplay.getContent());
+				}
 			}
 			else {
 				content = _stripAndHighlight(description);
 			}
 
 			content = HtmlUtil.replaceNewLine(content);
-
-			if (Validator.isNull(content)) {
-				content = HtmlUtil.extractText(articleDisplay.getContent());
-			}
-
-			String snippet = document.get(
-				snippetLocale,
-				Field.SNIPPET + StringPool.UNDERLINE + Field.CONTENT);
-
-			Set<String> highlights = new HashSet<>();
-
-			HighlightUtil.addSnippet(document, highlights, snippet, "temp");
-
-			content = HighlightUtil.highlight(
-				content, ArrayUtil.toStringArray(highlights),
-				HighlightUtil.HIGHLIGHT_TAG_OPEN,
-				HighlightUtil.HIGHLIGHT_TAG_CLOSE);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
