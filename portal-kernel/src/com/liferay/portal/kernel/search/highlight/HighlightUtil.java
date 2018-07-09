@@ -22,6 +22,8 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -70,6 +72,9 @@ public class HighlightUtil {
 		if (Validator.isBlank(s) || ArrayUtil.isEmpty(queryTerms)) {
 			return s;
 		}
+
+		Arrays.sort(
+			queryTerms, Comparator.comparingInt(String::length).reversed());
 
 		StringBundler sb = new StringBundler(3 * queryTerms.length - 1);
 
