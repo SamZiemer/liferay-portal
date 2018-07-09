@@ -100,11 +100,12 @@ public class JournalArticleIndexerSummaryTest {
 	@Test
 	public void testGetSummary() throws Exception {
 		String content = "test content";
+		String indexedContent = "test content ";
 		String title = "test title";
 
 		Document document = getDocument(title, content);
 
-		assertSummary(title, content, document);
+		assertSummary(title, indexedContent, document);
 	}
 
 	@Test
@@ -127,21 +128,6 @@ public class JournalArticleIndexerSummaryTest {
 	}
 
 	@Test
-	public void testStaleTitleFreshContent() throws Exception {
-		String content = "test content";
-		String title = "test title";
-
-		Document document = getDocument(title, content);
-
-		String staleContent = "stale content";
-		String staleTitle = "stale title";
-
-		setFields(staleTitle, staleContent, document);
-
-		assertSummary(staleTitle, content, document);
-	}
-
-	@Test
 	public void testStaleTitleFreshContentHighlighted() throws Exception {
 		String content = "test content";
 		String title = "test title";
@@ -150,7 +136,7 @@ public class JournalArticleIndexerSummaryTest {
 
 		String staleHighlightedContent = StringBundler.concat(
 			HighlightUtil.HIGHLIGHT_TAG_OPEN, "test",
-			HighlightUtil.HIGHLIGHT_TAG_CLOSE, " stale content");
+			HighlightUtil.HIGHLIGHT_TAG_CLOSE, " content");
 		String staleHighlightedTitle = StringBundler.concat(
 			HighlightUtil.HIGHLIGHT_TAG_OPEN, "test",
 			HighlightUtil.HIGHLIGHT_TAG_CLOSE, " stale title");
