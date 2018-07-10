@@ -107,7 +107,7 @@ public class HighlightUtilTest {
 			"sidewalk repair", "sidewalk repaired");
 		assertHighlight(
 			"japanese food is better in japan",
-			"japanese food is [[better]] in [[japan]]", "better", "japan");
+			"[[japan]]ese food is [[better]] in [[japan]]", "better", "japan");
 		assertHighlight(
 			"japanese food is better in japan",
 			"[[japanese]] food is better in [[japan]]", "japan", "japanese");
