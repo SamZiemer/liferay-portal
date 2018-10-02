@@ -37,13 +37,6 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class AddFormInstanceRecordMVCCommandHelper {
 
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             DDMFormInstanceRecordHelper#updateRequiredFieldsAccordingToVisibility(
-	 *             long, long, HttpServletRequest, DDMForm, DDMFormValues,
-	 *             Locale)}
-	 */
-	@Deprecated
 	public void updateRequiredFieldsAccordingToVisibility(
 			ActionRequest actionRequest, DDMForm ddmForm,
 			DDMFormValues ddmFormValues, Locale locale)
