@@ -29,6 +29,7 @@ import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceService;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
+import com.liferay.dynamic.data.mapping.util.DDMFormInstanceRecordHelper;
 import com.liferay.portal.kernel.captcha.CaptchaTextException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
@@ -48,6 +49,8 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletSession;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -102,15 +105,18 @@ public class AddFormInstanceRecordMVCActionCommand
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		_addFormInstanceMVCCommandHelper.
+		HttpServletRequest request = _portal.getHttpServletRequest(
+			actionRequest);
+
+		_ddmFormInstanceRecordHelper.
 			updateRequiredFieldsAccordingToVisibility(
-				actionRequest, ddmForm, ddmFormValues,
+				groupId, formInstanceId, request, ddmForm, ddmFormValues,
 				themeDisplay.getLocale());
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			DDMFormInstanceRecord.class.getName(), actionRequest);
 
-		serviceContext.setRequest(_portal.getHttpServletRequest(actionRequest));
+		serviceContext.setRequest(request);
 
 		DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion =
 			_ddmFormInstanceRecordVersionLocalService.
@@ -210,8 +216,7 @@ public class AddFormInstanceRecordMVCActionCommand
 	}
 
 	@Reference
-	private AddFormInstanceRecordMVCCommandHelper
-		_addFormInstanceMVCCommandHelper;
+	private DDMFormInstanceRecordHelper _ddmFormInstanceRecordHelper;
 
 	private DDMFormInstanceRecordService _ddmFormInstanceRecordService;
 
