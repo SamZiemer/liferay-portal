@@ -29,6 +29,7 @@ import com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecord;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceLocalService;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
+import com.liferay.dynamic.data.mapping.util.DDMFormInstanceRecordHelper;
 import com.liferay.exportimport.content.processor.ExportImportContentProcessor;
 import com.liferay.exportimport.data.handler.base.BaseStagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.ExportImportPathUtil;
@@ -37,6 +38,7 @@ import com.liferay.exportimport.kernel.lar.PortletDataException;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.staged.model.repository.StagedModelRepository;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
@@ -134,6 +136,13 @@ public class DDMFormInstanceRecordStagedModelDataHandler
 
 		DDMFormValues ddmFormValues = getImportDDMFormValues(
 			portletDataContext, recordElement, ddmFormInstanceId);
+
+		ServiceContext serviceContext = portletDataContext.createServiceContext(
+			record);
+
+		_ddmFormInstanceRecordHelper.updateRequiredFieldsAccordingToVisibility(
+			serviceContext, ddmFormInstanceId, ddmFormValues.getDDMForm(),
+			ddmFormValues, serviceContext.getLocale());
 
 		DDMFormInstanceRecord importedRecord =
 			(DDMFormInstanceRecord)record.clone();
@@ -264,6 +273,9 @@ public class DDMFormInstanceRecordStagedModelDataHandler
 
 	@Reference(service = DDMFormInstanceLocalService.class)
 	private DDMFormInstanceLocalService _ddmFormInstanceLocalService;
+
+	@Reference(service = DDMFormInstanceRecordHelper.class)
+	private DDMFormInstanceRecordHelper _ddmFormInstanceRecordHelper;
 
 	@Reference(
 		service = DDMFormInstanceRecordStagedModelRepository.class,
