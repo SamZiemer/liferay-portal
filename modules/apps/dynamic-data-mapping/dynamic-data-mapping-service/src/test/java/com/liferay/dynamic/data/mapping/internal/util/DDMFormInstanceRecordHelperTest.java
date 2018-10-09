@@ -12,7 +12,7 @@
  * details.
  */
 
-package com.liferay.dynamic.data.mapping.form.web.internal.portlet.action;
+package com.liferay.dynamic.data.mapping.internal.util;
 
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluator;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluatorEvaluateRequest;
@@ -29,9 +29,11 @@ import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
+import com.liferay.dynamic.data.mapping.util.DDMFormInstanceRecordHelper;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PropsUtil;
@@ -42,10 +44,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
-import javax.portlet.ActionRequest;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -65,7 +63,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
  */
 @PrepareForTest(ResourceBundleUtil.class)
 @RunWith(PowerMockRunner.class)
-public class AddFormInstanceRecordMVCCommandHelperTest extends PowerMockito {
+public class DDMFormInstanceRecordHelperTest extends PowerMockito {
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
@@ -89,8 +87,9 @@ public class AddFormInstanceRecordMVCCommandHelperTest extends PowerMockito {
 
 		_ddmFormField.setRequired(false);
 
-		_addRecordMVCCommandHelper.updateRequiredFieldsAccordingToVisibility(
-			_actionRequest, _ddmForm, _ddmFormValues, LocaleUtil.US);
+		_ddmFormInstanceRecordHelper.updateRequiredFieldsAccordingToVisibility(
+			_serviceContext, _ddmFormInstanceId, _ddmForm, _ddmFormValues,
+			LocaleUtil.US);
 
 		Assert.assertFalse(_ddmFormField.isRequired());
 	}
@@ -105,8 +104,9 @@ public class AddFormInstanceRecordMVCCommandHelperTest extends PowerMockito {
 
 		_ddmFormField.setRequired(false);
 
-		_addRecordMVCCommandHelper.updateRequiredFieldsAccordingToVisibility(
-			_actionRequest, _ddmForm, _ddmFormValues, LocaleUtil.US);
+		_ddmFormInstanceRecordHelper.updateRequiredFieldsAccordingToVisibility(
+			_serviceContext, _ddmFormInstanceId, _ddmForm, _ddmFormValues,
+			LocaleUtil.US);
 
 		Assert.assertFalse(_ddmFormField.isRequired());
 	}
@@ -121,8 +121,9 @@ public class AddFormInstanceRecordMVCCommandHelperTest extends PowerMockito {
 
 		mockGetDDMFormLayout();
 
-		_addRecordMVCCommandHelper.updateRequiredFieldsAccordingToVisibility(
-			_actionRequest, _ddmForm, _ddmFormValues, LocaleUtil.US);
+		_ddmFormInstanceRecordHelper.updateRequiredFieldsAccordingToVisibility(
+			_serviceContext, _ddmFormInstanceId, _ddmForm, _ddmFormValues,
+			LocaleUtil.US);
 
 		Assert.assertFalse(_ddmFormField.isRequired());
 	}
@@ -137,8 +138,9 @@ public class AddFormInstanceRecordMVCCommandHelperTest extends PowerMockito {
 
 		mockGetDDMFormLayout();
 
-		_addRecordMVCCommandHelper.updateRequiredFieldsAccordingToVisibility(
-			_actionRequest, _ddmForm, _ddmFormValues, LocaleUtil.US);
+		_ddmFormInstanceRecordHelper.updateRequiredFieldsAccordingToVisibility(
+			_serviceContext, _ddmFormInstanceId, _ddmForm, _ddmFormValues,
+			LocaleUtil.US);
 
 		Assert.assertTrue(_ddmFormField.isRequired());
 	}
@@ -211,39 +213,30 @@ public class AddFormInstanceRecordMVCCommandHelperTest extends PowerMockito {
 	}
 
 	protected void setUpAddRecordMVCCommandHelper() throws Exception {
-		_addRecordMVCCommandHelper =
-			new AddFormInstanceRecordMVCCommandHelper();
+		_ddmFormInstanceRecordHelper = new DDMFormInstanceRecordHelperImpl();
 
 		field(
-			AddFormInstanceRecordMVCCommandHelper.class,
-			"_ddmFormInstanceService"
+			DDMFormInstanceRecordHelperImpl.class, "_ddmFormInstanceService"
 		).set(
-			_addRecordMVCCommandHelper, _ddmFormInstanceService
+			_ddmFormInstanceRecordHelper, _ddmFormInstanceService
 		);
 
 		field(
-			AddFormInstanceRecordMVCCommandHelper.class, "_ddmFormEvaluator"
+			DDMFormInstanceRecordHelperImpl.class, "_ddmFormEvaluator"
 		).set(
-			_addRecordMVCCommandHelper, _ddmFormEvaluator
+			_ddmFormInstanceRecordHelper, _ddmFormEvaluator
 		);
 
 		field(
-			AddFormInstanceRecordMVCCommandHelper.class,
-			"_ddmStructureLocalService"
+			DDMFormInstanceRecordHelperImpl.class, "_ddmStructureLocalService"
 		).set(
-			_addRecordMVCCommandHelper, _ddmStructureLocalService
+			_ddmFormInstanceRecordHelper, _ddmStructureLocalService
 		);
 
 		field(
-			AddFormInstanceRecordMVCCommandHelper.class, "_portal"
+			DDMFormInstanceRecordHelperImpl.class, "_portal"
 		).set(
-			_addRecordMVCCommandHelper, _portal
-		);
-
-		when(
-			_portal, "getHttpServletRequest", _actionRequest
-		).thenReturn(
-			_request
+			_ddmFormInstanceRecordHelper, _portal
 		);
 	}
 
@@ -267,16 +260,14 @@ public class AddFormInstanceRecordMVCCommandHelperTest extends PowerMockito {
 		);
 	}
 
-	@Mock
-	private ActionRequest _actionRequest;
-
-	private AddFormInstanceRecordMVCCommandHelper _addRecordMVCCommandHelper;
 	private DDMForm _ddmForm;
 
 	@Mock
 	private DDMFormEvaluator _ddmFormEvaluator;
 
 	private DDMFormField _ddmFormField;
+	private long _ddmFormInstanceId;
+	private DDMFormInstanceRecordHelper _ddmFormInstanceRecordHelper;
 
 	@Mock
 	private DDMFormInstanceService _ddmFormInstanceService;
@@ -290,6 +281,6 @@ public class AddFormInstanceRecordMVCCommandHelperTest extends PowerMockito {
 	private Portal _portal;
 
 	@Mock
-	private HttpServletRequest _request;
+	private ServiceContext _serviceContext;
 
 }

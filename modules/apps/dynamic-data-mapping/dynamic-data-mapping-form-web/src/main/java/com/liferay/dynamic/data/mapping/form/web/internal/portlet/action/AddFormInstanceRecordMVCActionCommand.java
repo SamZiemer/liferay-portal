@@ -29,6 +29,7 @@ import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceService;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
+import com.liferay.dynamic.data.mapping.util.DDMFormInstanceRecordHelper;
 import com.liferay.portal.kernel.captcha.CaptchaTextException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
@@ -102,13 +103,12 @@ public class AddFormInstanceRecordMVCActionCommand
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		_addFormInstanceMVCCommandHelper.
-			updateRequiredFieldsAccordingToVisibility(
-				actionRequest, ddmForm, ddmFormValues,
-				themeDisplay.getLocale());
-
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			DDMFormInstanceRecord.class.getName(), actionRequest);
+
+		_ddmFormInstanceRecordHelper.updateRequiredFieldsAccordingToVisibility(
+			serviceContext, formInstanceId, ddmForm, ddmFormValues,
+			themeDisplay.getLocale());
 
 		serviceContext.setRequest(_portal.getHttpServletRequest(actionRequest));
 
@@ -210,8 +210,7 @@ public class AddFormInstanceRecordMVCActionCommand
 	}
 
 	@Reference
-	private AddFormInstanceRecordMVCCommandHelper
-		_addFormInstanceMVCCommandHelper;
+	private DDMFormInstanceRecordHelper _ddmFormInstanceRecordHelper;
 
 	private DDMFormInstanceRecordService _ddmFormInstanceRecordService;
 
