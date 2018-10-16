@@ -24,9 +24,12 @@ import com.liferay.dynamic.data.mapping.form.renderer.internal.util.DDMFormTempl
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
+import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
+import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
+import com.liferay.dynamic.data.mapping.service.DDMFormInstanceLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -37,6 +40,7 @@ import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
@@ -291,9 +295,8 @@ public class DDMFormFieldTemplateContextFactory {
 			changedProperties = new HashMap<>();
 		}
 
-		if (!_pageEnabled) {
-			changedProperties.put("required", false);
-		}
+		setDDMFormFieldChangedPropertyRequired(
+			changedProperties, ddmFormFieldValue.getDDMFormField());
 
 		if (_ddmFormRenderingContext.isReadOnly()) {
 			changedProperties.put("readOnly", true);
@@ -320,6 +323,53 @@ public class DDMFormFieldTemplateContextFactory {
 		sb.append(index);
 
 		return sb.toString();
+	}
+
+	protected void setDDMFormFieldChangedPropertyRequired(
+			Map<String, Object> changedProperties,
+			DDMFormField currentDDMFormField)
+		throws PortalException {
+
+		long formInstanceId = ParamUtil.getLong(
+			_ddmFormRenderingContext.getHttpServletRequest(), "formInstanceId");
+
+		try {
+			if (!_pageEnabled) {
+				changedProperties.put("required", false);
+			}
+			else if (formInstanceId > 0) {
+				DDMFormInstance ddmFormInstance =
+					_ddmFormInstanceLocalServiceUtil.fetchDDMFormInstance(
+						formInstanceId);
+
+				if (ddmFormInstance != null) {
+					DDMStructure ddmStructure = ddmFormInstance.getStructure();
+
+					String ddmFormFieldName = currentDDMFormField.getName();
+
+					if (ddmStructure.hasField(ddmFormFieldName)) {
+						DDMFormField ddmFormField =
+							ddmStructure.getDDMFormField(ddmFormFieldName);
+
+						if (currentDDMFormField.isRequired() !=
+								ddmFormField.isRequired()) {
+
+							changedProperties.put(
+								"required", ddmFormField.isRequired());
+						}
+					}
+				}
+			}
+		}
+		catch (PortalException pe) {
+			StringBundler sb = new StringBundler(3);
+
+			sb.append("Unable to get DDM form instance or structure with ");
+			sb.append("form instance id ");
+			sb.append(formInstanceId);
+
+			throw new PortalException(sb.toString(), pe);
+		}
 	}
 
 	protected void setDDMFormFieldTemplateContextContributedParameters(

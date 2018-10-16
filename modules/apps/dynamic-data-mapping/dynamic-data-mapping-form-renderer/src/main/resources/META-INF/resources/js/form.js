@@ -97,7 +97,12 @@ AUI.add(
 
 						var languageId = instance.get('editingLanguageId');
 
+						var form = A.one('#' + portletNamespace + 'fm');
+
+						var formInstanceId = form.getAttribute('data-ddmforminstanceid');
+
 						return {
+							formInstanceId: formInstanceId,
 							languageId: languageId,
 							p_auth: Liferay.authToken,
 							portletNamespace: portletNamespace,
