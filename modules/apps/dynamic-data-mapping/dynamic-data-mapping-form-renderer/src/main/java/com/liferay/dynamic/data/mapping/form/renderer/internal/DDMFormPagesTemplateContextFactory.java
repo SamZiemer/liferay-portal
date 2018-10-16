@@ -28,6 +28,7 @@ import com.liferay.dynamic.data.mapping.model.DDMFormLayoutRow;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -81,7 +82,7 @@ public class DDMFormPagesTemplateContextFactory {
 		_locale = ddmFormRenderingContext.getLocale();
 	}
 
-	public List<Object> create() {
+	public List<Object> create() throws PortalException {
 		_evaluate();
 
 		return createPagesTemplateContext(
@@ -111,7 +112,8 @@ public class DDMFormPagesTemplateContextFactory {
 	}
 
 	protected List<Object> createColumnsTemplateContext(
-		List<DDMFormLayoutColumn> ddmFormLayoutColumns) {
+			List<DDMFormLayoutColumn> ddmFormLayoutColumns)
+		throws PortalException {
 
 		List<Object> columnsTemplateContext = new ArrayList<>();
 
@@ -124,7 +126,8 @@ public class DDMFormPagesTemplateContextFactory {
 	}
 
 	protected Map<String, Object> createColumnTemplateContext(
-		DDMFormLayoutColumn ddmFormLayoutColumn) {
+			DDMFormLayoutColumn ddmFormLayoutColumn)
+		throws PortalException {
 
 		Map<String, Object> columnTemplateContext = new HashMap<>();
 
@@ -138,7 +141,8 @@ public class DDMFormPagesTemplateContextFactory {
 	}
 
 	protected List<Object> createFieldsTemplateContext(
-		List<String> ddmFormFieldNames) {
+			List<String> ddmFormFieldNames)
+		throws PortalException {
 
 		List<Object> fieldsTemplateContext = new ArrayList<>();
 
@@ -154,7 +158,9 @@ public class DDMFormPagesTemplateContextFactory {
 		return fieldsTemplateContext;
 	}
 
-	protected List<Object> createFieldTemplateContext(String ddmFormFieldName) {
+	protected List<Object> createFieldTemplateContext(String ddmFormFieldName)
+		throws PortalException {
+
 		DDMFormFieldTemplateContextFactory ddmFormFieldTemplateContextFactory =
 			new DDMFormFieldTemplateContextFactory(
 				_ddmFormFieldsMap,
@@ -170,7 +176,8 @@ public class DDMFormPagesTemplateContextFactory {
 	}
 
 	protected List<Object> createPagesTemplateContext(
-		List<DDMFormLayoutPage> ddmFormLayoutPages) {
+			List<DDMFormLayoutPage> ddmFormLayoutPages)
+		throws PortalException {
 
 		List<Object> pagesTemplateContext = new ArrayList<>();
 
@@ -185,7 +192,8 @@ public class DDMFormPagesTemplateContextFactory {
 	}
 
 	protected Map<String, Object> createPageTemplateContext(
-		DDMFormLayoutPage ddmFormLayoutPage, int pageIndex) {
+			DDMFormLayoutPage ddmFormLayoutPage, int pageIndex)
+		throws PortalException {
 
 		Map<String, Object> pageTemplateContext = new HashMap<>();
 
@@ -228,7 +236,8 @@ public class DDMFormPagesTemplateContextFactory {
 	}
 
 	protected List<Object> createRowsTemplateContext(
-		List<DDMFormLayoutRow> ddmFormLayoutRows) {
+			List<DDMFormLayoutRow> ddmFormLayoutRows)
+		throws PortalException {
 
 		List<Object> rowsTemplateContext = new ArrayList<>();
 
@@ -240,7 +249,8 @@ public class DDMFormPagesTemplateContextFactory {
 	}
 
 	protected Map<String, Object> createRowTemplateContext(
-		DDMFormLayoutRow ddmFormLayoutRow) {
+			DDMFormLayoutRow ddmFormLayoutRow)
+		throws PortalException {
 
 		Map<String, Object> rowTemplateContext = new HashMap<>();
 
