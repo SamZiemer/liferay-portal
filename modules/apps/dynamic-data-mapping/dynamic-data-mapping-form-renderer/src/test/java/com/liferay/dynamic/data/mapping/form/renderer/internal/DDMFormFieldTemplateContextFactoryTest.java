@@ -64,7 +64,7 @@ public class DDMFormFieldTemplateContextFactoryTest {
 	}
 
 	@Test
-	public void testNotReadOnlyTextFieldAndReadOnlyForm() {
+	public void testNotReadOnlyTextFieldAndReadOnlyForm() throws Exception {
 
 		// Dynamic data mapping form
 
@@ -125,7 +125,7 @@ public class DDMFormFieldTemplateContextFactoryTest {
 	}
 
 	@Test
-	public void testReadOnlyTextFieldAndNotReadOnlyForm() {
+	public void testReadOnlyTextFieldAndNotReadOnlyForm() throws Exception {
 
 		// Dynamic data mapping form
 
@@ -186,7 +186,7 @@ public class DDMFormFieldTemplateContextFactoryTest {
 	}
 
 	@Test
-	public void testTextField() {
+	public void testTextField() throws Exception {
 
 		// Dynamic data mapping form
 
