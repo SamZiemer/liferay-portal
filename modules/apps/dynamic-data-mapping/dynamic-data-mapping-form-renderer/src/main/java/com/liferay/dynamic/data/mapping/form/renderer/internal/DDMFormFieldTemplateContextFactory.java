@@ -24,12 +24,16 @@ import com.liferay.dynamic.data.mapping.form.renderer.internal.util.DDMFormTempl
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
+import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
+import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
+import com.liferay.dynamic.data.mapping.service.DDMFormInstanceLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageConstants;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -37,6 +41,7 @@ import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
@@ -66,7 +71,7 @@ public class DDMFormFieldTemplateContextFactory {
 		_locale = ddmFormRenderingContext.getLocale();
 	}
 
-	public List<Object> create() {
+	public List<Object> create() throws PortalException {
 		return createDDMFormFieldTemplateContexts(
 			_ddmFormFieldValues, StringPool.BLANK);
 	}
@@ -128,9 +133,10 @@ public class DDMFormFieldTemplateContextFactory {
 	}
 
 	protected Map<String, Object> createDDMFormFieldTemplateContext(
-		DDMFormFieldValue ddmFormFieldValue,
-		Map<String, Object> changedProperties, int index,
-		String parentDDMFormFieldParameterName) {
+			DDMFormFieldValue ddmFormFieldValue,
+			Map<String, Object> changedProperties, int index,
+			String parentDDMFormFieldParameterName)
+		throws PortalException {
 
 		DDMFormField ddmFormField = _ddmFormFieldsMap.get(
 			ddmFormFieldValue.getName());
@@ -167,8 +173,9 @@ public class DDMFormFieldTemplateContextFactory {
 	}
 
 	protected List<Object> createDDMFormFieldTemplateContexts(
-		List<DDMFormFieldValue> ddmFormFieldValues,
-		String parentDDMFormFieldParameterName) {
+			List<DDMFormFieldValue> ddmFormFieldValues,
+			String parentDDMFormFieldParameterName)
+		throws PortalException {
 
 		List<Object> ddmFormFieldTemplateContexts = new ArrayList<>();
 
@@ -199,8 +206,9 @@ public class DDMFormFieldTemplateContextFactory {
 	}
 
 	protected Map<String, Object> createNestedDDMFormFieldTemplateContext(
-		DDMFormFieldValue parentDDMFormFieldValue,
-		String parentDDMFormFieldParameterName) {
+			DDMFormFieldValue parentDDMFormFieldValue,
+			String parentDDMFormFieldParameterName)
+		throws PortalException {
 
 		Map<String, Object> nestedDDMFormFieldTemplateContext = new HashMap<>();
 
@@ -279,7 +287,8 @@ public class DDMFormFieldTemplateContextFactory {
 	}
 
 	protected Map<String, Object> getChangedProperties(
-		DDMFormFieldValue ddmFormFieldValue) {
+			DDMFormFieldValue ddmFormFieldValue)
+		throws PortalException {
 
 		Map<String, Object> changedProperties =
 			_ddmFormFieldsPropertyChanges.get(
@@ -291,9 +300,8 @@ public class DDMFormFieldTemplateContextFactory {
 			changedProperties = new HashMap<>();
 		}
 
-		if (!_pageEnabled) {
-			changedProperties.put("required", false);
-		}
+		setDDMFormFieldChangedPropertyRequired(
+			changedProperties, ddmFormFieldValue.getDDMFormField());
 
 		if (_ddmFormRenderingContext.isReadOnly()) {
 			changedProperties.put("readOnly", true);
@@ -320,6 +328,53 @@ public class DDMFormFieldTemplateContextFactory {
 		sb.append(index);
 
 		return sb.toString();
+	}
+
+	protected void setDDMFormFieldChangedPropertyRequired(
+			Map<String, Object> changedProperties,
+			DDMFormField currentDDMFormField)
+		throws PortalException {
+
+		long formInstanceId = ParamUtil.getLong(
+			_ddmFormRenderingContext.getHttpServletRequest(), "formInstanceId");
+
+		try {
+			if (!_pageEnabled) {
+				changedProperties.put("required", false);
+			}
+			else if (formInstanceId > 0) {
+				DDMFormInstance ddmFormInstance =
+					_ddmFormInstanceLocalServiceUtil.fetchDDMFormInstance(
+						formInstanceId);
+
+				if (ddmFormInstance != null) {
+					DDMStructure ddmStructure = ddmFormInstance.getStructure();
+
+					String ddmFormFieldName = currentDDMFormField.getName();
+
+					if (ddmStructure.hasField(ddmFormFieldName)) {
+						DDMFormField ddmFormField =
+							ddmStructure.getDDMFormField(ddmFormFieldName);
+
+						if (currentDDMFormField.isRequired() !=
+								ddmFormField.isRequired()) {
+
+							changedProperties.put(
+								"required", ddmFormField.isRequired());
+						}
+					}
+				}
+			}
+		}
+		catch (PortalException pe) {
+			StringBundler sb = new StringBundler(3);
+
+			sb.append("Unable to get DDM form instance or structure with ");
+			sb.append("form instance id ");
+			sb.append(formInstanceId);
+
+			throw new PortalException(sb.toString(), pe);
+		}
 	}
 
 	protected void setDDMFormFieldTemplateContextContributedParameters(
@@ -708,6 +763,7 @@ public class DDMFormFieldTemplateContextFactory {
 		_ddmFormFieldsPropertyChanges;
 	private DDMFormFieldTypeServicesTracker _ddmFormFieldTypeServicesTracker;
 	private final List<DDMFormFieldValue> _ddmFormFieldValues;
+	private DDMFormInstanceLocalServiceUtil _ddmFormInstanceLocalServiceUtil;
 	private final DDMFormRenderingContext _ddmFormRenderingContext;
 	private final Locale _locale;
 	private final boolean _pageEnabled;

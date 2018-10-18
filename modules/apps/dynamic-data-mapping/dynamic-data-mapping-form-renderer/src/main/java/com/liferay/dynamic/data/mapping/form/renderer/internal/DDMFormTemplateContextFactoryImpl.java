@@ -209,8 +209,9 @@ public class DDMFormTemplateContextFactoryImpl
 	}
 
 	protected List<Object> getPages(
-		DDMForm ddmForm, DDMFormLayout ddmFormLayout,
-		DDMFormRenderingContext ddmFormRenderingContext) {
+			DDMForm ddmForm, DDMFormLayout ddmFormLayout,
+			DDMFormRenderingContext ddmFormRenderingContext)
+		throws PortalException {
 
 		DDMFormPagesTemplateContextFactory ddmFormPagesTemplateContextFactory =
 			new DDMFormPagesTemplateContextFactory(
