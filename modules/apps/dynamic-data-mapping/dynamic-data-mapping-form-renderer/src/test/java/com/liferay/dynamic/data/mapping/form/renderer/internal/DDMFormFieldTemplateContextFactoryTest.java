@@ -24,6 +24,7 @@ import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
+import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
 import com.liferay.petra.string.StringPool;
@@ -34,8 +35,10 @@ import com.liferay.portal.kernel.template.TemplateResource;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.util.PropsImpl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +50,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.mockito.Matchers;
@@ -56,6 +60,11 @@ import org.mockito.Mockito;
  * @author Marcellus Tavares
  */
 public class DDMFormFieldTemplateContextFactoryTest {
+
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+		PropsUtil.setProps(new PropsImpl());
+	}
 
 	@Before
 	public void setUp() {
@@ -97,15 +106,8 @@ public class DDMFormFieldTemplateContextFactoryTest {
 
 		// Dynamic data mapping form values
 
-		List<DDMFormFieldValue> ddmFormFieldValues = new ArrayList<>();
-
-		DDMFormFieldValue ddmFormFieldValue =
-			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
-				"Field1", "Value 1");
-
-		ddmFormFieldValue.setInstanceId(instanceId);
-
-		ddmFormFieldValues.add(ddmFormFieldValue);
+		List<DDMFormFieldValue> ddmFormFieldValues = createDDMFormFieldValues(
+			instanceId, ddmForm);
 
 		DDMFormFieldTemplateContextFactory ddmFormFieldTemplateContextFactory =
 			createDDMFormFieldTemplateContextFactory(
@@ -158,15 +160,8 @@ public class DDMFormFieldTemplateContextFactoryTest {
 
 		// Dynamic data mapping form values
 
-		List<DDMFormFieldValue> ddmFormFieldValues = new ArrayList<>();
-
-		DDMFormFieldValue ddmFormFieldValue =
-			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
-				"Field1", "Value 1");
-
-		ddmFormFieldValue.setInstanceId(instanceId);
-
-		ddmFormFieldValues.add(ddmFormFieldValue);
+		List<DDMFormFieldValue> ddmFormFieldValues = createDDMFormFieldValues(
+			instanceId, ddmForm);
 
 		DDMFormFieldTemplateContextFactory ddmFormFieldTemplateContextFactory =
 			createDDMFormFieldTemplateContextFactory(
@@ -227,15 +222,8 @@ public class DDMFormFieldTemplateContextFactoryTest {
 
 		// Dynamic data mapping form values
 
-		List<DDMFormFieldValue> ddmFormFieldValues = new ArrayList<>();
-
-		DDMFormFieldValue ddmFormFieldValue =
-			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
-				"Field1", "Value 1");
-
-		ddmFormFieldValue.setInstanceId(instanceId);
-
-		ddmFormFieldValues.add(ddmFormFieldValue);
+		List<DDMFormFieldValue> ddmFormFieldValues = createDDMFormFieldValues(
+			instanceId, ddmForm);
 
 		DDMFormFieldTemplateContextFactory ddmFormFieldTemplateContextFactory =
 			createDDMFormFieldTemplateContextFactory(
@@ -311,6 +299,27 @@ public class DDMFormFieldTemplateContextFactoryTest {
 			ddmFormFieldTypeServicesTracker);
 
 		return ddmFormFieldTemplateContextFactory;
+	}
+
+	protected List<DDMFormFieldValue> createDDMFormFieldValues(
+		String instanceId, DDMForm ddmForm) {
+
+		List<DDMFormFieldValue> ddmFormFieldValues = new ArrayList<>();
+
+		DDMFormFieldValue ddmFormFieldValue =
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"Field1", "Value 1");
+
+		ddmFormFieldValue.setInstanceId(instanceId);
+
+		DDMFormValues ddmFormValues = DDMFormValuesTestUtil.createDDMFormValues(
+			ddmForm);
+
+		ddmFormFieldValue.setDDMFormValues(ddmFormValues);
+
+		ddmFormFieldValues.add(ddmFormFieldValue);
+
+		return ddmFormFieldValues;
 	}
 
 	protected DDMFormFieldRenderer getTextDDMFormFieldRenderer() {
