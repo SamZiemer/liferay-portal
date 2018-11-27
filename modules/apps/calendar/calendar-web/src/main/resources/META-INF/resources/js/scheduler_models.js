@@ -20,6 +20,10 @@ AUI.add(
 			}
 		);
 
+		var isString = function(val) {
+			return typeof val == 'string';
+		};
+
 		var toInt = function(value) {
 			return Lang.toInt(value, 10, 0);
 		};
@@ -83,7 +87,12 @@ AUI.add(
 							var content = val;
 
 							if (val) {
-								content = LString.unescapeHTML(val);
+								if (isString(val)) {
+									content = LString.escapeHTML(val);
+								}
+								else {
+									content = LString.escapeHTML(val.toString());
+								}
 							}
 
 							return content;
