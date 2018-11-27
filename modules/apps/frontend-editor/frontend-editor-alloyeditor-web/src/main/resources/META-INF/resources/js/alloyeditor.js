@@ -10,6 +10,16 @@ AUI.add(
 
 		var UA = A.UA;
 
+		window.addEventListener('dragover', function(event) {
+			event.preventDefault();
+		}, false);
+		window.addEventListener('drop', function(event) {
+			if (!event.target.isContentEditable &&
+				!confirm(Liferay.Language.get('this-page-is-asking-you-to-confirm-that-you-want-to-leave'))) {
+				event.preventDefault();
+			}
+		}, false);
+
 		var LiferayAlloyEditor = A.Component.create(
 			{
 				ATTRS: {
