@@ -97,8 +97,15 @@ public class DisplayPageFriendlyURLResolver implements FriendlyURLResolver {
 			FriendlyURLNormalizerUtil.normalizeWithEncoding(decodedUrlTitle);
 
 		JournalArticle journalArticle =
-			_journalArticleLocalService.getLatestArticleByUrlTitle(
+			_journalArticleLocalService.fetchLatestArticleByUrlTitle(
 				groupId, normalizedUrlTitle, WorkflowConstants.STATUS_APPROVED);
+
+		if (journalArticle == null) {
+			journalArticle =
+				_journalArticleLocalService.getLatestArticleByUrlTitle(
+					groupId, normalizedUrlTitle,
+					WorkflowConstants.STATUS_PENDING);
+		}
 
 		Map<Locale, String> friendlyURLMap = journalArticle.getFriendlyURLMap();
 
@@ -157,8 +164,15 @@ public class DisplayPageFriendlyURLResolver implements FriendlyURLResolver {
 			FriendlyURLNormalizerUtil.normalizeWithEncoding(decodedUrlTitle);
 
 		JournalArticle journalArticle =
-			_journalArticleLocalService.getLatestArticleByUrlTitle(
+			_journalArticleLocalService.fetchLatestArticleByUrlTitle(
 				groupId, normalizedUrlTitle, WorkflowConstants.STATUS_APPROVED);
+
+		if (journalArticle == null) {
+			journalArticle =
+				_journalArticleLocalService.getLatestArticleByUrlTitle(
+					groupId, normalizedUrlTitle,
+					WorkflowConstants.STATUS_PENDING);
+		}
 
 		Map<Locale, String> friendlyURLMap = journalArticle.getFriendlyURLMap();
 
