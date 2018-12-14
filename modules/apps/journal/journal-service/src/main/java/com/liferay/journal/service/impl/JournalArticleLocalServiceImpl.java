@@ -7018,7 +7018,7 @@ public class JournalArticleLocalServiceImpl
 		actionableDynamicQuery.setTransactionConfig(
 			DefaultActionableDynamicQuery.REQUIRES_NEW_TRANSACTION_CONFIG);
 
-		actionableDynamicQuery.setInterval(1000);
+		actionableDynamicQuery.setInterval(_INTERVAL);
 
 		actionableDynamicQuery.performActions();
 	}
@@ -7119,7 +7119,7 @@ public class JournalArticleLocalServiceImpl
 		actionableDynamicQuery.setTransactionConfig(
 			DefaultActionableDynamicQuery.REQUIRES_NEW_TRANSACTION_CONFIG);
 
-		actionableDynamicQuery.setInterval(1000);
+		actionableDynamicQuery.setInterval(_INTERVAL);
 
 		actionableDynamicQuery.performActions();
 
@@ -7182,7 +7182,7 @@ public class JournalArticleLocalServiceImpl
 		actionableDynamicQuery.setTransactionConfig(
 			DefaultActionableDynamicQuery.REQUIRES_NEW_TRANSACTION_CONFIG);
 
-		actionableDynamicQuery.setInterval(1000);
+		actionableDynamicQuery.setInterval(_INTERVAL);
 
 		actionableDynamicQuery.performActions();
 
@@ -8980,6 +8980,8 @@ public class JournalArticleLocalServiceImpl
 		return journalArticleLocalizationPersistence.update(
 			journalArticleLocalization);
 	}
+
+	private static final int _INTERVAL = 1000;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalArticleLocalServiceImpl.class);
