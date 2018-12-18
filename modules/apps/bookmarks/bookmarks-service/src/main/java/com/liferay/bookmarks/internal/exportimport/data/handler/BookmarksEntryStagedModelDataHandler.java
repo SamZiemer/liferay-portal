@@ -17,12 +17,14 @@ package com.liferay.bookmarks.internal.exportimport.data.handler;
 import com.liferay.bookmarks.model.BookmarksEntry;
 import com.liferay.bookmarks.model.BookmarksFolder;
 import com.liferay.bookmarks.model.BookmarksFolderConstants;
+import com.liferay.bookmarks.service.BookmarksEntryLocalService;
 import com.liferay.exportimport.data.handler.base.BaseStagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.ExportImportPathUtil;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.staged.model.repository.StagedModelRepository;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.xml.Element;
 
@@ -117,10 +119,15 @@ public class BookmarksEntryStagedModelDataHandler
 				portletDataContext, importedEntry);
 		}
 		else {
-			importedEntry.setEntryId(existingEntry.getEntryId());
+			long userId = portletDataContext.getUserId(entry.getUserUuid());
 
-			importedEntry = _stagedModelRepository.updateStagedModel(
-				portletDataContext, importedEntry);
+			ServiceContext serviceContext =
+				portletDataContext.createServiceContext(entry);
+
+			importedEntry = _bookmarksEntryLocalService.updateEntry(
+				userId, existingEntry.getEntryId(), entry.getGroupId(),
+				entry.getFolderId(), entry.getName(), entry.getUrl(),
+				entry.getDescription(), serviceContext);
 		}
 
 		portletDataContext.importClassedModel(entry, importedEntry);
@@ -140,6 +147,9 @@ public class BookmarksEntryStagedModelDataHandler
 
 		_stagedModelRepository = stagedModelRepository;
 	}
+
+	@Reference
+	private BookmarksEntryLocalService _bookmarksEntryLocalService;
 
 	private StagedModelRepository<BookmarksEntry> _stagedModelRepository;
 
