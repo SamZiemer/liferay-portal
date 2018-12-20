@@ -1,3 +1,5 @@
+<%@ page import="com.liferay.portal.util.HtmlImpl" %>
+
 <%--
 /**
  * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
@@ -91,7 +93,7 @@ renderResponse.setTitle((formInstance == null) ? LanguageUtil.get(request, "new-
 				<h1>
 					<liferay-ui:input-editor
 						autoCreate="<%= false %>"
-						contents="<%= HtmlUtil.escape(HtmlUtil.unescape(ddmFormAdminDisplayContext.getFormName())) %>"
+						contents="<%= HtmlUtil.escape(ddmFormAdminDisplayContext.getFormName(), HtmlImpl.ESCAPE_MODE_ATTRIBUTE) %>"
 						cssClass="ddm-form-name"
 						editorName="alloyeditor"
 						name="nameEditor"
@@ -105,7 +107,7 @@ renderResponse.setTitle((formInstance == null) ? LanguageUtil.get(request, "new-
 				<h5>
 					<liferay-ui:input-editor
 						autoCreate="<%= false %>"
-						contents="<%= HtmlUtil.escape(HtmlUtil.unescape(ddmFormAdminDisplayContext.getFormDescription())) %>"
+						contents="<%= HtmlUtil.escape(ddmFormAdminDisplayContext.getFormDescription(), HtmlImpl.ESCAPE_MODE_ATTRIBUTE) %>"
 						cssClass="ddm-form-description h5"
 						editorName="alloyeditor"
 						name="descriptionEditor"
