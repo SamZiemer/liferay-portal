@@ -452,6 +452,14 @@ AUI.add(
 
 						var state = instance.getState();
 
+						Object.keys(state.description).forEach(function(key) {
+							state.description[key] = Liferay.Util.unescape(state.description[key]);
+						});
+
+						Object.keys(state.name).forEach(function(key) {
+							state.name[key] = Liferay.Util.unescape(state.name[key]);
+						});
+
 						instance.one('#description').val(JSON.stringify(state.description));
 						instance.one('#name').val(JSON.stringify(state.name));
 
