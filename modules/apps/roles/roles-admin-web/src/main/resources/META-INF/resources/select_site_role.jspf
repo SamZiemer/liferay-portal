@@ -16,6 +16,7 @@
 
 <%
 String p_u_i_d = ParamUtil.getString(request, "p_u_i_d");
+String keywords = ParamUtil.getString(request, "keywords");
 int step = ParamUtil.getInteger(request, "step", 1);
 String displayStyle = ParamUtil.getString(request, "displayStyle", "list");
 String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectSiteRole");
@@ -40,6 +41,14 @@ if (step == 1) {
 		uniqueGroupId = groups.get(0).getGroupId();
 	}
 }
+
+LinkedHashMap<String, Object> groupParams = new LinkedHashMap<>();
+
+groupParams.put("inherit", Boolean.FALSE);
+groupParams.put("site", Boolean.TRUE);
+groupParams.put("usersGroups", selUser.getUserId());
+
+groups = GroupLocalServiceUtil.search(user.getCompanyId(), keywords, groupParams, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 SelectRoleManagementToolbarDisplayContext SelectRoleManagementToolbarDisplayContext = new SelectRoleManagementToolbarDisplayContext(request, renderRequest, renderResponse, eventName);
 
