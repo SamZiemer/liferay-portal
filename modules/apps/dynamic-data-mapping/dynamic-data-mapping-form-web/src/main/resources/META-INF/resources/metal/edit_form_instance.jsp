@@ -109,7 +109,7 @@ if (!isFormPublished && isFormSaved) {
 				<h1>
 					<liferay-ui:input-editor
 						autoCreate="<%= false %>"
-						contents="<%= HtmlUtil.escape(HtmlUtil.unescape(ddmFormAdminDisplayContext.getFormName())) %>"
+						contents="<%= HtmlUtil.escape(ddmFormAdminDisplayContext.getFormName(), HtmlImpl.ESCAPE_MODE_ATTRIBUTE) %>"
 						cssClass="ddm-form-name"
 						editorName="alloyeditor"
 						name="nameEditor"
@@ -121,7 +121,7 @@ if (!isFormPublished && isFormSaved) {
 				<h5>
 					<liferay-ui:input-editor
 						autoCreate="<%= false %>"
-						contents="<%= HtmlUtil.escape(HtmlUtil.unescape(ddmFormAdminDisplayContext.getFormDescription())) %>"
+						contents="<%= HtmlUtil.escape(ddmFormAdminDisplayContext.getFormDescription(), HtmlImpl.ESCAPE_MODE_ATTRIBUTE) %>"
 						cssClass="ddm-form-description h5"
 						editorName="alloyeditor"
 						name="descriptionEditor"
