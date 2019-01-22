@@ -54,6 +54,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
@@ -96,8 +97,9 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		throws PortalException {
 
 		// Folder
+		Group group = GroupLocalServiceUtil.getGroup(groupId);
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userPersistence.fetchByPrimaryKey(userId);
 		parentFolderId = getParentFolderId(
 			groupId, repositoryId, parentFolderId);
 		Date now = new Date();
@@ -110,9 +112,15 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 		dlFolder.setUuid(serviceContext.getUuid());
 		dlFolder.setGroupId(groupId);
-		dlFolder.setCompanyId(user.getCompanyId());
-		dlFolder.setUserId(user.getUserId());
-		dlFolder.setUserName(user.getFullName());
+		dlFolder.setCompanyId(group.getCompanyId());
+		dlFolder.setUserId(userId);
+
+		if (user != null) {
+			dlFolder.setUserName(user.getFullName());
+		} else {
+			dlFolder.setUserName(StringPool.BLANK);
+		}
+
 		dlFolder.setRepositoryId(repositoryId);
 		dlFolder.setMountPoint(mountPoint);
 		dlFolder.setParentFolderId(parentFolderId);
