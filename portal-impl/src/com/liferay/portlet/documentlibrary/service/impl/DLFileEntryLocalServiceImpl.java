@@ -177,7 +177,9 @@ public class DLFileEntryLocalServiceImpl
 
 		// File entry
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		Group group = groupLocalService.getGroup(groupId);
+
+		User user = userPersistence.fetchByPrimaryKey(userId);
 
 		folderId = dlFolderLocalService.getFolderId(
 			user.getCompanyId(), folderId);
@@ -207,9 +209,15 @@ public class DLFileEntryLocalServiceImpl
 
 		dlFileEntry.setUuid(serviceContext.getUuid());
 		dlFileEntry.setGroupId(groupId);
-		dlFileEntry.setCompanyId(user.getCompanyId());
-		dlFileEntry.setUserId(user.getUserId());
-		dlFileEntry.setUserName(user.getFullName());
+		dlFileEntry.setCompanyId(group.getCompanyId());
+		dlFileEntry.setUserId(userId);
+
+		if (user != null) {
+			dlFileEntry.setUserName(user.getFullName());
+		}
+		else {
+			dlFileEntry.setUserName(StringPool.BLANK);
+		}
 
 		DLFolder repositoryDLFolder = null;
 
