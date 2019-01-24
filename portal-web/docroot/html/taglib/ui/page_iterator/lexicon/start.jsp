@@ -48,6 +48,12 @@ if ((portletURL != null) && Validator.isNull(url) && Validator.isNull(urlAnchor)
 	else if (!url.endsWith("&")) {
 		url += "&";
 	}
+
+	if (deltaConfigurable) {
+		url = HttpUtil.addParameter(url + urlAnchor, namespace + deltaParam, delta);
+
+		url += "&";
+	}
 }
 
 if (Validator.isNull(id)) {
