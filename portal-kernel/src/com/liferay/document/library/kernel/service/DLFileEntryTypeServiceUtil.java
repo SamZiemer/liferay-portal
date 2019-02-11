@@ -103,6 +103,15 @@ public class DLFileEntryTypeServiceUtil {
 	}
 
 	public static java.util.List<com.liferay.document.library.kernel.model.DLFileEntryType> search(
+		long companyId, long folderId, long[] groupIds, String keywords,
+		boolean includeBasicFileEntryType, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .search(companyId, folderId, groupIds, keywords,
+			includeBasicFileEntryType, start, end);
+	}
+
+	public static java.util.List<com.liferay.document.library.kernel.model.DLFileEntryType> search(
 		long companyId, long[] groupIds, String keywords,
 		boolean includeBasicFileEntryType, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.document.library.kernel.model.DLFileEntryType> orderByComparator) {
