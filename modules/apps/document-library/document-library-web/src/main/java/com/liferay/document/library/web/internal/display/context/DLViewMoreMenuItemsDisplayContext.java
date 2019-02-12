@@ -14,7 +14,6 @@
 
 package com.liferay.document.library.web.internal.display.context;
 
-import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeServiceUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItem;
@@ -123,9 +122,8 @@ public class DLViewMoreMenuItemsDisplayContext {
 				themeDisplay.getCompanyId(), _folderId,
 				PortalUtil.getCurrentAndAncestorSiteGroupIds(
 					themeDisplay.getScopeGroupId()),
-				searchTerms.getKeywords(),
-				includeBasicFileEntryType, QueryUtil.ALL_POS,
-				QueryUtil.ALL_POS);
+				searchTerms.getKeywords(), includeBasicFileEntryType,
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		searchContainer.setTotal(dlFileEntryTypes.size());
 

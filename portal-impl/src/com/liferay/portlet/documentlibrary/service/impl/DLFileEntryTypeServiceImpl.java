@@ -131,9 +131,10 @@ public class DLFileEntryTypeServiceImpl extends DLFileEntryTypeServiceBaseImpl {
 			boolean includeBasicFileEntryType, int start, int end)
 		throws PortalException {
 
-		return filterFileEntryTypes(dlFileEntryTypeFinder.filterFindByKeywords(
-			companyId, folderId, groupIds, keywords, includeBasicFileEntryType,
-			start, end));
+		return filterFileEntryTypes(
+			dlFileEntryTypeFinder.filterFindByKeywords(
+				companyId, folderId, groupIds, keywords,
+				includeBasicFileEntryType, start, end));
 	}
 
 	@Override
