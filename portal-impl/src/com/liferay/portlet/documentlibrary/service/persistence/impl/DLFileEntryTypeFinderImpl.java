@@ -45,11 +45,11 @@ public class DLFileEntryTypeFinderImpl
 	public static final String COUNT_BY_C_G_N_D_S =
 		DLFileEntryTypeFinder.class.getName() + ".countByC_G_N_D_S";
 
-	public static final String FIND_BY_C_F_G_N_D_S =
-		DLFileEntryTypeFinder.class.getName() + ".findByC_F_G_N_D_S";
-
 	public static final String FIND_BY_C_G_N_D_S =
 		DLFileEntryTypeFinder.class.getName() + ".findByC_G_N_D_S";
+
+	public static final String FIND_BY_C_F_G_N_D_S =
+		DLFileEntryTypeFinder.class.getName() + ".findByC_F_G_N_D_S";
 
 	/**
 	 * @deprecated As of Judson (7.1.x), with no direct replacement
@@ -246,6 +246,72 @@ public class DLFileEntryTypeFinderImpl
 		}
 	}
 
+	protected List<DLFileEntryType> doFindByC_G_N_D_S(
+		long companyId, long[] groupIds, String[] names, String[] descriptions,
+		boolean andOperator, boolean includeBasicFileEntryType, int start,
+		int end, OrderByComparator<DLFileEntryType> orderByComparator,
+		boolean inlineSQLHelper) {
+
+		names = CustomSQLUtil.keywords(names);
+		descriptions = CustomSQLUtil.keywords(descriptions, false);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			String sql = CustomSQLUtil.get(FIND_BY_C_G_N_D_S);
+
+			if (inlineSQLHelper) {
+				sql = InlineSQLHelperUtil.replacePermissionCheck(
+					sql, DLFileEntryType.class.getName(),
+					"DLFileEntryType.fileEntryTypeId", groupIds);
+			}
+
+			sql = StringUtil.replace(
+				sql, "[$BASIC_DOCUMENT$]",
+				getBasicDocument(includeBasicFileEntryType));
+			sql = StringUtil.replace(
+				sql, "[$GROUP_ID$]", getGroupIds(groupIds.length));
+			sql = CustomSQLUtil.replaceKeywords(
+				sql, "LOWER(DLFileEntryType.name)", StringPool.LIKE, false,
+				names);
+			sql = CustomSQLUtil.replaceKeywords(
+				sql, "DLFileEntryType.description", StringPool.LIKE, true,
+				descriptions);
+			sql = CustomSQLUtil.replaceAndOperator(sql, andOperator);
+
+			if (includeBasicFileEntryType) {
+				sql = sql.concat(StringPool.CLOSE_PARENTHESIS);
+			}
+
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+
+			q.addEntity("DLFileEntryType", DLFileEntryTypeImpl.class);
+
+			QueryPos qPos = QueryPos.getInstance(q);
+
+			if (includeBasicFileEntryType) {
+				qPos.add(names, 2);
+				qPos.add(descriptions, 2);
+			}
+
+			qPos.add(companyId);
+			qPos.add(groupIds);
+			qPos.add(names, 2);
+			qPos.add(descriptions, 2);
+
+			return (List<DLFileEntryType>)QueryUtil.list(
+				q, getDialect(), start, end);
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
 	protected List<DLFileEntryType> doFindByC_F_G_N_D_S(
 		long companyId, long folderId, long[] groupIds, String[] names,
 		String[] descriptions, boolean andOperator,
@@ -324,72 +390,6 @@ public class DLFileEntryTypeFinderImpl
 		}
 	}
 
-	protected List<DLFileEntryType> doFindByC_G_N_D_S(
-		long companyId, long[] groupIds, String[] names, String[] descriptions,
-		boolean andOperator, boolean includeBasicFileEntryType, int start,
-		int end, OrderByComparator<DLFileEntryType> orderByComparator,
-		boolean inlineSQLHelper) {
-
-		names = CustomSQLUtil.keywords(names);
-		descriptions = CustomSQLUtil.keywords(descriptions, false);
-
-		Session session = null;
-
-		try {
-			session = openSession();
-
-			String sql = CustomSQLUtil.get(FIND_BY_C_G_N_D_S);
-
-			if (inlineSQLHelper) {
-				sql = InlineSQLHelperUtil.replacePermissionCheck(
-					sql, DLFileEntryType.class.getName(),
-					"DLFileEntryType.fileEntryTypeId", groupIds);
-			}
-
-			sql = StringUtil.replace(
-				sql, "[$BASIC_DOCUMENT$]",
-				getBasicDocument(includeBasicFileEntryType));
-			sql = StringUtil.replace(
-				sql, "[$GROUP_ID$]", getGroupIds(groupIds.length));
-			sql = CustomSQLUtil.replaceKeywords(
-				sql, "LOWER(DLFileEntryType.name)", StringPool.LIKE, false,
-				names);
-			sql = CustomSQLUtil.replaceKeywords(
-				sql, "DLFileEntryType.description", StringPool.LIKE, true,
-				descriptions);
-			sql = CustomSQLUtil.replaceAndOperator(sql, andOperator);
-
-			if (includeBasicFileEntryType) {
-				sql = sql.concat(StringPool.CLOSE_PARENTHESIS);
-			}
-
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
-
-			q.addEntity("DLFileEntryType", DLFileEntryTypeImpl.class);
-
-			QueryPos qPos = QueryPos.getInstance(q);
-
-			if (includeBasicFileEntryType) {
-				qPos.add(names, 2);
-				qPos.add(descriptions, 2);
-			}
-
-			qPos.add(companyId);
-			qPos.add(groupIds);
-			qPos.add(names, 2);
-			qPos.add(descriptions, 2);
-
-			return (List<DLFileEntryType>)QueryUtil.list(
-				q, getDialect(), start, end);
-		}
-		catch (Exception e) {
-			throw new SystemException(e);
-		}
-		finally {
-			closeSession(session);
-		}
-	}
-
 	protected String getBasicDocument(boolean includeBasicFileEntryType) {
 		if (!includeBasicFileEntryType) {
 			return StringPool.BLANK;
@@ -441,7 +441,9 @@ public class DLFileEntryTypeFinderImpl
 	}
 
 	private static final String _INNER_JOIN_SQL =
-		"INNER JOIN DLFileEntryTypes_DLFolders ON DLFileEntryTypes_DLFolders.fileEntryTypeId = DLFileEntryType.fileEntryTypeId";
+		"INNER JOIN DLFileEntryTypes_DLFolders ON " +
+			"DLFileEntryTypes_DLFolders.fileEntryTypeId = " +
+				"DLFileEntryType.fileEntryTypeId";
 
 	private static final String _WHERE_SQL =
 		"(DLFileEntryTypes_DLFolders.folderId = ?) AND";
