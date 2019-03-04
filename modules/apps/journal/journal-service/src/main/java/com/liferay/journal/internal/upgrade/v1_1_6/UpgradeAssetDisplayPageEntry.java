@@ -17,6 +17,7 @@ package com.liferay.journal.internal.upgrade.v1_1_6;
 import com.liferay.asset.display.page.constants.AssetDisplayPageConstants;
 import com.liferay.asset.display.page.service.AssetDisplayPageEntryLocalService;
 import com.liferay.journal.model.JournalArticle;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -25,12 +26,14 @@ import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -78,19 +81,33 @@ public class UpgradeAssetDisplayPageEntry extends UpgradeProcess {
 				saveAssetDisplayPageEntryCallables = new ArrayList<>();
 
 			try (ResultSet rs = ps1.executeQuery()) {
+				StringBundler journalArticleIndexSB;
+
 				while (rs.next()) {
 					long groupId = rs.getLong("groupId");
 					long userId = rs.getLong("userId");
 					long resourcePrimKey = rs.getLong("resourcePrimKey");
 
-					SaveAssetDisplayPageEntryCallable
-						saveAssetDisplayPageEntryCallable =
-							new SaveAssetDisplayPageEntryCallable(
-								groupId, userId, journalArticleClassNameId,
-								resourcePrimKey);
+					journalArticleIndexSB = new StringBundler(5);
 
-					saveAssetDisplayPageEntryCallables.add(
-						saveAssetDisplayPageEntryCallable);
+					journalArticleIndexSB.append(groupId);
+					journalArticleIndexSB.append(StringPool.DASH);
+					journalArticleIndexSB.append(userId);
+					journalArticleIndexSB.append(StringPool.DASH);
+					journalArticleIndexSB.append(resourcePrimKey);
+
+					if (_journalArticleIndexes.add(
+							journalArticleIndexSB.toString())) {
+
+						SaveAssetDisplayPageEntryCallable
+							saveAssetDisplayPageEntryCallable =
+								new SaveAssetDisplayPageEntryCallable(
+									groupId, userId, journalArticleClassNameId,
+									resourcePrimKey);
+
+						saveAssetDisplayPageEntryCallables.add(
+							saveAssetDisplayPageEntryCallable);
+					}
 				}
 			}
 
@@ -118,6 +135,7 @@ public class UpgradeAssetDisplayPageEntry extends UpgradeProcess {
 
 	private final AssetDisplayPageEntryLocalService
 		_assetDisplayPageEntryLocalService;
+	private final HashSet<String> _journalArticleIndexes = new HashSet<>();
 
 	private class SaveAssetDisplayPageEntryCallable
 		implements Callable<Boolean> {
