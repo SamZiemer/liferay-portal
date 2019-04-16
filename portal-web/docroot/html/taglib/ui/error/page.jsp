@@ -29,9 +29,7 @@ String rowBreak = (String)request.getAttribute("liferay-ui:error:rowBreak");
 	<c:when test="<%= embed %>">
 		<div class="alert alert-dismissible alert-<%= alertStyle %>" role="alert">
 			<button aria-label="<%= LanguageUtil.get(request, "close") %>" class="close" data-dismiss="alert" type="button">
-				<svg aria-hidden="true" class="icon-monospaced lexicon-icon lexicon-icon-times">
-					<use xlink:href="<%= themeDisplay.getPathThemeImages() %>/lexicon/icons.svg#times"></use>
-				</svg>
+				<aui:icon image="times" markupView="lexicon" />
 
 				<span class="sr-only"><%= LanguageUtil.get(request, "close") %></span>
 			</button>
