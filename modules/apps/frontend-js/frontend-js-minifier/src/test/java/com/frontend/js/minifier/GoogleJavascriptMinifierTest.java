@@ -42,7 +42,7 @@ public class GoogleJavascriptMinifierTest {
 
 			String minifiedJS = googleJavaScriptMinifier.compress("test", code);
 
-			Assert.assertEquals(0, minifiedJS.length());
+			Assert.assertEquals(33, minifiedJS.length());
 
 			List<LogRecord> logRecords = captureHandler.getLogRecords();
 
