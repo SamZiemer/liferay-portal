@@ -45,6 +45,16 @@ public class AssetEntryAssetCategoryRelAssetEntryLocalServiceWrapper
 	}
 
 	@Override
+	public void addAssetCategoryAssetEntry(
+		long categoryId, AssetEntry assetEntry) {
+
+		super.addAssetCategoryAssetEntry(categoryId, assetEntry);
+
+		_assetEntryAssetCategoryRelLocalService.addAssetEntryAssetCategoryRel(
+			assetEntry.getEntryId(), categoryId);
+	}
+
+	@Override
 	public AssetEntry deleteAssetEntry(AssetEntry entry) {
 		_assetEntryAssetCategoryRelLocalService.
 			deleteAssetEntryAssetCategoryRelByAssetEntryId(entry.getEntryId());
