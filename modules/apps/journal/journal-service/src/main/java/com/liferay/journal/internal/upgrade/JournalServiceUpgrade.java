@@ -15,7 +15,6 @@
 package com.liferay.journal.internal.upgrade;
 
 import com.liferay.asset.display.page.service.AssetDisplayPageEntryLocalService;
-import com.liferay.asset.entry.rel.service.AssetEntryAssetCategoryRelLocalService;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
@@ -98,10 +97,9 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 		registry.register(
 			"0.0.2", "0.0.3",
 			new UpgradeJournalArticleType(
-				_assetCategoryLocalService,
-				_assetEntryAssetCategoryRelLocalService,
-				_assetEntryLocalService, _assetVocabularyLocalService,
-				_companyLocalService, _userLocalService));
+				_assetCategoryLocalService, _assetEntryLocalService,
+				_assetVocabularyLocalService, _companyLocalService,
+				_userLocalService));
 
 		registry.register("0.0.3", "0.0.4", new UpgradeSchema());
 
@@ -232,10 +230,6 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 	@Reference
 	private AssetDisplayPageEntryLocalService
 		_assetDisplayPageEntryLocalService;
-
-	@Reference
-	private AssetEntryAssetCategoryRelLocalService
-		_assetEntryAssetCategoryRelLocalService;
 
 	@Reference
 	private AssetEntryLocalService _assetEntryLocalService;
