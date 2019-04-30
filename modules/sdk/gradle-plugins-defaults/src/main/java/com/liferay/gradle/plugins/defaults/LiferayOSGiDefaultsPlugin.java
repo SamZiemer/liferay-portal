@@ -1949,8 +1949,22 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 
 		String jsonVersion = (String)map.get("version");
 
+		int index = jsonVersion.indexOf(".hotfix");
+
+		if (index != -1) {
+			jsonVersion = jsonVersion.substring(0, index);
+		}
+
+		String projectVersion = String.valueOf(project.getVersion());
+
+		index = projectVersion.indexOf(".hotfix");
+
+		if (index != -1) {
+			projectVersion = projectVersion.substring(0, index);
+		}
+
 		if (Validator.isNotNull(jsonVersion) &&
-			!jsonVersion.equals(String.valueOf(project.getVersion()))) {
+			!jsonVersion.equals(projectVersion)) {
 
 			throw new GradleException(
 				"Version in " + fileName + " must match project version");
