@@ -125,27 +125,6 @@ public class CIUtil {
 		return true;
 	}
 
-	public static void restoreHotfixVersion(Project project, String fileName) {
-		String hotfixVersion = getBNDHotfixVersion(project, fileName);
-
-		if (fileName.endsWith(".json")) {
-			hotfixVersion = getJSONHotfixVersion(project, fileName);
-		}
-
-		if (hotfixVersion != null) {
-			int index = hotfixVersion.indexOf("-hotfix");
-
-			if (index != -1) {
-				String suffix = hotfixVersion.substring(index + 7);
-
-				String newHotfixVersion =
-					hotfixVersion.substring(0, index) + ".hotfix" + suffix;
-
-				_write(project, fileName, newHotfixVersion, hotfixVersion);
-			}
-		}
-	}
-
 	public static void updateHotfixVersion(Project project, String fileName) {
 		String hotfixVersion = getJSONHotfixVersion(project, fileName);
 

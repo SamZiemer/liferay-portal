@@ -55,21 +55,16 @@ public class LiferayCIPlugin implements Plugin<Project> {
 
 	public static final Plugin<Project> INSTANCE = new LiferayCIPlugin();
 
-	public static final String RESTORE_HOTFIX_VERSION_TASK_NAME =
-		"restoreHotfixVersion";
-
 	public static final String UPDATE_HOTFIX_VERSION_TASK_NAME =
 		"updateHotfixVersion";
 
 	@Override
 	public void apply(final Project project) {
-		Task restoreHotfixVersionTask = _addTaskRestoreHotfixVersion(project);
 		Task updateHotfixVersionTask = _addTaskUpdateHotfixVersion(project);
 
 		_configureTasksDownloadNode(project);
 		_configureTasksExecuteNode(project);
-		_configureTasksExecuteNpm(
-			project, restoreHotfixVersionTask, updateHotfixVersionTask);
+		_configureTasksExecuteNpm(project, updateHotfixVersionTask);
 		_configureTasksNpmInstall(project);
 
 		GradleUtil.withPlugin(
@@ -99,29 +94,6 @@ public class LiferayCIPlugin implements Plugin<Project> {
 	private LiferayCIPlugin() {
 	}
 
-	private Task _addTaskRestoreHotfixVersion(final Project project) {
-		Task task = project.task(RESTORE_HOTFIX_VERSION_TASK_NAME);
-
-		task.setDescription("Restores the project hotfix version.");
-
-		task.doLast(
-			new Action<Task>() {
-
-				@Override
-				public void execute(Task task) {
-					CIUtil.restoreHotfixVersion(
-						project, _BND_HOTFIX_VERSION_FILE_NAME);
-
-					for (String fileName : _JSON_HOTFIX_VERSION_FILE_NAMES) {
-						CIUtil.restoreHotfixVersion(project, fileName);
-					}
-				}
-
-			});
-
-		return task;
-	}
-
 	private Task _addTaskUpdateHotfixVersion(final Project project) {
 		Task task = project.task(UPDATE_HOTFIX_VERSION_TASK_NAME);
 
@@ -132,9 +104,6 @@ public class LiferayCIPlugin implements Plugin<Project> {
 
 				@Override
 				public void execute(Task task) {
-					CIUtil.updateHotfixVersion(
-						project, _BND_HOTFIX_VERSION_FILE_NAME);
-
 					for (String fileName : _JSON_HOTFIX_VERSION_FILE_NAMES) {
 						CIUtil.updateHotfixVersion(project, fileName);
 					}
@@ -200,7 +169,7 @@ public class LiferayCIPlugin implements Plugin<Project> {
 
 	private void _configureTaskExecuteNpm(
 		ExecuteNpmTask executeNpmTask, String registry,
-		Task restoreHotfixVersionTask, Task updateHotfixVersionTask) {
+		Task updateHotfixVersionTask) {
 
 		if (Validator.isNotNull(registry)) {
 			executeNpmTask.setRegistry(registry);
@@ -219,8 +188,6 @@ public class LiferayCIPlugin implements Plugin<Project> {
 
 			if (hotfixVersion != null) {
 				executeNpmTask.dependsOn(updateHotfixVersionTask);
-
-				deployTask.finalizedBy(restoreHotfixVersionTask);
 			}
 		}
 	}
@@ -283,8 +250,7 @@ public class LiferayCIPlugin implements Plugin<Project> {
 	}
 
 	private void _configureTasksExecuteNpm(
-		Project project, final Task restoreHotfixVersionTask,
-		final Task updateHotfixVersionTask) {
+		Project project, final Task updateHotfixVersionTask) {
 
 		final String ciRegistry = GradleUtil.getProperty(
 			project, "nodejs.npm.ci.registry", (String)null);
@@ -298,8 +264,7 @@ public class LiferayCIPlugin implements Plugin<Project> {
 				@Override
 				public void execute(ExecuteNpmTask executeNpmTask) {
 					_configureTaskExecuteNpm(
-						executeNpmTask, ciRegistry, restoreHotfixVersionTask,
-						updateHotfixVersionTask);
+						executeNpmTask, ciRegistry, updateHotfixVersionTask);
 
 					String taskName = executeNpmTask.getName();
 
