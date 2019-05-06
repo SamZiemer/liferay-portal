@@ -24,6 +24,8 @@ import com.liferay.portal.kernel.service.http.TunnelUtil;
 import com.liferay.portal.kernel.util.MethodHandler;
 import com.liferay.portal.kernel.util.MethodKey;
 
+import java.net.ConnectException;
+
 /**
  * Provides the HTTP utility for the
  * <code>LayoutServiceUtil</code> service
@@ -98,7 +100,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -148,7 +159,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -190,7 +210,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -233,7 +262,16 @@ public class LayoutServiceHttp {
 				returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -269,7 +307,16 @@ public class LayoutServiceHttp {
 			}
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -304,7 +351,16 @@ public class LayoutServiceHttp {
 			}
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -339,7 +395,16 @@ public class LayoutServiceHttp {
 			}
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -377,7 +442,16 @@ public class LayoutServiceHttp {
 				returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -413,7 +487,16 @@ public class LayoutServiceHttp {
 			return ((Long)returnObj).longValue();
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -443,7 +526,16 @@ public class LayoutServiceHttp {
 			return ((Long)returnObj).longValue();
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -482,7 +574,16 @@ public class LayoutServiceHttp {
 			return ((Long)returnObj).longValue();
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -521,7 +622,16 @@ public class LayoutServiceHttp {
 			return ((Long)returnObj).longValue();
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -561,7 +671,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -600,7 +719,16 @@ public class LayoutServiceHttp {
 			return (String)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -639,7 +767,16 @@ public class LayoutServiceHttp {
 			return ((Long)returnObj).longValue();
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -672,7 +809,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.LayoutReference[])returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -704,7 +850,16 @@ public class LayoutServiceHttp {
 				returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -745,7 +900,16 @@ public class LayoutServiceHttp {
 				returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -788,7 +952,16 @@ public class LayoutServiceHttp {
 				returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -819,7 +992,16 @@ public class LayoutServiceHttp {
 				returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -852,7 +1034,16 @@ public class LayoutServiceHttp {
 				returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -882,7 +1073,16 @@ public class LayoutServiceHttp {
 			return ((Integer)returnObj).intValue();
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -913,7 +1113,16 @@ public class LayoutServiceHttp {
 			return ((Integer)returnObj).intValue();
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -944,7 +1153,16 @@ public class LayoutServiceHttp {
 			return ((Integer)returnObj).intValue();
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -974,7 +1192,16 @@ public class LayoutServiceHttp {
 			return ((Integer)returnObj).intValue();
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1012,7 +1239,16 @@ public class LayoutServiceHttp {
 			return (String[])returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1051,7 +1287,16 @@ public class LayoutServiceHttp {
 			return ((Boolean)returnObj).booleanValue();
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1089,7 +1334,16 @@ public class LayoutServiceHttp {
 			return ((Boolean)returnObj).booleanValue();
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1129,7 +1383,16 @@ public class LayoutServiceHttp {
 			}
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1174,7 +1437,16 @@ public class LayoutServiceHttp {
 			}
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1211,7 +1483,16 @@ public class LayoutServiceHttp {
 			}
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1246,7 +1527,16 @@ public class LayoutServiceHttp {
 			}
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1281,7 +1571,16 @@ public class LayoutServiceHttp {
 			}
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1319,7 +1618,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1370,7 +1678,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1409,7 +1726,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1449,7 +1775,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1488,7 +1823,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1527,7 +1871,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1566,7 +1919,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1604,7 +1966,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1644,7 +2015,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1683,7 +2063,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1723,7 +2112,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
@@ -1761,7 +2159,16 @@ public class LayoutServiceHttp {
 			return (com.liferay.portal.kernel.model.Layout)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+			if (se.getCause() instanceof ConnectException) {
+				_log.error("Connection error: " + se.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
+			}
+			else {
+				_log.error(se, se);
+			}
 
 			throw se;
 		}
