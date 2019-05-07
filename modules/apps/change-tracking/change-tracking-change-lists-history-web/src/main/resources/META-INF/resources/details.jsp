@@ -22,7 +22,7 @@ CTCollection ctCollection = (CTCollection)request.getAttribute(CTWebKeys.CT_COLL
 SearchContainer<CTEntry> ctEntrySearchContainer = changeListsHistoryDisplayContext.getCTCollectionDetailsSearchContainer(ctCollection);
 
 if (ctCollection != null) {
-	String title = HtmlUtil.escapeJS(ctCollection.getName());
+	String title = HtmlUtil.escape(ctCollection.getName());
 
 	portletDisplay.setTitle(title);
 
