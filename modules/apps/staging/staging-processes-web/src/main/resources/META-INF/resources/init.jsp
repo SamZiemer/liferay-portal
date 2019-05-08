@@ -35,6 +35,7 @@ page import="com.liferay.exportimport.kernel.lar.ExportImportHelperUtil" %><%@
 page import="com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys" %><%@
 page import="com.liferay.exportimport.kernel.model.ExportImportConfiguration" %><%@
 page import="com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalServiceUtil" %><%@
+page import="com.liferay.exportimport.kernel.staging.StagingURLHelperUtil" %><%@
 page import="com.liferay.exportimport.kernel.staging.StagingUtil" %><%@
 page import="com.liferay.petra.string.StringPool" %><%@
 page import="com.liferay.portal.kernel.dao.search.SearchContainer" %><%@
@@ -58,6 +59,7 @@ page import="com.liferay.portal.kernel.scheduler.messaging.SchedulerResponse" %>
 page import="com.liferay.portal.kernel.security.auth.AuthException" %><%@
 page import="com.liferay.portal.kernel.security.auth.RemoteAuthException" %><%@
 page import="com.liferay.portal.kernel.security.permission.ActionKeys" %><%@
+page import="com.liferay.portal.kernel.service.GroupLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.LayoutLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.permission.GroupPermissionUtil" %><%@
 page import="com.liferay.portal.kernel.servlet.SessionMessages" %><%@
@@ -71,6 +73,7 @@ page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
 page import="com.liferay.portal.kernel.util.PortalUtil" %><%@
 page import="com.liferay.portal.kernel.util.PortletKeys" %><%@
 page import="com.liferay.portal.kernel.util.StringUtil" %><%@
+page import="com.liferay.portal.kernel.util.UnicodeProperties" %><%@
 page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.kernel.util.WebKeys" %><%@
 page import="com.liferay.portal.util.PropsValues" %><%@
@@ -110,6 +113,8 @@ page import="javax.portlet.PortletURL" %>
 <%
 PortalPreferences portalPreferences = PortletPreferencesFactoryUtil.getPortalPreferences(liferayPortletRequest);
 
+UnicodeProperties groupTypeSettingsProperties = GroupLocalServiceUtil.getGroup(portletGroupId).getTypeSettingsProperties();
+
 Calendar calendar = CalendarFactoryUtil.getCalendar(timeZone, locale);
 
 int timeZoneOffset = timeZone.getOffset(calendar.getTimeInMillis());
@@ -119,6 +124,8 @@ PublishTemplatesDisplayContext publishTemplatesDisplayContext = new PublishTempl
 StagingProcessesWebDisplayContext stagingProcessesWebDisplayContext = new StagingProcessesWebDisplayContext(renderResponse, request);
 
 StagingProcessesWebToolbarDisplayContext stagingProcessesWebToolbarDisplayContext = new StagingProcessesWebToolbarDisplayContext(request, pageContext, liferayPortletResponse);
+
+String remoteURL = StagingURLHelperUtil.buildRemoteURL(groupTypeSettingsProperties);
 %>
 
 <%@ include file="/init-ext.jsp" %>
