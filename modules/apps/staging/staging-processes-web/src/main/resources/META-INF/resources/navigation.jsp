@@ -74,15 +74,16 @@ String searchContainerId = "publishLayoutProcesses";
 									show: 0
 								},
 								duration: 250,
-								message: '<liferay-ui:message arguments="<%= "<em>" + remoteURL + "</em>" %>" key="could-not-connect-to-address-x.-please-verify-that-the-specified-port-is-correct-and-that-the-remote-server-is-configured-to-accept-requests-from-this-server" />',
+								message: '<liferay-ui:message arguments='<%= "<em>" + remoteURL + "</em>" %>' key="could-not-connect-to-address-x.-please-verify-that-the-specified-port-is-correct-and-that-the-remote-server-is-configured-to-accept-requests-from-this-server" />',
 								title: '<%= UnicodeLanguageUtil.get(resourceBundle, "error") %>',
 								type: 'danger'
 							}
 						).render();
 					},
 					success: function() {
-						setTimeout(function() {
-							fetchRemote();
+						setTimeout(
+							function() {
+								fetchRemote();
 							}, 5000
 						);
 					}
