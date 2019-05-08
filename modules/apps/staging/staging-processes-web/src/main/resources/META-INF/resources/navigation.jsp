@@ -84,7 +84,7 @@ String searchContainerId = "publishLayoutProcesses";
 						setTimeout(
 							function() {
 								fetchRemote();
-							}, 5000
+							}, 20000
 						);
 					}
 				}
