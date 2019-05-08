@@ -58,39 +58,41 @@ String searchContainerId = "publishLayoutProcesses";
 	</c:when>
 </c:choose>
 
-<aui:script>
-	function fetchRemote() {
-		$.ajax(
-			'<%= remoteURL %>',
-			{
-				timeout: 30000,
-				error: function(request) {
-					new Liferay.Alert(
-						{
-							closeable: true,
-							delay: {
-								hide: 60000,
-								show: 0
-							},
-							duration: 250,
-							message: '<liferay-ui:message arguments="<%= "<em>" + remoteURL + "</em>" %>" key="could-not-connect-to-address-x.-please-verify-that-the-specified-port-is-correct-and-that-the-remote-server-is-configured-to-accept-requests-from-this-server" />',
-							title: '<%= UnicodeLanguageUtil.get(resourceBundle, "error") %>',
-							type: 'danger'
-						}
-					).render();
-				},
-				success: function() {
-					setTimeout(function() {
-						fetchRemote();
-						}, 5000
-					);
+<c:if test="<%= stagingGroup.isStaged() && stagingGroup.isStagedRemotely() %>">
+	<aui:script>
+		function fetchRemote() {
+			$.ajax(
+				'<%= remoteURL %>',
+				{
+					timeout: 30000,
+					error: function(request) {
+						new Liferay.Alert(
+							{
+								closeable: true,
+								delay: {
+									hide: 60000,
+									show: 0
+								},
+								duration: 250,
+								message: '<liferay-ui:message arguments="<%= "<em>" + remoteURL + "</em>" %>" key="could-not-connect-to-address-x.-please-verify-that-the-specified-port-is-correct-and-that-the-remote-server-is-configured-to-accept-requests-from-this-server" />',
+								title: '<%= UnicodeLanguageUtil.get(resourceBundle, "error") %>',
+								type: 'danger'
+							}
+						).render();
+					},
+					success: function() {
+						setTimeout(function() {
+							fetchRemote();
+							}, 5000
+						);
+					}
 				}
-			}
-		);
-	}
+			);
+		}
 
-	setTimeout(fetchRemote, 3000);
-</aui:script>
+		setTimeout(fetchRemote, 3000);
+	</aui:script>
+</c:if>
 
 <aui:script use="liferay-staging-processes-export-import">
 	<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="publishLayouts" var="publishProcessesURL">
