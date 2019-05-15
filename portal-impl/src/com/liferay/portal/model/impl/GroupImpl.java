@@ -1053,21 +1053,13 @@ public class GroupImpl extends GroupBaseImpl {
 				PortletDataHandler stagedPortletDataHandler =
 					stagedPortlet.getPortletDataHandlerInstance();
 
-				String portletDataHandlerNamespace =
-					portletDataHandler.getNamespace();
-
-				String stagedDataHandlerNamespace =
-					stagedPortletDataHandler.getNamespace();
-
 				String portletDataHandlerServiceName =
 					portletDataHandler.getServiceName();
 
 				String stagedDataHandlerServiceName =
 					stagedPortletDataHandler.getServiceName();
 
-				if (portletDataHandlerNamespace.equals(
-						stagedDataHandlerNamespace) &&
-					portletDataHandlerServiceName.equals(
+				if (portletDataHandlerServiceName.equals(
 						stagedDataHandlerServiceName)) {
 
 					return GetterUtil.getBoolean(entry.getValue());
