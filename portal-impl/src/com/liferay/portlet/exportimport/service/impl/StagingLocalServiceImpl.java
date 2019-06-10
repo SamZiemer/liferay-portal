@@ -438,6 +438,13 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			userId, stagingGroup, branchingPublic, branchingPrivate, true,
 			serviceContext);
 
+		boolean isPrivateLayout =
+			serviceContext.getThemeDisplay().getLayout().isPrivateLayout();
+
+		String groupDisplayURL = GroupServiceHttp.getGroupDisplayURL(
+			httpPrincipal, remoteGroupId, isPrivateLayout, secureConnection
+		);
+
 		typeSettingsProperties.setProperty(
 			"branchingPrivate", String.valueOf(branchingPrivate));
 		typeSettingsProperties.setProperty(
@@ -451,6 +458,8 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			"remotePathContext", remotePathContext);
 		typeSettingsProperties.setProperty(
 			"remotePort", String.valueOf(remotePort));
+		typeSettingsProperties.setProperty(
+			"remoteURL", groupDisplayURL);
 		typeSettingsProperties.setProperty(
 			"secureConnection", String.valueOf(secureConnection));
 
