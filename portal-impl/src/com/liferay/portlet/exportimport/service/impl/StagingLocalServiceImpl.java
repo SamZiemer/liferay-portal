@@ -55,6 +55,7 @@ import com.liferay.portal.kernel.security.auth.RemoteAuthException;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -438,12 +439,14 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			userId, stagingGroup, branchingPublic, branchingPrivate, true,
 			serviceContext);
 
-		boolean isPrivateLayout =
-			serviceContext.getThemeDisplay().getLayout().isPrivateLayout();
+		ThemeDisplay themeDisplay = serviceContext.getThemeDisplay();
+
+		Layout layout = themeDisplay.getLayout();
+
+		boolean privateLayout = layout.isPrivateLayout();
 
 		String groupDisplayURL = GroupServiceHttp.getGroupDisplayURL(
-			httpPrincipal, remoteGroupId, isPrivateLayout, secureConnection
-		);
+			httpPrincipal, remoteGroupId, privateLayout, secureConnection);
 
 		typeSettingsProperties.setProperty(
 			"branchingPrivate", String.valueOf(branchingPrivate));
@@ -458,8 +461,7 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			"remotePathContext", remotePathContext);
 		typeSettingsProperties.setProperty(
 			"remotePort", String.valueOf(remotePort));
-		typeSettingsProperties.setProperty(
-			"remoteURL", groupDisplayURL);
+		typeSettingsProperties.setProperty("remoteURL", groupDisplayURL);
 		typeSettingsProperties.setProperty(
 			"secureConnection", String.valueOf(secureConnection));
 

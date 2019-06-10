@@ -41,13 +41,15 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.util.PropsValues;
+
+import java.net.ConnectException;
+
+import java.util.Map;
+
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
-
-import java.net.ConnectException;
-import java.util.Map;
 
 /**
  * @author Kimberly Chau
@@ -105,18 +107,18 @@ public class StagingMessageListener extends BaseMessageListener {
 
 		if (_liveGroupId > 0) {
 			if (messageValues.get("layout") != null) {
-				_layout = (Layout) messageValues.get("layout");
+				_layout = (Layout)messageValues.get("layout");
 			}
 
 			if (messageValues.get("user") != null) {
-				user = (User) messageValues.get("user");
+				_user = (User)messageValues.get("user");
 			}
 
-			initThreadLocals(user.getUserId());
+			initThreadLocals(_user.getUserId());
 
 			try {
-				cachedRemoteURL =
-					_staging.getRemoteSiteURL(_group, _layout.isPrivateLayout());
+				cachedRemoteURL = _staging.getRemoteSiteURL(
+					_group, _layout.isPrivateLayout());
 			}
 			catch (SystemException se) {
 				Throwable cause = se.getCause();
@@ -127,6 +129,7 @@ public class StagingMessageListener extends BaseMessageListener {
 
 				cachedRemoteURL = null;
 			}
+
 			_typeSettingsProperties.setProperty("remoteURL", cachedRemoteURL);
 		}
 	}
@@ -146,7 +149,7 @@ public class StagingMessageListener extends BaseMessageListener {
 		catch (Exception e) {
 			throw new SystemException(
 				"Unable to initialize thread locals because an error occured " +
-				"when creating a permission checker for user " + userId,
+					"when creating a permission checker for user " + userId,
 				e);
 		}
 
@@ -172,14 +175,15 @@ public class StagingMessageListener extends BaseMessageListener {
 	private Layout _layout;
 	private long _liveGroupId;
 	private SchedulerEngineHelper _schedulerEngineHelper;
-	private UnicodeProperties _typeSettingsProperties;
-	private User user;
 
 	@Reference
 	private Staging _staging;
 
 	@Reference
 	private TriggerFactory _triggerFactory;
+
+	private UnicodeProperties _typeSettingsProperties;
+	private User _user;
 
 	@Reference
 	private UserLocalService _userLocalService;
