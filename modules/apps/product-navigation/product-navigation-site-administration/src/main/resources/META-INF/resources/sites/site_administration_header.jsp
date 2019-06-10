@@ -21,6 +21,14 @@ SiteAdministrationPanelCategoryDisplayContext siteAdministrationPanelCategoryDis
 
 Group group = siteAdministrationPanelCategoryDisplayContext.getGroup();
 PanelCategory panelCategory = siteAdministrationPanelCategoryDisplayContext.getPanelCategory();
+
+Message message = new Message();
+
+message.put("group", group);
+message.put("layout", layout);
+message.put("user", user);
+
+MessageBusUtil.sendMessage(DestinationNames.STAGING, message);
 %>
 
 <c:if test="<%= siteAdministrationPanelCategoryDisplayContext.isShowSiteSelector() %>">
