@@ -32,8 +32,8 @@ public class UpgradeLayoutParentPlid extends UpgradeProcess {
 		StringBundler sb = new StringBundler(3);
 
 		sb.append("select child.plid as childPlid, parent.plid as parentPlid ");
-		sb.append("from Layout child, Layout parent ");
-		sb.append("where child.parentLayoutId = parent.layoutId");
+		sb.append("from Layout child, Layout parent where ");
+		sb.append("child.parentLayoutId = parent.layoutId");
 
 		String sql = SQLTransformer.transform(sb.toString());
 
@@ -45,9 +45,11 @@ public class UpgradeLayoutParentPlid extends UpgradeProcess {
 
 			while (rs.next()) {
 				long childPlid = rs.getLong("childPlid");
+
 				long parentPlid = rs.getLong("parentPlid");
 
 				ps2.setLong(1, parentPlid);
+
 				ps2.setLong(2, childPlid);
 
 				ps2.addBatch();
