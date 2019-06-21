@@ -90,7 +90,3 @@ Group group = siteAdministrationPanelCategoryDisplayContext.getGroup();
 		/>
 	</c:if>
 </c:if>
-
-<%!
-private static Log _log = LogFactoryUtil.getLog("com_liferay_product_navigation_site_administration.sites.site_administration_body_jsp");
-%>

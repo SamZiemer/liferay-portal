@@ -42,13 +42,15 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.util.PropsValues;
+
+import java.net.ConnectException;
+
+import java.util.List;
+
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
-
-import java.net.ConnectException;
-import java.util.List;
 
 /**
  * @author Kimberly Chau
@@ -85,52 +87,31 @@ public class StagingMessageListener extends BaseMessageListener {
 	protected void doReceive(Message message) throws Exception {
 		DynamicQuery groupDynamicQuery = _groupLocalService.dynamicQuery();
 
-		List<Group> groups =
-			_groupLocalService.dynamicQuery(groupDynamicQuery);
+		List<Group> groups = _groupLocalService.dynamicQuery(groupDynamicQuery);
 
 		for (Group group : groups) {
 			if (group.isStagedRemotely()) {
 				UnicodeProperties typeSettingsProperties =
 					group.getTypeSettingsProperties();
+
 				long creatorUserId = group.getCreatorUserId();
 
 				if (group.hasPrivateLayouts()) {
-					_cacheRemoteURL =
-						setRemoteSiteURL(group, true, creatorUserId);
+					_cacheRemoteURL = setRemoteSiteURL(
+						group, true, creatorUserId);
 				}
 				else {
-					_cacheRemoteURL =
-						setRemoteSiteURL(group, false, creatorUserId);
+					_cacheRemoteURL = setRemoteSiteURL(
+						group, false, creatorUserId);
 				}
 
-				typeSettingsProperties.setProperty("remoteURL", _cacheRemoteURL);
+				typeSettingsProperties.setProperty(
+					"remoteURL", _cacheRemoteURL);
 
 				_groupLocalService.updateGroup(
 					group.getGroupId(), typeSettingsProperties.toString());
 			}
 		}
-	}
-
-	protected String setRemoteSiteURL(
-		Group group, boolean isPrivate, long userId) throws PortalException {
-
-		initThreadLocals(userId);
-
-		try {
-			_cacheRemoteURL =
-				_staging.getRemoteSiteURL(group, isPrivate);
-		}
-		catch (SystemException se) {
-			Throwable cause = se.getCause();
-
-			if (!(cause instanceof ConnectException)) {
-				_log.error(se, se);
-			}
-
-			_cacheRemoteURL = null;
-		}
-
-		return _cacheRemoteURL;
 	}
 
 	protected void initThreadLocals(long userId) throws PortalException {
@@ -148,7 +129,7 @@ public class StagingMessageListener extends BaseMessageListener {
 		catch (Exception e) {
 			throw new SystemException(
 				"Unable to initialize thread locals because an error occured " +
-				"when creating a permission checker for user " + userId,
+					"when creating a permission checker for user " + userId,
 				e);
 		}
 
@@ -165,6 +146,28 @@ public class StagingMessageListener extends BaseMessageListener {
 		ModuleServiceLifecycle moduleServiceLifecycle) {
 	}
 
+	protected String setRemoteSiteURL(
+			Group group, boolean privateLayout, long userId)
+		throws PortalException {
+
+		initThreadLocals(userId);
+
+		try {
+			_cacheRemoteURL = _staging.getRemoteSiteURL(group, privateLayout);
+		}
+		catch (SystemException se) {
+			Throwable cause = se.getCause();
+
+			if (!(cause instanceof ConnectException)) {
+				_log.error(se, se);
+			}
+
+			_cacheRemoteURL = null;
+		}
+
+		return _cacheRemoteURL;
+	}
+
 	@Reference(unbind = "-")
 	protected void setSchedulerEngineHelper(
 		SchedulerEngineHelper schedulerEngineHelper) {
@@ -172,7 +175,7 @@ public class StagingMessageListener extends BaseMessageListener {
 		_schedulerEngineHelper = schedulerEngineHelper;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setUserLocalService(UserLocalService userLocalService) {
 		_userLocalService = userLocalService;
 	}
@@ -180,13 +183,12 @@ public class StagingMessageListener extends BaseMessageListener {
 	private static final Log _log = LogFactoryUtil.getLog(
 		StagingMessageListener.class);
 
+	private String _cacheRemoteURL;
 	private GroupLocalService _groupLocalService;
 	private SchedulerEngineHelper _schedulerEngineHelper;
 
 	@Reference
 	private Staging _staging;
-
-	private String _cacheRemoteURL;
 
 	@Reference
 	private TriggerFactory _triggerFactory;
