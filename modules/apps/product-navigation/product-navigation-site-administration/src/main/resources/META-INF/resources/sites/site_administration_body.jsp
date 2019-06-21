@@ -20,9 +20,11 @@
 PanelCategory panelCategory = (PanelCategory)request.getAttribute(ApplicationListWebKeys.PANEL_CATEGORY);
 
 SiteAdministrationPanelCategoryDisplayContext siteAdministrationPanelCategoryDisplayContext = new SiteAdministrationPanelCategoryDisplayContext(liferayPortletRequest, liferayPortletResponse, null);
+
+Group group = siteAdministrationPanelCategoryDisplayContext.getGroup();
 %>
 
-<c:if test="<%= siteAdministrationPanelCategoryDisplayContext.getGroup() != null %>">
+<c:if test="<%= group != null %>">
 	<div class="row">
 		<div class="col-md-12">
 			<c:if test="<%= siteAdministrationPanelCategoryDisplayContext.isShowStagingInfo() %>">
@@ -42,8 +44,8 @@ SiteAdministrationPanelCategoryDisplayContext siteAdministrationPanelCategoryDis
 					<%
 					data.put("qa-id", "live");
 
-					try {
-						String liveGroupURL = siteAdministrationPanelCategoryDisplayContext.getLiveGroupURL();
+					if (group.getTypeSettingsProperty("remoteURL") != null) {
+						String liveGroupURL = group.getTypeSettingsProperty("remoteURL");
 					%>
 
 						<span class="<%= Validator.isNull(liveGroupURL) ? "active" : StringPool.BLANK %>">
@@ -52,10 +54,7 @@ SiteAdministrationPanelCategoryDisplayContext siteAdministrationPanelCategoryDis
 
 					<%
 					}
-					catch (RemoteExportException | SystemException e) {
-						if (e instanceof SystemException) {
-							_log.error(e, e);
-						}
+					else {
 					%>
 
 						<aui:a data="<%= data %>" href="" id="remoteLiveLink" label="<%= siteAdministrationPanelCategoryDisplayContext.getLiveGroupLabel() %>" />
