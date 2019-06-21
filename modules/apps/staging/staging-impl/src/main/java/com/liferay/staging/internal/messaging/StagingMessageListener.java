@@ -39,9 +39,7 @@ import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUti
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
-import com.liferay.portal.util.PropsValues;
 
 import java.net.ConnectException;
 
@@ -62,14 +60,10 @@ public class StagingMessageListener extends BaseMessageListener {
 	protected void activate() {
 		Class<?> clazz = getClass();
 
-		int connectTimeout = GetterUtil.getInteger(
-			PropsValues.TUNNELING_SERVLET_TIMEOUT);
-
 		String className = clazz.getName();
 
 		Trigger trigger = _triggerFactory.createTrigger(
-			className, className, null, null, connectTimeout,
-			TimeUnit.MILLISECOND);
+			className, className, null, null, 1, TimeUnit.HOUR);
 
 		SchedulerEntry schedulerEntry = new SchedulerEntryImpl(
 			className, trigger);
