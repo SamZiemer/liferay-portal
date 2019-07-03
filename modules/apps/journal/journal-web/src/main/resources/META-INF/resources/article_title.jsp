@@ -21,11 +21,21 @@ ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_
 
 JournalArticle article = (JournalArticle)row.getObject();
 
+JournalArticle latestArticle = journalDisplayContext.getLatestArticle(article);
+
 String href = (String)request.getAttribute(WebKeys.SEARCH_ENTRY_HREF);
+
+String title = article.getTitle(locale);
+
+boolean latestVersion = false;
+
+if (article.equals(latestArticle)) {
+	latestVersion = true;
+}
 %>
 
-<aui:a href="<%= href %>" title="<%= HtmlUtil.escape(article.getTitle(locale)) %>">
-	<%= HtmlUtil.escape(article.getTitle(locale)) %>
+<aui:a href="<%= href %>" title='<%= latestVersion ? null : LanguageUtil.get(request, "the-version-that-is-going-to-be-edited-is-not-the-one-shown-because-recent-versions-have-been-created-on-top-of-it") %>'>
+	<%= HtmlUtil.escape(title) %>
 </aui:a>
 
 <c:if test="<%= article.getGroupId() != scopeGroupId %>">

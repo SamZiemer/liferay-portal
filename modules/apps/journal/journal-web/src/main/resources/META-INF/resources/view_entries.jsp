@@ -35,6 +35,7 @@ String referringPortletResource = ParamUtil.getString(request, "referringPortlet
 
 		<%
 		JournalArticle curArticle = null;
+		JournalArticle latestArticle = null;
 		JournalFolder curFolder = null;
 
 		Object result = row.getObject();
@@ -43,7 +44,14 @@ String referringPortletResource = ParamUtil.getString(request, "referringPortlet
 			curFolder = (JournalFolder)result;
 		}
 		else {
-			curArticle = journalDisplayContext.getLatestArticle((JournalArticle)result);
+			curArticle = (JournalArticle)result;
+			latestArticle = journalDisplayContext.getLatestArticle(curArticle);
+		}
+
+		boolean latestVersion = false;
+
+		if (curArticle.equals(latestArticle)) {
+			latestVersion = true;
 		}
 		%>
 
@@ -108,7 +116,7 @@ String referringPortletResource = ParamUtil.getString(request, "referringPortlet
 							</span>
 
 							<p class="font-weight-bold h5">
-								<aui:a href="<%= editURL %>">
+								<aui:a href="<%= editURL %>" title='<%= !latestVersion ? LanguageUtil.get(request, "the-version-that-is-going-to-be-edited-is-not-the-one-shown-because-recent-versions-have-been-created-on-top-of-it") : null %>'>
 									<%= HtmlUtil.escape(title) %>
 								</aui:a>
 							</p>
@@ -146,6 +154,10 @@ String referringPortletResource = ParamUtil.getString(request, "referringPortlet
 						%>
 
 						<liferay-ui:search-container-column-text>
+							<c:if test="<%= !latestVersion %>">
+								<span onmouseover="Liferay.Portal.ToolTip.show(this, '<liferay-ui:message key="the-version-that-is-going-to-be-edited-is-not-the-one-shown-because-recent-versions-have-been-created-on-top-of-it" unicode="<%= true %>" />');">
+							</c:if>
+
 							<clay:vertical-card
 								verticalCard="<%= new JournalArticleVerticalCard(curArticle, renderRequest, renderResponse, searchContainer.getRowChecker(), assetDisplayPageFriendlyURLProvider, trashHelper) %>"
 							/>
