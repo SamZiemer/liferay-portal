@@ -71,6 +71,7 @@ BackgroundTask lastCompletedInitialPublicationBackgroundTask = BackgroundTaskMan
 				<aui:input name="groupId" type="hidden" value="<%= liveGroupId %>" />
 				<aui:input name="liveGroupId" type="hidden" value="<%= liveGroupId %>" />
 				<aui:input name="stagingGroupId" type="hidden" value="<%= stagingGroupId %>" />
+				<aui:input name="forceDisable" type="hidden" value="<%= false %>" />
 
 				<c:if test="<%= !privateLayoutSet.isLayoutSetPrototypeLinkActive() && !publicLayoutSet.isLayoutSetPrototypeLinkActive() %>">
 					<div class="sheet-header">
@@ -157,7 +158,7 @@ BackgroundTask lastCompletedInitialPublicationBackgroundTask = BackgroundTaskMan
 </c:choose>
 
 <script>
-	function <portlet:namespace />saveGroup() {
+	function <portlet:namespace />saveGroup(forceDisable) {
 		var form = document.<portlet:namespace />fm;
 		var ok = true;
 
@@ -196,6 +197,13 @@ BackgroundTask lastCompletedInitialPublicationBackgroundTask = BackgroundTaskMan
 				}
 			}
 		</c:if>
+
+		if (forceDisable) {
+			form.elements['<portlet:namespace />forceDisable'].value = true;
+			form.elements['<portlet:namespace />none'].checked = true;
+			form.elements['<portlet:namespace />redirect'].value = '<portlet:renderURL><portlet:param name="mvcPath" value="/view.jsp" /><portlet:param name="historyKey" value='<%= renderResponse.getNamespace() + "staging" %>' /></portlet:renderURL>';
+			form.elements['<portlet:namespace />remote'].checked = false;
+		}
 
 		if (ok) {
 			submitForm(form);
