@@ -67,6 +67,16 @@ AUI.add(
 		var TPL_REPEATABLE_ADD =
 			'<a class="icon-plus-sign lfr-ddm-repeatable-add-button" href="javascript:;"></a>';
 
+		var TPL_REPEATABLE_ICON =
+			'<svg aria-hidden="true" class="lexicon-icon lexicon-icon-drag" style="cursor: move" viewBox="0 0 512 512">' +
+		  	'<circle class="lexicon-icon-outline drag-dot-1" cx="192" cy="128" r="32"></circle>' +
+			'<circle class="lexicon-icon-outline drag-dot-2" cx="192" cy="256" r="32"></circle>' +
+			'<circle class="lexicon-icon-outline drag-dot-3" cx="192" cy="384" r="32"></circle>' +
+			'<circle class="lexicon-icon-outline drag-dot-4" cx="320" cy="128" r="32"></circle>' +
+			'<circle class="lexicon-icon-outline drag-dot-5" cx="320" cy="256" r="32"></circle>' +
+			'<circle class="lexicon-icon-outline drag-dot-6" cx="320" cy="384" r="32"></circle>' +
+		  	'</svg>';
+
 		var TPL_REPEATABLE_DELETE =
 			'<a class="hide icon-minus-sign lfr-ddm-repeatable-delete-button" href="javascript:;"></a>';
 
@@ -683,6 +693,10 @@ AUI.add(
 					var instance = this;
 
 					var container = instance.get('container');
+
+					var containerLabel = container._node.children[0];
+
+					containerLabel.insertAdjacentHTML('afterbegin', TPL_REPEATABLE_ICON);
 
 					container.append(TPL_REPEATABLE_ADD);
 					container.append(TPL_REPEATABLE_DELETE);
