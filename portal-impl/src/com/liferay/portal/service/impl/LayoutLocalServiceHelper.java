@@ -647,6 +647,6 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		LayoutLocalServiceHelper.class);
 
 	private static final Pattern _urlSeparatorPattern = Pattern.compile(
-		"/[A-Za-z]");
+		"/[BDWbdw]");
 
 }
