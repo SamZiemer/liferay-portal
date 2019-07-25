@@ -100,9 +100,9 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 					<c:if test="<%= assetPublisherDisplayContext.isShowAuthor() %>">
 						<div class="asset-avatar autofit-col inline-item-before mr-3 pt-1">
 							<span class="user-avatar-image">
-								<div class="sticker sticker-circle sticker-light user-icon user-icon-default <%= LexiconUtil.getUserColorCssClass(assetRendererUser) %> ">
+								<div class="sticker sticker-circle sticker-light user-icon user-icon-default <%= anonymous ? StringPool.BLANK : LexiconUtil.getUserColorCssClass(assetRendererUser) %> ">
 									<c:choose>
-										<c:when test="<%= assetRendererUser.getPortraitId() <= 0 %>">
+										<c:when test="<%= anonymous || (assetRendererUser.getPortraitId() <= 0) %>">
 											<aui:icon image="user" markupView="lexicon" />
 										</c:when>
 										<c:otherwise>
