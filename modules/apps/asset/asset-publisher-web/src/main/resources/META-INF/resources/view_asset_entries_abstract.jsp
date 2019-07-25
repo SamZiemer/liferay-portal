@@ -86,6 +86,14 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 
 				<%
 				User assetRendererUser = UserLocalServiceUtil.getUser(assetRenderer.getUserId());
+
+				boolean anonymous = false;
+
+				if (assetRendererFactory.getType().equals("message")) {
+					MBMessage message = MBMessageLocalServiceUtil.getMessage(assetEntry.getClassPK());
+
+					anonymous = message.isAnonymous();
+				}
 				%>
 
 				<div class="autofit-row mb-4 metadata-author">
@@ -111,7 +119,7 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 							<div class="autofit-col autofit-col-expand">
 								<c:if test="<%= assetPublisherDisplayContext.isShowAuthor() %>">
 									<div class="text-truncate-inline">
-										<span class="text-truncate user-info"><strong><%= HtmlUtil.escape(assetRendererUser.getFullName()) %></strong></span>
+										<span class="text-truncate user-info"><strong><%= anonymous ? LanguageUtil.get(request, "anonymous") : HtmlUtil.escape(assetRendererUser.getFullName()) %></strong></span>
 									</div>
 								</c:if>
 
