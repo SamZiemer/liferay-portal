@@ -31,20 +31,7 @@ import com.liferay.portlet.exportimport.staging.StagingAdvicesThreadLocal;
  */
 public class VerifyProcessUtil {
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 * 				#verifyProcess()}
-	 */
-	@Deprecated
-	public static boolean verifyProcess(
-			boolean ranUpgradeProcess, boolean verified)
-		throws VerifyException {
-
-		return verifyProcess();
-	}
-
 	public static boolean verifyProcess() throws VerifyException {
-
 		boolean ranVerifyProcess = false;
 
 		boolean tempIndexReadOnly = IndexWriterHelperUtil.isIndexReadOnly();
@@ -78,6 +65,18 @@ public class VerifyProcessUtil {
 		}
 
 		return ranVerifyProcess;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 * 				#verifyProcess()}
+	 */
+	@Deprecated
+	public static boolean verifyProcess(
+			boolean ranUpgradeProcess, boolean verified)
+		throws VerifyException {
+
+		return verifyProcess();
 	}
 
 	private static boolean _verifyProcess(String verifyProcessClassName)

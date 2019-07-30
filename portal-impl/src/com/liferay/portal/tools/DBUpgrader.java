@@ -66,6 +66,23 @@ import org.apache.commons.lang.time.StopWatch;
  */
 public class DBUpgrader {
 
+	public static void checkReleaseState() throws Exception {
+		if (_getReleaseState() == ReleaseConstants.STATE_GOOD) {
+			return;
+		}
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append("The database contains changes from a previous upgrade ");
+		sb.append("attempt that failed. Please restore the old database and ");
+		sb.append("file system and retry the upgrade. A patch may be ");
+		sb.append("required if the upgrade failed due to a bug or an ");
+		sb.append("unforeseen data permutation that resulted from a corrupt ");
+		sb.append("database.");
+
+		throw new IllegalStateException(sb.toString());
+	}
+
 	public static void checkRequiredBuildNumber(int requiredBuildNumber)
 		throws PortalException {
 
@@ -103,6 +120,8 @@ public class DBUpgrader {
 
 			stopWatch.start();
 
+			_connection = DataAccess.getConnection();
+
 			PortalClassPathUtil.initializeClassPaths(null);
 
 			InitUtil.initWithSpring(true, false);
@@ -132,7 +151,7 @@ public class DBUpgrader {
 			_registerModuleServiceLifecycle("portlets.initialized");
 
 			System.out.println(
-				"\nCompleted Liferay core upgrade and verify processes in " +
+				"\nCompleted Liferay core upgrade in " +
 					(stopWatch.getTime() / Time.SECOND) + " seconds");
 
 			System.out.println(
@@ -160,10 +179,8 @@ public class DBUpgrader {
 
 		checkRequiredBuildNumber(ReleaseInfo.RELEASE_6_2_0_BUILD_NUMBER);
 
-		try (Connection connection = DataAccess.getConnection()) {
-			if (PortalUpgradeProcess.isInLatestSchemaVersion(connection)) {
-				return;
-			}
+		if (PortalUpgradeProcess.isInLatestSchemaVersion(_connection)) {
+			return;
 		}
 
 		// Upgrade
@@ -265,13 +282,9 @@ public class DBUpgrader {
 			VerifyProcessUtil.verifyProcess();
 		}
 		catch (Exception exception) {
-			_updateReleaseState(ReleaseConstants.STATE_VERIFY_FAILURE);
-
 			_log.error(
 				"Unable to execute verify process: " + exception.getMessage(),
 				exception);
-
-			throw exception;
 		}
 		finally {
 			if (PropsValues.VERIFY_DATABASE_TRANSACTIONS_DISABLED) {
@@ -319,34 +332,15 @@ public class DBUpgrader {
 		throw new IllegalStateException(sb.toString());
 	}
 
-	public static void checkReleaseState() throws Exception {
-		if (_getReleaseState() == ReleaseConstants.STATE_GOOD) {
-			return;
-		}
-
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("The database contains changes from a previous upgrade ");
-		sb.append("attempt that failed. Please restore the old database and ");
-		sb.append("file system and retry the upgrade. A patch may be ");
-		sb.append("required if the upgrade failed due to a bug or an ");
-		sb.append("unforeseen data permutation that resulted from a corrupt ");
-		sb.append("database.");
-
-		throw new IllegalStateException(sb.toString());
-	}
-
 	private static int _getBuildNumberForMissedUpgradeProcesses(int buildNumber)
 		throws Exception {
 
 		if (buildNumber == ReleaseInfo.RELEASE_7_0_10_BUILD_NUMBER) {
-			try (Connection connection = DataAccess.getConnection()) {
-				Version schemaVersion =
-					PortalUpgradeProcess.getCurrentSchemaVersion(connection);
+			Version schemaVersion =
+				PortalUpgradeProcess.getCurrentSchemaVersion(_connection);
 
-				if (!schemaVersion.equals(_VERSION_7010)) {
-					return ReleaseInfo.RELEASE_7_0_1_BUILD_NUMBER;
-				}
+			if (!schemaVersion.equals(_VERSION_7010)) {
+				return ReleaseInfo.RELEASE_7_0_1_BUILD_NUMBER;
 			}
 		}
 
@@ -354,44 +348,27 @@ public class DBUpgrader {
 	}
 
 	private static int _getReleaseState() throws Exception {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			con = DataAccess.getConnection();
-
-			ps = con.prepareStatement(
-				"select state_ from Release_ where releaseId = ?");
+		try (PreparedStatement ps = _connection.prepareStatement(
+				"select state_ from Release_ where releaseId = ?")) {
 
 			ps.setLong(1, ReleaseConstants.DEFAULT_ID);
 
-			rs = ps.executeQuery();
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return rs.getInt("state_");
+				}
 
-			if (rs.next()) {
-				return rs.getInt("state_");
+				throw new IllegalArgumentException(
+					"No Release exists with the primary key " +
+						ReleaseConstants.DEFAULT_ID);
 			}
-
-			throw new IllegalArgumentException(
-				"No Release exists with the primary key " +
-					ReleaseConstants.DEFAULT_ID);
-		}
-		finally {
-			DataAccess.cleanUp(con, ps, rs);
 		}
 	}
 
 	private static long _getResourceCodesCount() throws Exception {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			con = DataAccess.getConnection();
-
-			ps = con.prepareStatement("select count(*) from ResourceCode");
-
-			rs = ps.executeQuery();
+		try (PreparedStatement ps = _connection.prepareStatement(
+				"select count(*) from ResourceCode");
+			ResultSet rs = ps.executeQuery()) {
 
 			if (rs.next()) {
 				return rs.getInt(1);
@@ -401,9 +378,6 @@ public class DBUpgrader {
 		}
 		catch (Exception exception) {
 			return 0;
-		}
-		finally {
-			DataAccess.cleanUp(con, ps, rs);
 		}
 	}
 
@@ -452,9 +426,8 @@ public class DBUpgrader {
 	}
 
 	private static void _updateReleaseBuildInfo() throws Exception {
-		try (Connection connection = DataAccess.getConnection();
-			 PreparedStatement ps = connection.prepareStatement(
-			 	"update Release_ set buildNumber = ?, buildDate = ? where " +
+		try (PreparedStatement ps = _connection.prepareStatement(
+				"update Release_ set buildNumber = ?, buildDate = ? where " +
 					"releaseId = ?")) {
 
 			ps.setInt(1, ReleaseInfo.getParentBuildNumber());
@@ -470,15 +443,9 @@ public class DBUpgrader {
 	}
 
 	private static void _updateReleaseState(int state) throws Exception {
-		Connection con = null;
-		PreparedStatement ps = null;
-
-		try {
-			con = DataAccess.getConnection();
-
-			ps = con.prepareStatement(
+		try (PreparedStatement ps = _connection.prepareStatement(
 				"update Release_ set modifiedDate = ?, state_ = ? where " +
-					"releaseId = ?");
+					"releaseId = ?")) {
 
 			ps.setDate(1, new Date(System.currentTimeMillis()));
 			ps.setInt(2, state);
@@ -486,13 +453,12 @@ public class DBUpgrader {
 
 			ps.executeUpdate();
 		}
-		finally {
-			DataAccess.cleanUp(con, ps);
-		}
 	}
 
 	private static final Version _VERSION_7010 = new Version(0, 0, 6);
 
 	private static final Log _log = LogFactoryUtil.getLog(DBUpgrader.class);
+
+	private static Connection _connection;
 
 }
