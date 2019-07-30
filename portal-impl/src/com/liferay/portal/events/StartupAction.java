@@ -186,6 +186,8 @@ public class StartupAction extends SimpleAction {
 			_log.debug("Verify database");
 		}
 
+		DBUpgrader.checkReleaseState();
+
 		DBUpgrader.verify();
 
 		// Liferay JspFactory
