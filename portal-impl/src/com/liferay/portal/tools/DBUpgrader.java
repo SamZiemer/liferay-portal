@@ -54,6 +54,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.time.StopWatch;
@@ -176,7 +177,7 @@ public class DBUpgrader {
 		}
 
 		_checkPermissionAlgorithm();
-		_checkReleaseState(_getReleaseState());
+		checkReleaseState();
 
 		if (PropsValues.UPGRADE_DATABASE_TRANSACTIONS_DISABLED) {
 			TransactionsUtil.disableTransactions();
@@ -197,6 +198,16 @@ public class DBUpgrader {
 				TransactionsUtil.enableTransactions();
 			}
 		}
+
+		// Update indexes
+
+		if (PropsValues.DATABASE_INDEXES_UPDATE_ON_STARTUP) {
+			StartupHelperUtil.updateIndexes(true);
+		}
+
+		// Update Release
+
+		_updateReleaseBuildInfo();
 
 		// Reload SQL
 
@@ -223,32 +234,25 @@ public class DBUpgrader {
 			PortalCacheHelperUtil.clearPortalCaches(
 				PortalCacheManagerNames.MULTI_VM);
 		}
+
+		// Enable database caching after upgrade
+
+		CacheRegistryUtil.setActive(true);
+
+		// Register release service
+
+		_registerReleaseService();
 	}
 
 	public static void verify() throws Exception {
 
-		// Check release
+		// Disable database caching before verify
 
-		Release release = ReleaseLocalServiceUtil.fetchRelease(
-			ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME);
-
-		if (release == null) {
-			release = ReleaseLocalServiceUtil.addRelease(
-				ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME,
-				ReleaseInfo.getParentBuildNumber());
+		if (_log.isDebugEnabled()) {
+			_log.debug("Disable cache registry");
 		}
 
-		_checkReleaseState(release.getState());
-
-		// Update indexes
-
-		if (StartupHelperUtil.isUpgraded() ||
-			PropsValues.DATABASE_INDEXES_UPDATE_ON_STARTUP) {
-
-			StartupHelperUtil.setDropIndexes(true);
-
-			StartupHelperUtil.updateIndexes();
-		}
+		CacheRegistryUtil.setActive(false);
 
 		// Verify
 
@@ -274,48 +278,9 @@ public class DBUpgrader {
 			}
 		}
 
-		// Update indexes
-
-		if (PropsValues.DATABASE_INDEXES_UPDATE_ON_STARTUP ||
-			StartupHelperUtil.isUpgraded()) {
-
-			StartupHelperUtil.updateIndexes(false);
-		}
-
-		// Update release
-
-		boolean verified = StartupHelperUtil.isVerified();
-
-		if (release.isVerified()) {
-			verified = true;
-		}
-
-		release.setBuildNumber(ReleaseInfo.getParentBuildNumber());
-		release.setBuildDate(ReleaseInfo.getBuildDate());
-		release.setVerified(verified);
-
-		release = ReleaseLocalServiceUtil.updateRelease(release);
-
 		// Enable database caching after verify
 
 		CacheRegistryUtil.setActive(true);
-
-		// Register release service
-
-		Registry registry = RegistryUtil.getRegistry();
-
-		ServiceRegistrar<Release> serviceRegistrar =
-			registry.getServiceRegistrar(Release.class);
-
-		Map<String, Object> properties = HashMapBuilder.<String, Object>put(
-			"build.date", release.getBuildDate()
-		).put(
-			"build.number", release.getBuildNumber()
-		).put(
-			"servlet.context.name", release.getServletContextName()
-		).build();
-
-		serviceRegistrar.registerService(Release.class, release, properties);
 	}
 
 	private static void _checkClassNamesAndResourceActions() {
@@ -353,8 +318,8 @@ public class DBUpgrader {
 		throw new IllegalStateException(sb.toString());
 	}
 
-	private static void _checkReleaseState(int state) throws Exception {
-		if (state == ReleaseConstants.STATE_GOOD) {
+	public static void checkReleaseState() throws Exception {
+		if (_getReleaseState() == ReleaseConstants.STATE_GOOD) {
 			return;
 		}
 
@@ -461,10 +426,46 @@ public class DBUpgrader {
 			properties);
 	}
 
+	private static void _registerReleaseService() {
+		Registry registry = RegistryUtil.getRegistry();
+
+		ServiceRegistrar<Release> serviceRegistrar =
+			registry.getServiceRegistrar(Release.class);
+
+		Map<String, Object> properties = new HashMap<>();
+
+		Release release = ReleaseLocalServiceUtil.fetchRelease(
+			ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME);
+
+		properties.put("build.date", release.getBuildDate());
+		properties.put("build.number", release.getBuildNumber());
+		properties.put("servlet.context.name", release.getServletContextName());
+
+		serviceRegistrar.registerService(Release.class, release, properties);
+	}
+
 	private static void _updateCompanyKey() throws Exception {
 		DB db = DBManagerUtil.getDB();
 
 		db.runSQL("update CompanyInfo set key_ = null");
+	}
+
+	private static void _updateReleaseBuildInfo() throws Exception {
+		try (Connection connection = DataAccess.getConnection();
+			 PreparedStatement ps = connection.prepareStatement(
+			 	"update Release_ set buildNumber = ?, buildDate = ? where " +
+					"releaseId = ?")) {
+
+			ps.setInt(1, ReleaseInfo.getParentBuildNumber());
+
+			java.util.Date buildDate = ReleaseInfo.getBuildDate();
+
+			ps.setDate(2, new Date(buildDate.getTime()));
+
+			ps.setLong(3, ReleaseConstants.DEFAULT_ID);
+
+			ps.executeUpdate();
+		}
 	}
 
 	private static void _updateReleaseState(int state) throws Exception {
