@@ -17,7 +17,6 @@ package com.liferay.portal.events;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.verify.VerifyException;
-import com.liferay.portal.verify.VerifyProcessUtil;
 
 import java.sql.Connection;
 
