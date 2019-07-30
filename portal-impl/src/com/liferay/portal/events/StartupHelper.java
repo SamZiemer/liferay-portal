@@ -158,6 +158,11 @@ public class StartupHelper {
 		}
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 * 				VerifyProcessUtil#verifyProcess()}
+	 */
+	@Deprecated
 	public void verifyProcess(boolean verified) throws VerifyException {
 		_verified = VerifyProcessUtil.verifyProcess(_upgraded, verified);
 	}

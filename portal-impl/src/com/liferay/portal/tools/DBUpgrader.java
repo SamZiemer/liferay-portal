@@ -40,6 +40,7 @@ import com.liferay.portal.upgrade.PortalUpgradeProcess;
 import com.liferay.portal.util.InitUtil;
 import com.liferay.portal.util.PortalClassPathUtil;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.verify.VerifyProcessUtil;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
 import com.liferay.registry.ServiceRegistrar;
@@ -243,7 +244,7 @@ public class DBUpgrader {
 		}
 
 		try {
-			StartupHelperUtil.verifyProcess(release.isVerified());
+			VerifyProcessUtil.verifyProcess();
 		}
 		catch (Exception e) {
 			_updateReleaseState(ReleaseConstants.STATE_VERIFY_FAILURE);

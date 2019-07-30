@@ -17,6 +17,7 @@ package com.liferay.portal.events;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.verify.VerifyException;
+import com.liferay.portal.verify.VerifyProcessUtil;
 
 import java.sql.Connection;
 
@@ -85,6 +86,11 @@ public class StartupHelperUtil {
 		getStartupHelper().upgradeProcess(buildNumber);
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 * 				VerifyProcessUtil#verifyProcess()}
+	 */
+	@Deprecated
 	public static void verifyProcess(boolean verified) throws VerifyException {
 		getStartupHelper().verifyProcess(verified);
 	}
