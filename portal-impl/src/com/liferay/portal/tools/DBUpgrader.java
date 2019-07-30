@@ -260,12 +260,8 @@ public class DBUpgrader {
 			VerifyProcessUtil.verifyProcess();
 		}
 		catch (Exception e) {
-			_updateReleaseState(ReleaseConstants.STATE_VERIFY_FAILURE);
-
 			_log.error(
 				"Unable to execute verify process: " + e.getMessage(), e);
-
-			throw e;
 		}
 		finally {
 			if (PropsValues.VERIFY_DATABASE_TRANSACTIONS_DISABLED) {
