@@ -3105,6 +3105,7 @@ AUI.add(
 						titleNode.val('');
 					}
 
+					instance._validateField(altNode);
 					instance._validateField(titleNode);
 
 					var clearButtonNode = A.one(
