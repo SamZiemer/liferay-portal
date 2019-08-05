@@ -75,10 +75,13 @@
 				value="preview"
 			/>
 		</div>
+	</div>
 
+	<div class="form-group">
 		<@liferay_aui.input
 			label="image-description"
 			name="${namespacedFieldName}Alt"
+			required=required
 			type="text"
 			value="${alt}"
 		/>
