@@ -1925,6 +1925,12 @@ public class StagingImpl implements Staging {
 				remoteSiteURL.getProtocol(), remoteAddress,
 				remoteSiteURL.getPort(), remoteSiteURL.getFile());
 
+			typeSettingsProperties.setProperty(
+				"remoteURL", remoteSiteURL.toString());
+
+			_groupLocalService.updateGroup(
+				stagingGroup.getGroupId(), typeSettingsProperties.toString());
+
 			return remoteSiteURL.toString();
 		}
 		catch (MalformedURLException murle) {

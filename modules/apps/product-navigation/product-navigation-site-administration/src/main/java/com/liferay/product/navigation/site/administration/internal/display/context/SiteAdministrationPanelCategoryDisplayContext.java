@@ -212,6 +212,8 @@ public class SiteAdministrationPanelCategoryDisplayContext {
 
 			GroupLocalServiceUtil.updateGroup(
 				group.getGroupId(), typeSettingsProperties.toString());
+
+			_liveGroupURL = typeSettingsProperties.getProperty("remoteURL");
 		}
 		else if (group.isStagingGroup()) {
 			Group liveGroup = StagingUtil.getLiveGroup(group.getGroupId());
