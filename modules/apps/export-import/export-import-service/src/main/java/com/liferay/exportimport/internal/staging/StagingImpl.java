@@ -83,6 +83,7 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.lock.DuplicateLockException;
 import com.liferay.portal.kernel.lock.Lock;
 import com.liferay.portal.kernel.lock.LockManager;
+import com.liferay.portal.kernel.lock.LockManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.DestinationNames;
@@ -149,6 +150,7 @@ import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowTask;
 import com.liferay.portal.kernel.workflow.WorkflowTaskManagerUtil;
@@ -1881,17 +1883,25 @@ public class StagingImpl implements Staging {
 			return StringPool.BLANK;
 		}
 
-		PermissionChecker permissionChecker =
-			PermissionThreadLocal.getPermissionChecker();
-
-		User user = permissionChecker.getUser();
-
 		if (stagingGroup.isLayout()) {
 			stagingGroup = stagingGroup.getParentGroup();
 		}
 
 		UnicodeProperties typeSettingsProperties =
 			stagingGroup.getTypeSettingsProperties();
+
+		String owner = acquireLock(
+			Staging.class.getName(), stagingGroup.getClassPK(),
+			PropsValues.STAGING_OWNER_REMOTE_URL_LOCK_TIMEOUT);
+
+		if (owner == null) {
+			return typeSettingsProperties.getProperty("remoteURL");
+		}
+
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		User user = permissionChecker.getUser();
 
 		HttpPrincipal httpPrincipal = new HttpPrincipal(
 			_stagingURLHelper.buildRemoteURL(typeSettingsProperties),
@@ -1919,6 +1929,10 @@ public class StagingImpl implements Staging {
 		}
 		catch (MalformedURLException murle) {
 			throw new PortalException(murle);
+		}
+		finally {
+			releaseLock(
+				Staging.class.getName(), stagingGroup.getClassPK(), owner);
 		}
 	}
 
@@ -3650,6 +3664,48 @@ public class StagingImpl implements Staging {
 		}
 	}
 
+	protected String acquireLock(
+		String className, long classPK, long updateLockMaxTime) {
+
+		String owner = PortalUUIDUtil.generate();
+
+		try {
+			Lock lock = LockManagerUtil.lock(
+				StagingImpl.class.getName(), String.valueOf(classPK), owner);
+
+			if (!owner.equals(lock.getOwner())) {
+				Date createDate = lock.getCreateDate();
+
+				if ((System.currentTimeMillis() - createDate.getTime()) >=
+						updateLockMaxTime) {
+
+					lock = LockManagerUtil.lock(
+						StagingImpl.class.getName(), String.valueOf(classPK),
+						lock.getOwner(), owner);
+
+					if (!owner.equals(lock.getOwner())) {
+						return null;
+					}
+				}
+				else {
+					return null;
+				}
+			}
+		}
+		catch (Exception e) {
+			return null;
+		}
+
+		if (_log.isDebugEnabled()) {
+			_log.debug(
+				StringBundler.concat(
+					"Acquired lock for ", StagingImpl.class.getName(),
+					" to update ", className, StringPool.POUND, classPK));
+		}
+
+		return owner;
+	}
+
 	protected long doCopyRemoteLayouts(
 			ExportImportConfiguration exportImportConfiguration,
 			String remoteAddress, int remotePort, String remotePathContext,
@@ -4029,6 +4085,18 @@ public class StagingImpl implements Staging {
 		return publishPortlet(
 			userId, stagingGroup.getGroupId(), targetGroupId,
 			sourceLayout.getPlid(), targetLayoutPlid, portletId, parameterMap);
+	}
+
+	protected void releaseLock(String className, long classPK, String owner) {
+		LockManagerUtil.unlock(
+			StagingImpl.class.getName(), String.valueOf(classPK), owner);
+
+		if (_log.isDebugEnabled()) {
+			_log.debug(
+				StringBundler.concat(
+					"Released lock for ", StagingImpl.class.getName(),
+					" to update ", className, StringPool.POUND, classPK));
+		}
 	}
 
 	protected void setRecentLayoutBranchId(

@@ -3460,6 +3460,9 @@ public interface PropsKeys {
 	public static final String STAGING_LIVE_GROUP_REMOTE_STAGING_ENABLED =
 		"staging.live.group.remote.staging.enabled";
 
+	public static final String STAGING_OWNER_REMOTE_URL_LOCK_TIMEOUT =
+		"staging.owner.remote.url.lock.timeout";
+
 	public static final String STAGING_REMOTE_TRANSFER_BUFFER_SIZE =
 		"staging.remote.transfer.buffer.size";
 
