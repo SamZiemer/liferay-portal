@@ -19,7 +19,6 @@ import com.liferay.application.list.PanelCategory;
 import com.liferay.application.list.constants.ApplicationListWebKeys;
 import com.liferay.application.list.constants.PanelCategoryKeys;
 import com.liferay.application.list.display.context.logic.PanelCategoryHelper;
-import com.liferay.exportimport.kernel.exception.RemoteExportException;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -34,12 +33,14 @@ import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PropsValues;
@@ -164,7 +165,7 @@ public class SiteAdministrationPanelCategoryDisplayContext {
 		return "live";
 	}
 
-	public String getLiveGroupURL() throws RemoteExportException {
+	public String getLiveGroupURL() throws PortalException {
 		if (_liveGroupURL != null) {
 			return _liveGroupURL;
 		}
@@ -176,9 +177,14 @@ public class SiteAdministrationPanelCategoryDisplayContext {
 		if (group.isStagedRemotely()) {
 			Layout layout = _themeDisplay.getLayout();
 
+			UnicodeProperties typeSettingsProperties =
+				group.getTypeSettingsProperties();
+
 			try {
 				_liveGroupURL = StagingUtil.getRemoteSiteURL(
 					group, layout.isPrivateLayout());
+
+				typeSettingsProperties.setProperty("remoteConnection", null);
 			}
 			catch (PortalException pe) {
 				if (_log.isDebugEnabled()) {
@@ -200,9 +206,12 @@ public class SiteAdministrationPanelCategoryDisplayContext {
 							cause.getMessage());
 				}
 
-				throw new RemoteExportException(
-					RemoteExportException.BAD_CONNECTION);
+				typeSettingsProperties.setProperty(
+					"remoteConnection", Boolean.FALSE.toString());
 			}
+
+			GroupLocalServiceUtil.updateGroup(
+				group.getGroupId(), typeSettingsProperties.toString());
 		}
 		else if (group.isStagingGroup()) {
 			Group liveGroup = StagingUtil.getLiveGroup(group.getGroupId());
