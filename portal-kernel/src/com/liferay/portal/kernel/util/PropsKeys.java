@@ -3466,6 +3466,9 @@ public interface PropsKeys {
 	public static final String STAGING_REMOTE_TRANSFER_BUFFER_SIZE =
 		"staging.remote.transfer.buffer.size";
 
+	public static final String STAGING_REMOTE_URL_TIMEOUT =
+		"staging.remote.url.timeout";
+
 	public static final String STAGING_SYSTEM_EVENT_CHECK_INTERVAL =
 		"staging.system.event.check.interval";
 

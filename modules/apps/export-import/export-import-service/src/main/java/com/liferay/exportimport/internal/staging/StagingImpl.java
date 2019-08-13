@@ -1928,6 +1928,9 @@ public class StagingImpl implements Staging {
 			typeSettingsProperties.setProperty(
 				"remoteURL", remoteSiteURL.toString());
 
+			typeSettingsProperties.setProperty(
+				"lastUpdate", String.valueOf(System.currentTimeMillis()));
+
 			_groupLocalService.updateGroup(
 				stagingGroup.getGroupId(), typeSettingsProperties.toString());
 

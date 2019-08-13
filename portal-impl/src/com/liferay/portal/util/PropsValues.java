@@ -3020,6 +3020,9 @@ public class PropsValues {
 		GetterUtil.getInteger(
 			PropsUtil.get(PropsKeys.STAGING_REMOTE_TRANSFER_BUFFER_SIZE));
 
+	public static final long STAGING_REMOTE_URL_TIMEOUT = GetterUtil.getLong(
+		PropsUtil.get(PropsKeys.STAGING_REMOTE_URL_TIMEOUT));
+
 	public static final int STAGING_SYSTEM_EVENT_CHECK_INTERVAL =
 		GetterUtil.getInteger(
 			PropsUtil.get(PropsKeys.STAGING_SYSTEM_EVENT_CHECK_INTERVAL));

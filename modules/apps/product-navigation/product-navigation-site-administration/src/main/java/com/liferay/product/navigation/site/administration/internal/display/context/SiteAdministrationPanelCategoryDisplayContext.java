@@ -38,6 +38,7 @@ import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -180,9 +181,19 @@ public class SiteAdministrationPanelCategoryDisplayContext {
 			UnicodeProperties typeSettingsProperties =
 				group.getTypeSettingsProperties();
 
+			long lastUpdate = GetterUtil.getLong(
+				typeSettingsProperties.getProperty("lastUpdate"));
+
 			try {
-				_liveGroupURL = StagingUtil.getRemoteSiteURL(
-					group, layout.isPrivateLayout());
+				if ((System.currentTimeMillis() - lastUpdate) >=
+						PropsValues.STAGING_REMOTE_URL_TIMEOUT) {
+
+					_liveGroupURL = StagingUtil.getRemoteSiteURL(
+						group, layout.isPrivateLayout());
+
+					typeSettingsProperties.setProperty(
+						"remoteURL", _liveGroupURL);
+				}
 
 				typeSettingsProperties.setProperty("remoteConnection", null);
 			}
@@ -206,6 +217,8 @@ public class SiteAdministrationPanelCategoryDisplayContext {
 							cause.getMessage());
 				}
 
+				typeSettingsProperties.setProperty(
+					"lastUpdate", String.valueOf(System.currentTimeMillis()));
 				typeSettingsProperties.setProperty(
 					"remoteConnection", Boolean.FALSE.toString());
 			}

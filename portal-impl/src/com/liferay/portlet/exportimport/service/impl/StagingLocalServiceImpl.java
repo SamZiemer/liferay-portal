@@ -458,6 +458,8 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			"branchingPrivate", String.valueOf(branchingPrivate));
 		typeSettingsProperties.setProperty(
 			"branchingPublic", String.valueOf(branchingPublic));
+		typeSettingsProperties.setProperty(
+			"lastUpdate", String.valueOf(System.currentTimeMillis()));
 		typeSettingsProperties.setProperty("remoteAddress", remoteAddress);
 		typeSettingsProperties.setProperty(
 			"remoteGroupId", String.valueOf(remoteGroupId));
