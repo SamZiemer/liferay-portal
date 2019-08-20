@@ -241,7 +241,7 @@ public class TopHeadDynamicInclude implements DynamicInclude {
 			httpServletRequest, "/combo", "minifierType=js", jsLastModified);
 
 		for (String url : urls) {
-			if ((sb.length() + url.length() + 1) >= 2000) {
+			if ((sb.length() + url.length() + 1) >= 1024) {
 				_renderScriptURL(printWriter, sb.toString());
 
 				sb = new StringBundler();
