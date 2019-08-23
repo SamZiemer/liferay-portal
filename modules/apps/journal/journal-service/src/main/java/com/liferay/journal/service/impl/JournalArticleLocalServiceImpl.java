@@ -9034,12 +9034,14 @@ public class JournalArticleLocalServiceImpl
 			journalArticleLocalization.setCompanyId(companyId);
 			journalArticleLocalization.setArticlePK(articlePK);
 			journalArticleLocalization.setTitle(title);
-			journalArticleLocalization.setDescription(description);
+			journalArticleLocalization.setDescription(
+				HtmlUtil.stripHtml(description));
 			journalArticleLocalization.setLanguageId(languageId);
 		}
 		else {
 			journalArticleLocalization.setTitle(title);
-			journalArticleLocalization.setDescription(description);
+			journalArticleLocalization.setDescription(
+				HtmlUtil.stripHtml(description));
 		}
 
 		return journalArticleLocalizationPersistence.update(
