@@ -120,11 +120,11 @@ public class DBUpgrader {
 
 			stopWatch.start();
 
-			_connection = DataAccess.getConnection();
-
 			PortalClassPathUtil.initializeClassPaths(null);
 
 			InitUtil.initWithSpring(true, false);
+
+			_connection = DataAccess.getConnection();
 
 			StartupHelperUtil.printPatchLevel();
 
