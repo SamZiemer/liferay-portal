@@ -348,6 +348,10 @@ public class DBUpgrader {
 	}
 
 	private static int _getReleaseState() throws Exception {
+		if (_connection == null) {
+			_connection = DataAccess.getConnection();
+		}
+
 		try (PreparedStatement ps = _connection.prepareStatement(
 				"select state_ from Release_ where releaseId = ?")) {
 
