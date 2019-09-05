@@ -1,0 +1,50 @@
+diff --git a/org/jasig/cas/client/validation/AbstractUrlBasedTicketValidator.java b/org/jasig/cas/client/validation/AbstractUrlBasedTicketValidator.java
+index 06a19d9d6214..abf97c50ad39 100644
+--- a/org/jasig/cas/client/validation/AbstractUrlBasedTicketValidator.java
++++ b/org/jasig/cas/client/validation/AbstractUrlBasedTicketValidator.java
+@@ -94,7 +94,7 @@ public abstract class AbstractUrlBasedTicketValidator implements TicketValidator
+ 
+         log.debug("Placing URL parameters in map.");
+         urlParameters.put("ticket", ticket);
+-        urlParameters.put("service", encodeUrl(serviceUrl));
++        urlParameters.put("service", serviceUrl);
+ 
+         if (this.renew) {
+             urlParameters.put("renew", "true");
+@@ -129,6 +129,8 @@ public abstract class AbstractUrlBasedTicketValidator implements TicketValidator
+ 	                buffer.append(key);
+ 	                buffer.append("=");
+ 	                buffer.append(value);
++	                final String encodedValue = encodeUrl(value);
++	                buffer.append(encodedValue);
+                 }
+             }
+ 
+@@ -219,4 +221,5 @@ public abstract class AbstractUrlBasedTicketValidator implements TicketValidator
+     protected final String getEncoding() {
+         return this.encoding;
+     }
+-}
+\ No newline at end of file
++}
++/* @generated */
+\ No newline at end of file
+diff --git a/org/jasig/cas/client/validation/Cas20ServiceTicketValidator.java b/org/jasig/cas/client/validation/Cas20ServiceTicketValidator.java
+index c17e3f9f1bfa..edfdf5f274c2 100644
+--- a/org/jasig/cas/client/validation/Cas20ServiceTicketValidator.java
++++ b/org/jasig/cas/client/validation/Cas20ServiceTicketValidator.java
+@@ -58,7 +58,7 @@ public class Cas20ServiceTicketValidator extends AbstractCasProtocolUrlBasedTick
+      * @param urlParameters the Map containing the existing parameters to send to the server.
+      */
+     protected final void populateUrlAttributeMap(final Map urlParameters) {
+-        urlParameters.put("pgtUrl", encodeUrl(this.proxyCallbackUrl));
++        urlParameters.put("pgtUrl", this.proxyCallbackUrl);
+     }
+ 
+     protected String getUrlSuffix() {
+@@ -169,3 +169,4 @@ public class Cas20ServiceTicketValidator extends AbstractCasProtocolUrlBasedTick
+         this.proxyRetriever = proxyRetriever;
+     }    
+ }
++/* @generated */
+\ No newline at end of file
