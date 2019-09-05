@@ -94,7 +94,7 @@ public abstract class AbstractUrlBasedTicketValidator implements TicketValidator
 
         log.debug("Placing URL parameters in map.");
         urlParameters.put("ticket", ticket);
-        urlParameters.put("service", encodeUrl(serviceUrl));
+        urlParameters.put("service", serviceUrl);
 
         if (this.renew) {
             urlParameters.put("renew", "true");
@@ -129,6 +129,8 @@ public abstract class AbstractUrlBasedTicketValidator implements TicketValidator
 	                buffer.append(key);
 	                buffer.append("=");
 	                buffer.append(value);
+	                final String encodedValue = encodeUrl(value);
+	                buffer.append(encodedValue);
                 }
             }
 
@@ -220,3 +222,4 @@ public abstract class AbstractUrlBasedTicketValidator implements TicketValidator
         return this.encoding;
     }
 }
+/* @generated */
