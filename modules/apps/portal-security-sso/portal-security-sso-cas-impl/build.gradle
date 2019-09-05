@@ -1,5 +1,5 @@
 dependencies {
-	compileInclude group: "org.jasig.cas.client", name: "cas-client-core", version: "3.1.12"
+	compileInclude group: "com.liferay", name: "cas-client-core", version: "3.1.12.LIFERAY-PATCHED-1"
 	compileInclude group: "org.opensaml", name: "opensaml", version: "1.1"
 
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "default"
