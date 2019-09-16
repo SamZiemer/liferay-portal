@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.util.Localization;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.search.localization.SearchLocalizationHelper;
 import com.liferay.portal.search.query.QueryHelper;
 
 import java.io.Serializable;
@@ -33,6 +34,7 @@ import java.io.Serializable;
 import java.util.Locale;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Michael C. Han
@@ -41,19 +43,9 @@ import org.osgi.service.component.annotations.Component;
 public class QueryHelperImpl implements QueryHelper {
 
 	@Override
-	public void addSearchLocalizedTerm(
+	public Query addSearchLocalizedField(
 		BooleanQuery searchQuery, SearchContext searchContext, String field,
-		boolean like) {
-
-		addSearchTerm(
-			searchQuery, searchContext,
-			getLocalizedName(field, searchContext.getLocale()), like);
-	}
-
-	@Override
-	public Query addSearchTerm(
-		BooleanQuery searchQuery, SearchContext searchContext, String field,
-		boolean like) {
+		boolean like, boolean allLocalizations) {
 
 		if (Validator.isBlank(field)) {
 			return null;
@@ -88,21 +80,55 @@ public class QueryHelperImpl implements QueryHelper {
 			return null;
 		}
 
-		Query query = null;
+		String[] localizedFieldNames = null;
 
-		if (searchContext.isAndSearch()) {
-			query = searchQuery.addRequiredTerm(field, value, like);
+		if (allLocalizations) {
+			localizedFieldNames =
+				_searchLocalizationHelper.getLocalizedFieldNames(
+					new String[] {field}, searchContext);
 		}
 		else {
-			try {
-				query = searchQuery.addTerm(field, value, like);
+			localizedFieldNames = new String[] {field};
+		}
+
+		Query query = null;
+
+		for (String localizedFieldName : localizedFieldNames) {
+			if (searchContext.isAndSearch()) {
+				query = searchQuery.addRequiredTerm(
+					localizedFieldName, value, like);
 			}
-			catch (ParseException pe) {
-				throw new SystemException(pe);
+			else {
+				try {
+					query = searchQuery.addTerm(
+						localizedFieldName, value, like);
+				}
+				catch (ParseException pe) {
+					throw new SystemException(pe);
+				}
 			}
 		}
 
 		return query;
+	}
+
+	@Override
+	public void addSearchLocalizedTerm(
+		BooleanQuery searchQuery, SearchContext searchContext, String field,
+		boolean like) {
+
+		addSearchTerm(
+			searchQuery, searchContext,
+			getLocalizedName(field, searchContext.getLocale()), like);
+	}
+
+	@Override
+	public Query addSearchTerm(
+		BooleanQuery searchQuery, SearchContext searchContext, String field,
+		boolean like) {
+
+		return addSearchLocalizedField(
+			searchQuery, searchContext, field, like, false);
 	}
 
 	protected Localization getLocalization() {
@@ -124,5 +150,8 @@ public class QueryHelperImpl implements QueryHelper {
 	}
 
 	protected Localization localization;
+
+	@Reference
+	private SearchLocalizationHelper _searchLocalizationHelper;
 
 }
