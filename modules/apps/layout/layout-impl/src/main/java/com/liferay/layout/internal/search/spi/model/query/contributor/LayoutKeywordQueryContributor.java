@@ -14,9 +14,15 @@
 
 package com.liferay.layout.internal.search.spi.model.query.contributor;
 
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.ParseException;
 import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.search.localization.SearchLocalizationHelper;
 import com.liferay.portal.search.query.QueryHelper;
 import com.liferay.portal.search.spi.model.query.contributor.KeywordQueryContributor;
 import com.liferay.portal.search.spi.model.query.contributor.helper.KeywordQueryContributorHelper;
@@ -42,13 +48,50 @@ public class LayoutKeywordQueryContributor implements KeywordQueryContributor {
 		SearchContext searchContext =
 			keywordQueryContributorHelper.getSearchContext();
 
-		queryHelper.addSearchLocalizedTerm(
-			booleanQuery, searchContext, Field.CONTENT, false);
-		queryHelper.addSearchLocalizedTerm(
-			booleanQuery, searchContext, Field.TITLE, false);
+		String[] fields = {Field.CONTENT, Field.TITLE};
+
+		for (String field : fields) {
+			String value = GetterUtil.getString(
+				searchContext.getAttribute(field));
+
+			if (Validator.isNull(value)) {
+				continue;
+			}
+
+			_addLocalizedFields(
+				booleanQuery, field, value, false, searchContext);
+		}
 	}
 
 	@Reference
 	protected QueryHelper queryHelper;
+
+	private void _addLocalizedFields(
+		BooleanQuery booleanQuery, String fieldName, String value, boolean like,
+		SearchContext searchContext) {
+
+		String[] localizedFieldNames =
+			_searchLocalizationHelper.getLocalizedFieldNames(
+				new String[] {fieldName}, searchContext);
+
+		for (String localizedFieldName : localizedFieldNames) {
+			try {
+				booleanQuery.addTerm(localizedFieldName, value, like);
+
+				searchContext.setAttribute(localizedFieldName, value);
+			}
+			catch (ParseException pe) {
+				if (_log.isWarnEnabled()) {
+					_log.warn("ParseException creating search query", pe);
+				}
+			}
+		}
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		LayoutKeywordQueryContributor.class);
+
+	@Reference
+	private SearchLocalizationHelper _searchLocalizationHelper;
 
 }
