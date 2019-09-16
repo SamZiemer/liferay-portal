@@ -14,11 +14,15 @@
 
 package com.liferay.dynamic.data.mapping.internal.search.spi.model.query.contributor;
 
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.ParseException;
 import com.liferay.portal.kernel.search.SearchContext;
-import com.liferay.portal.kernel.util.LocalizationUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.search.localization.SearchLocalizationHelper;
 import com.liferay.portal.search.query.QueryHelper;
 import com.liferay.portal.search.spi.model.query.contributor.KeywordQueryContributor;
 import com.liferay.portal.search.spi.model.query.contributor.helper.KeywordQueryContributorHelper;
@@ -57,22 +61,46 @@ public class DDMStructureKeywordQueryContributor
 		SearchContext searchContext =
 			keywordQueryContributorHelper.getSearchContext();
 
-		if (Validator.isNull(searchContext.getAttribute(fieldName))) {
+		String value = GetterUtil.getString(
+			searchContext.getAttribute(fieldName));
+
+		if (Validator.isNull(value)) {
 			return;
 		}
 
-		String fieldNameLocalizedName = LocalizationUtil.getLocalizedName(
-			fieldName, searchContext.getLanguageId());
-
-		searchContext.setAttribute(
-			fieldNameLocalizedName, searchContext.getAttribute(fieldName));
-
-		queryHelper.addSearchLocalizedTerm(
-			booleanQuery, keywordQueryContributorHelper.getSearchContext(),
-			fieldName, false);
+		_addLocalizedFields(
+			booleanQuery, fieldName, value, false, searchContext);
 	}
 
 	@Reference
 	protected QueryHelper queryHelper;
+
+	private void _addLocalizedFields(
+		BooleanQuery booleanQuery, String fieldName, String value, boolean like,
+		SearchContext searchContext) {
+
+		String[] localizedFieldNames =
+			_searchLocalizationHelper.getLocalizedFieldNames(
+				new String[] {fieldName}, searchContext);
+
+		for (String localizedFieldName : localizedFieldNames) {
+			try {
+				booleanQuery.addTerm(localizedFieldName, value, like);
+
+				searchContext.setAttribute(localizedFieldName, value);
+			}
+			catch (ParseException pe) {
+				if (_log.isWarnEnabled()) {
+					_log.warn("ParseException creating search query", pe);
+				}
+			}
+		}
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		DDMStructureKeywordQueryContributor.class);
+
+	@Reference
+	private SearchLocalizationHelper _searchLocalizationHelper;
 
 }
