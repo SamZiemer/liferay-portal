@@ -42,10 +42,10 @@ public class LayoutKeywordQueryContributor implements KeywordQueryContributor {
 		SearchContext searchContext =
 			keywordQueryContributorHelper.getSearchContext();
 
-		queryHelper.addSearchLocalizedTerm(
-			booleanQuery, searchContext, Field.CONTENT, false);
-		queryHelper.addSearchLocalizedTerm(
-			booleanQuery, searchContext, Field.TITLE, false);
+		queryHelper.addSearchLocalizedField(
+			booleanQuery, searchContext, Field.CONTENT, false, true);
+		queryHelper.addSearchLocalizedField(
+			booleanQuery, searchContext, Field.TITLE, false, true);
 	}
 
 	@Reference
