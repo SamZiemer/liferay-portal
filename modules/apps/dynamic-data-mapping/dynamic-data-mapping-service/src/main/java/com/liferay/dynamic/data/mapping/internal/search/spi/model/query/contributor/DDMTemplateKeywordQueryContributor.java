@@ -67,9 +67,9 @@ public class DDMTemplateKeywordQueryContributor
 		searchContext.setAttribute(
 			fieldNameLocalizedName, searchContext.getAttribute(fieldName));
 
-		queryHelper.addSearchLocalizedTerm(
+		queryHelper.addSearchLocalizedField(
 			booleanQuery, keywordQueryContributorHelper.getSearchContext(),
-			fieldName, false);
+			fieldName, false, true);
 	}
 
 	@Reference
