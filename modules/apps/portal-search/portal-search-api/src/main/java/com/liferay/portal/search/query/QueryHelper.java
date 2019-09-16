@@ -26,6 +26,10 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface QueryHelper {
 
+	public Query addSearchLocalizedField(
+		BooleanQuery searchQuery, SearchContext searchContext, String field,
+		boolean like, boolean allLocalizations);
+
 	public void addSearchLocalizedTerm(
 		BooleanQuery searchQuery, SearchContext searchContext, String field,
 		boolean like);
