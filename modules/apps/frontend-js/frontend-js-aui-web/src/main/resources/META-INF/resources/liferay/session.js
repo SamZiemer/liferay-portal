@@ -364,6 +364,29 @@ AUI.add(
 
 					instance.set('timestamp');
 
+					if (
+						instance._cookieKey !=
+						'LFR_SESSION_STATE_' + themeDisplay.getUserId()
+					) {
+						var timestamp = A.Cookie.get(
+							instance._cookieKey,
+							instance._cookieOptions
+						);
+
+						var oldCookieKey = instance._cookieKey;
+
+						instance._cookieKey =
+							'LFR_SESSION_STATE_' + themeDisplay.getUserId();
+
+						A.Cookie.set(
+							instance._cookieKey,
+							timestamp,
+							instance._cookieOptions
+						);
+
+						A.Cookie.remove(oldCookieKey);
+					}
+
 					instance._initEvents();
 
 					instance._startTimer();
