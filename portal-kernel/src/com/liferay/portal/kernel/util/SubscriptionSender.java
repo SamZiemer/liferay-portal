@@ -106,7 +106,7 @@ public class SubscriptionSender implements Serializable {
 		ObjectValuePair<String, Long> ovp = new ObjectValuePair<>(
 			className, classPK);
 
-		_persistestedSubscribersOVPs.add(ovp);
+		_persistedSubscribersOVPs.add(ovp);
 	}
 
 	public void addRuntimeSubscribers(String toAddress, String toName) {
@@ -131,7 +131,7 @@ public class SubscriptionSender implements Serializable {
 			}
 
 			for (ObjectValuePair<String, Long> ovp :
-					_persistestedSubscribersOVPs) {
+					_persistedSubscribersOVPs) {
 
 				String className = ovp.getKey();
 				long classPK = ovp.getValue();
@@ -152,7 +152,7 @@ public class SubscriptionSender implements Serializable {
 				}
 			}
 
-			_persistestedSubscribersOVPs.clear();
+			_persistedSubscribersOVPs.clear();
 
 			for (ObjectValuePair<String, String> ovp :
 					_runtimeSubscribersOVPs) {
@@ -253,6 +253,24 @@ public class SubscriptionSender implements Serializable {
 
 	public ServiceContext getServiceContext() {
 		return serviceContext;
+	}
+
+	public boolean hasSubscribers() {
+		if (!_runtimeSubscribersOVPs.isEmpty()) {
+			return true;
+		}
+
+		for (ObjectValuePair<String, Long> ovp : _persistedSubscribersOVPs) {
+			List<Subscription> subscriptions =
+				SubscriptionLocalServiceUtil.getSubscriptions(
+					companyId, ovp.getKey(), ovp.getValue());
+
+			if (!subscriptions.isEmpty()) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public void initialize() throws Exception {
@@ -1029,7 +1047,7 @@ public class SubscriptionSender implements Serializable {
 	private long _notificationClassNameId;
 	private int _notificationType;
 	private final List<ObjectValuePair<String, Long>>
-		_persistestedSubscribersOVPs = new ArrayList<>();
+		_persistedSubscribersOVPs = new ArrayList<>();
 	private final List<ObjectValuePair<String, String>>
 		_runtimeSubscribersOVPs = new ArrayList<>();
 	private final Set<String> _sentEmailAddresses = new HashSet<>();
