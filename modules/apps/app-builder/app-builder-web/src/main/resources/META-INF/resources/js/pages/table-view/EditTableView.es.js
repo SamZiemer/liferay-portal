@@ -219,11 +219,11 @@ const EditTableView = ({
 								fieldTypes={availableFields.map(field => ({
 									description: field.fieldType,
 									disabled: columns.some(
-										column => column === field.name
+										column => column === field.label.en_US
 									),
 									icon: field.fieldType,
-									label: field.name,
-									name: field.fieldType
+									label: field.label.en_US,
+									name: field.name
 								}))}
 								keywords={keywords}
 								onDoubleClick={({label}) => onAddColumn(label)}
