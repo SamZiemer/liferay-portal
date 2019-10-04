@@ -8325,6 +8325,10 @@ public class JournalArticleLocalServiceImpl
 			}
 		}
 
+		if (!subscriptionSender.hasSubscribers()) {
+			return;
+		}
+
 		String articleTitle = article.getTitle(serviceContext.getLanguageId());
 
 		String fromName = journalGroupServiceConfiguration.emailFromName();
