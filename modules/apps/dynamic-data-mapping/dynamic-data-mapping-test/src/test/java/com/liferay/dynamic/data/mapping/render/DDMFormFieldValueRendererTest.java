@@ -141,12 +141,12 @@ public class DDMFormFieldValueRendererTest extends BaseDDMTestCase {
 		String renderedValue = ddmFormFieldValueRenderer.render(
 			ddmFormFieldValue, LocaleUtil.US);
 
-		Assert.assertEquals("10/22/14", renderedValue);
+		Assert.assertEquals("10/22/2014", renderedValue);
 
 		renderedValue = ddmFormFieldValueRenderer.render(
 			ddmFormFieldValue, LocaleUtil.BRAZIL);
 
-		Assert.assertEquals("22/10/14", renderedValue);
+		Assert.assertEquals("22/10/2014", renderedValue);
 	}
 
 	@Test
