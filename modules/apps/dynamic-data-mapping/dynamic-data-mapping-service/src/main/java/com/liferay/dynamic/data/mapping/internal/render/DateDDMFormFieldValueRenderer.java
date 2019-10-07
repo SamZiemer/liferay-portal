@@ -28,6 +28,10 @@ import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
+import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -64,7 +68,18 @@ public class DateDDMFormFieldValueRenderer
 
 	private String _format(Serializable value, Locale locale) {
 		try {
-			return DateUtil.formatDate("yyyy-MM-dd", value.toString(), locale);
+			Date dateValue = DateUtil.parseDate(
+				"yyyy-MM-dd", value.toString(), locale);
+
+			SimpleDateFormat dateFormat =
+				(SimpleDateFormat)DateFormat.getDateInstance(
+					SimpleDateFormat.SHORT, locale);
+
+			String formatPattern = dateFormat.toPattern();
+
+			formatPattern = formatPattern.replaceAll("\\byy\\b", "yyyy");
+
+			return DateUtil.getDate(dateValue, formatPattern, locale);
 		}
 		catch (Exception e) {
 			if (_log.isWarnEnabled()) {
