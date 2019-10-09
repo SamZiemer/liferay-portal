@@ -45,7 +45,7 @@ AUI.add(
 
 		var structureFieldIndexEnable = function() {
 			var indexTypeNode = A.one(
-				'#_' + Liferay.Portlet.list[0] + '_indexable'
+				'#_com_liferay_journal_web_portlet_JournalPortlet_indexable'
 			);
 
 			if (indexTypeNode) {
