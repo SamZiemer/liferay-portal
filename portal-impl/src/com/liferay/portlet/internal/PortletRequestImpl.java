@@ -713,33 +713,30 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 
 		Set<String> privateRenderParameterNames = new LinkedHashSet<>();
 
-		final String instance_0_ = "INSTANCE_0_";
-
 		if (portletFocus) {
 			Map<String, String[]> privateRenderParameters = null;
 
 			Map<String, String[]> parameters =
 				httpServletRequest.getParameterMap();
 
+			String originalPortletNamespace = null;
+
+			if (portletNamespace.contains("INSTANCE_0")) {
+				originalPortletNamespace = portletNamespace.substring(
+					0, portletNamespace.indexOf("INSTANCE_0"));
+			}
+
 			for (Map.Entry<String, String[]> entry : parameters.entrySet()) {
 				String key = entry.getKey();
 
-				if (!portlet.isInstanceable() && (portletNamespace != null) &&
-					portletNamespace.contains(instance_0_) &&
-					!key.contains(instance_0_)) {
+				if (Validator.isNotNull(originalPortletNamespace) &&
+					key.contains(originalPortletNamespace) &&
+					!key.contains("INSTANCE_0")) {
 
-					String originalPortletNamespace =
-						portletNamespace.substring(
-							0, portletNamespace.indexOf(instance_0_));
+					String parameter = key.substring(
+						originalPortletNamespace.length());
 
-					if (portletNamespace.contains(instance_0_) &&
-						(key.length() >= originalPortletNamespace.length())) {
-
-						String parameter = key.substring(
-							originalPortletNamespace.length());
-
-						key = portletNamespace + parameter;
-					}
+					key = portletNamespace + parameter;
 				}
 
 				RequestParameter requestParameter = new RequestParameter(
