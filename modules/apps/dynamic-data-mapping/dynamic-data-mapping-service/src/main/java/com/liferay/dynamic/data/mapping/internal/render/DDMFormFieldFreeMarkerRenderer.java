@@ -220,6 +220,10 @@ public class DDMFormFieldFreeMarkerRenderer implements DDMFormFieldRenderer {
 			ddmFormField.getDDMFormFieldOptions();
 
 		for (String value : ddmFormFieldOptions.getOptionsValues()) {
+			if (value.equals(StringPool.BLANK)) {
+				continue;
+			}
+
 			LocalizedValue label = ddmFormFieldOptions.getOptionLabels(value);
 
 			addDDMFormFieldOptionHTML(
