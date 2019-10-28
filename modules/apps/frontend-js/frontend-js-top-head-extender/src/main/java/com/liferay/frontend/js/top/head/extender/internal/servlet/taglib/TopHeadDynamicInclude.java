@@ -197,6 +197,13 @@ public class TopHeadDynamicInclude implements DynamicInclude {
 					String servletContextPath =
 						topHeadResources.getServletContextPath();
 
+					String portalContextPath =
+						_portal.getPathContext();
+
+					portalContextPath = portalContextPath.substring(_portal.getPathProxy().length());
+
+					servletContextPath = servletContextPath.substring(portalContextPath.length());
+
 					for (String jsResourcePath :
 							topHeadResources.getJsResourcePaths()) {
 

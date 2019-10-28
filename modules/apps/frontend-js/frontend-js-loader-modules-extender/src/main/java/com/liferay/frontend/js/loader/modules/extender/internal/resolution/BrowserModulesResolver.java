@@ -266,15 +266,7 @@ public class BrowserModulesResolver {
 				moduleName, flagsJSONObject);
 		}
 
-		AbsolutePortalURLBuilder absolutePortalURLBuilder =
-			_absolutePortalURLBuilderFactory.getAbsolutePortalURLBuilder(
-				httpServletRequest);
-
-		browserModulesResolution.putPath(
-			moduleName,
-			absolutePortalURLBuilder.forResource(
-				browserModule.getPath()
-			).build());
+		browserModulesResolution.putPath(moduleName, browserModule.getPath());
 
 		browserModulesResolution.addResolvedModuleName(moduleName);
 

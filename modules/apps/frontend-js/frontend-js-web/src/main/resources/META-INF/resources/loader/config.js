@@ -18,7 +18,7 @@
 	var combine = LiferayAUI.getCombine();
 
 	window.__CONFIG__ = {
-		basePath: '',
+		basePath: Liferay.ThemeDisplay.getPathContext(),
 		combine,
 		reportMismatchedAnonymousModules: 'warn',
 		url: combine
