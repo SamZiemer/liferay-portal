@@ -126,7 +126,6 @@
 	{@param? _handleDeleteCollaborator: any}
 	{@param? _handleEnableDisableExpirationDate: any}
 	{@param? _loadingResponse: bool}
-	{@param? _tomorrowDate: string}
 
 	<div class="autofit-col">
 		{if $collaborator.portraitURL}
@@ -268,7 +267,6 @@
 						data-collaborator-id="{$collaborator.userId}"
 						data-onblur="{$_handleBlurExpirationDate}"
 						data-sharingentry-id="{$collaborator.sharingEntryId}"
-						min="{$_tomorrowDate}"
 						type="date"
 						{if not $collaborator.sharingEntryExpirationDate}
 							disabled
