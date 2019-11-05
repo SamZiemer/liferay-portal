@@ -194,8 +194,13 @@ public class TopHeadDynamicInclude implements DynamicInclude {
 					topHeadResourcesServiceReference);
 
 				try {
-					String servletContextPath =
-						topHeadResources.getServletContextPath();
+					String portalPathContext = _portal.getPathContext();
+
+					String servletPathContext = _portal.getPathContext(
+						topHeadResources.getServletContextPath());
+
+					String servletContextPath = servletPathContext.substring(
+						portalPathContext.length());
 
 					for (String jsResourcePath :
 							topHeadResources.getJsResourcePaths()) {
@@ -241,8 +246,8 @@ public class TopHeadDynamicInclude implements DynamicInclude {
 			httpServletRequest, "/combo", "minifierType=js", jsLastModified);
 
 		AbsolutePortalURLBuilder absolutePortalURLBuilder =
-			_absolutePortalURLBuilderFactory.
-				getAbsolutePortalURLBuilder(httpServletRequest);
+			_absolutePortalURLBuilderFactory.getAbsolutePortalURLBuilder(
+				httpServletRequest);
 
 		String comboURL = absolutePortalURLBuilder.forResource(
 			comboPath
