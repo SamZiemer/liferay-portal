@@ -24,7 +24,7 @@
 		if (!listenerAdded) {
 			$(window).on(
 				'resize',
-				debounce(function() {
+				debounce(() => {
 					doc.trigger('screenChange.lexicon.sidenav');
 				}, 150)
 			);
@@ -209,7 +209,7 @@
 						'</div>'
 				);
 
-				urlLoaded = $.ajax(url).done(function(response) {
+				urlLoaded = $.ajax(url).done(response => {
 					sidebarBody.append(response);
 
 					eventTarget.trigger('urlLoaded.lexicon.sidenav');
@@ -243,7 +243,7 @@
 				doc.on(
 					'click.close.lexicon.sidenav',
 					closeButtonSelector,
-					function(event) {
+					event => {
 						event.preventDefault();
 
 						instance.toggle();
@@ -260,7 +260,7 @@
 
 			var el = instance.toggler;
 
-			el.on('click.lexicon.sidenav', function() {
+			el.on('click.lexicon.sidenav', () => {
 				instance.toggle();
 			});
 		},
@@ -278,9 +278,7 @@
 			if (!doc.data(dataTogglerSelector)) {
 				doc.data(dataTogglerSelector, 'true');
 
-				doc.on('click.lexicon.sidenav', togglerSelector, function(
-					event
-				) {
+				doc.on('click.lexicon.sidenav', togglerSelector, event => {
 					instance.toggle();
 
 					event.preventDefault();
@@ -300,7 +298,7 @@
 
 			var screenStartDesktop = instance._setScreenSize();
 
-			doc.on('screenChange.lexicon.sidenav', function() {
+			doc.on('screenChange.lexicon.sidenav', () => {
 				var desktop = instance._setScreenSize();
 				var sidenavRight = instance._isSidenavRight();
 				var type = desktop ? options.type : options.typeMobile;
@@ -387,7 +385,7 @@
 			if (!bootstrap.Util.supportsTransitionEnd()) {
 				complete.call(instance);
 			} else {
-				el.one(transitionEnd, function() {
+				el.one(transitionEnd, () => {
 					complete();
 				}).emulateTransitionEnd(SideNavigation.TRANSITION_DURATION);
 			}
@@ -580,7 +578,7 @@
 					type: 'closedStart.lexicon.sidenav'
 				});
 
-				instance._onSidenavTransitionEnd(content, function() {
+				instance._onSidenavTransitionEnd(content, () => {
 					sidenav.removeClass('sidenav-transition');
 					toggler.removeClass('sidenav-transition');
 
@@ -771,7 +769,7 @@
 			var url = options.url;
 
 			if (url) {
-				container.one('urlLoaded.lexicon.sidenav', function() {
+				container.one('urlLoaded.lexicon.sidenav', () => {
 					instance.setHeight();
 				});
 
@@ -858,7 +856,7 @@
 					type: 'openStart.lexicon.sidenav'
 				});
 
-				instance._onSidenavTransitionEnd(content, function() {
+				instance._onSidenavTransitionEnd(content, () => {
 					sidenav.removeClass('sidenav-transition');
 					toggler.removeClass('sidenav-transition');
 
@@ -920,7 +918,7 @@
 				});
 			}
 
-			instance._onSidenavTransitionEnd(container, function() {
+			instance._onSidenavTransitionEnd(container, () => {
 				var menu = container.find('.sidenav-menu').first();
 
 				if (container.hasClass('closed')) {
@@ -1122,7 +1120,7 @@
 
 	$.fn.sideNavigation = Plugin;
 
-	$(function() {
+	$(() => {
 		var sidenav = $('[data-toggle="sidenav"]');
 
 		Plugin.call(sidenav);

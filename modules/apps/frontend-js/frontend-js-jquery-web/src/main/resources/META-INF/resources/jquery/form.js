@@ -35,7 +35,7 @@
 			// no AMD; invoke directly
 			factory(typeof jQuery != 'undefined' ? jQuery : window.Zepto);
 		}
-	})(function($) {
+	})($ => {
 		'use strict';
 
 		/*
@@ -210,12 +210,12 @@
 
 			var callbacks = [];
 			if (options.resetForm) {
-				callbacks.push(function() {
+				callbacks.push(() => {
 					$form.resetForm();
 				});
 			}
 			if (options.clearForm) {
-				callbacks.push(function() {
+				callbacks.push(() => {
 					$form.clearForm(options.includeHidden);
 				});
 			}
@@ -292,7 +292,7 @@
 				// hack to fix Safari hang (thanks to Tim Molendijk for this)
 				// see:  http://groups.google.com/group/jquery-dev/browse_thread/thread/36395b7ab510dd5d
 				if (options.closeKeepAlive) {
-					$.get(options.closeKeepAlive, function() {
+					$.get(options.closeKeepAlive, () => {
 						jqxhr = fileUploadIframe(a);
 					});
 				} else {
@@ -372,7 +372,7 @@
 						if (xhr.upload) {
 							xhr.upload.addEventListener(
 								'progress',
-								function(event) {
+								event => {
 									var percent = 0;
 									var position =
 										event.loaded ||
@@ -626,7 +626,7 @@
 
 					// support timout
 					if (s.timeout) {
-						timeoutHandle = setTimeout(function() {
+						timeoutHandle = setTimeout(() => {
 							timedOut = true;
 							cb(CLIENT_TIMEOUT_ABORT);
 						}, s.timeout);
@@ -920,7 +920,7 @@
 					}
 
 					// clean up
-					setTimeout(function() {
+					setTimeout(() => {
 						if (!s.iframeTarget) {
 							$io.remove();
 						} else {
@@ -1021,7 +1021,7 @@
 				var o = {s: this.selector, c: this.context};
 				if (!$.isReady && o.s) {
 					log('DOM not ready, queuing ajaxForm');
-					$(function() {
+					$(() => {
 						$(o.s, o.c).ajaxForm(options);
 					});
 					return this;
@@ -1101,7 +1101,7 @@
 				}
 			}
 			// clear form vars
-			setTimeout(function() {
+			setTimeout(() => {
 				form.clk = form.clk_x = form.clk_y = null;
 			}, 100);
 		}

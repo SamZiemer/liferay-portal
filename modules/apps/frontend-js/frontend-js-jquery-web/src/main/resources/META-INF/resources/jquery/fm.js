@@ -26,7 +26,7 @@
 		var retVal = instance;
 
 		if (arguments.length === 1) {
-			var nodes = instance.map(function(index, item) {
+			var nodes = instance.map((index, item) => {
 				var formEl = item.form || item;
 
 				if (formEl && $.nodeName(formEl, 'form')) {
