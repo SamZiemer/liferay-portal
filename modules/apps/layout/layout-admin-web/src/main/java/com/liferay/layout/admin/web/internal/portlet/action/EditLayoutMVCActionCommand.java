@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -196,6 +197,19 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 			PropertiesParamUtil.getProperties(
 				actionRequest, "TypeSettingsProperties--");
 
+		String src = formTypeSettingsProperties.getProperty(
+			"embeddedLayoutURL");
+
+		if (Validator.isNotNull(src) && !src.startsWith("/") &&
+			!StringUtil.startsWith(src, "http://") &&
+			!StringUtil.startsWith(src, "https://") &&
+			!StringUtil.startsWith(src, "mhtml://")) {
+
+			src = _http.getProtocol(actionRequest) + "://" + src;
+
+			formTypeSettingsProperties.put("embeddedLayoutURL", src);
+		}
+
 		String linkToLayoutUuid = ParamUtil.getString(
 			actionRequest, "linkToLayoutUuid");
 
@@ -283,6 +297,9 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private DLAppLocalService _dlAppLocalService;
+
+	@Reference
+	private Http _http;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
