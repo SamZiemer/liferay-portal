@@ -1,0 +1,13 @@
+.portlet-navigation {
+	display: flex;
+	flex-direction: column;
+
+	.portlet,
+	.portlet-content,
+	.portlet-content-container,
+	.portlet-body,
+	.portlet-body > div {
+		display: flex;
+		flex-direction: column;
+	}
+}
