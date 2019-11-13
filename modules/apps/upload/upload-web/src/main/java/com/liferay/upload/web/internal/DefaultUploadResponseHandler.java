@@ -19,6 +19,7 @@ import com.liferay.document.library.kernel.antivirus.AntivirusScannerException;
 import com.liferay.document.library.kernel.exception.FileExtensionException;
 import com.liferay.document.library.kernel.exception.FileNameException;
 import com.liferay.document.library.kernel.exception.FileSizeException;
+import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.editor.EditorConstants;
@@ -127,9 +128,15 @@ public class DefaultUploadResponseHandler implements UploadResponseHandler {
 
 		String randomId = ParamUtil.getString(uploadPortletRequest, "randomId");
 
+		imageJSONObject.put("randomId", randomId);
+
+		if (fileEntry.getModel() instanceof DLFileEntry) {
+			DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
+
+			imageJSONObject.put("status", dlFileEntry.getStatus());
+		}
+
 		imageJSONObject.put(
-			"randomId", randomId
-		).put(
 			"title", fileEntry.getTitle()
 		).put(
 			"type", "document"
