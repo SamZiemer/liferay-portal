@@ -157,6 +157,8 @@ class ItemSelectorRepositoryEntryBrowser extends PortletBase {
 
 					this._onItemSelected({
 						returntype: this.uploadItemReturnType,
+						status: itemData.file.status,
+						title: itemData.file.title,
 						value: updatedImage.getData('value')
 					});
 				}),
@@ -356,6 +358,8 @@ class ItemSelectorRepositoryEntryBrowser extends PortletBase {
 		this.emit('selectedItem', {
 			data: {
 				returnType: item.returntype,
+				status: item.status,
+				title: item.title,
 				value: item.value
 			}
 		});
