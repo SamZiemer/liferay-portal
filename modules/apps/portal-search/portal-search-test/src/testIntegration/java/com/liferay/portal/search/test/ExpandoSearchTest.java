@@ -22,8 +22,10 @@ import com.liferay.document.library.test.util.DLAppTestUtil;
 import com.liferay.expando.kernel.model.ExpandoColumn;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
 import com.liferay.expando.kernel.model.ExpandoTable;
+import com.liferay.expando.kernel.model.ExpandoValue;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
 import com.liferay.expando.kernel.service.ExpandoTableLocalService;
+import com.liferay.expando.kernel.service.ExpandoValueLocalServiceUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -46,6 +48,7 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.SearchContextTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -429,6 +432,16 @@ public class ExpandoSearchTest {
 	}
 
 	protected String getExpandoColumnValue(Document document) {
+		ExpandoColumn expandoColumn = _expandoColumns.get(0);
+
+		ExpandoValue expandoValue = ExpandoValueLocalServiceUtil.getValue(
+			expandoColumn.getTableId(), expandoColumn.getColumnId(),
+			GetterUtil.getLong(document.get("entryClassPK")));
+
+		if (expandoValue != null) {
+			return expandoValue.getData();
+		}
+
 		Map<String, Field> fields = document.getFields();
 
 		for (Field field : fields.values()) {
