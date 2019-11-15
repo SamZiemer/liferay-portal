@@ -188,7 +188,9 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 			}
 
 			if (!isFriendlyURL) {
-				src = _http.getProtocol(actionRequest) + "://" + src;
+				src =
+					_http.getProtocol(actionRequest) + Http.PROTOCOL_DELIMITER +
+						src;
 
 				formTypeSettingsProperties.put("embeddedLayoutURL", src);
 			}
