@@ -17,6 +17,7 @@ package com.liferay.layout.admin.web.internal.portlet.action;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
 import com.liferay.layout.seo.service.LayoutSEOEntryService;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
@@ -48,6 +49,7 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PropsValues;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -170,9 +172,26 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 		if (Validator.isNotNull(src) && !src.startsWith("/") &&
 			!_http.hasProtocol(src)) {
 
-			src = _http.getProtocol(actionRequest) + "://" + src;
+			boolean isFriendlyURL = false;
+			List<Layout> layouts = _layoutLocalService.getLayouts(
+				themeDisplay.getCompanyId());
 
-			formTypeSettingsProperties.put("embeddedLayoutURL", src);
+			for (Layout friendlyLayout : layouts) {
+				String friendlyURL = friendlyLayout.getFriendlyURL(
+					themeDisplay.getLocale());
+
+				if (friendlyURL.equals(StringPool.SLASH + src)) {
+					isFriendlyURL = true;
+
+					break;
+				}
+			}
+
+			if (!isFriendlyURL) {
+				src = _http.getProtocol(actionRequest) + "://" + src;
+
+				formTypeSettingsProperties.put("embeddedLayoutURL", src);
+			}
 		}
 
 		String linkToLayoutUuid = ParamUtil.getString(
