@@ -64,7 +64,9 @@ public class IFrameConfigurationAction extends DefaultConfigurationAction {
 		if (Validator.isNotNull(src) && !src.startsWith("/") &&
 			!_http.hasProtocol(src)) {
 
-			src = _http.getProtocol(actionRequest) + "://" + src;
+			src =
+				_http.getProtocol(actionRequest) + Http.PROTOCOL_DELIMITER +
+					src;
 
 			setPreference(actionRequest, "src", src);
 		}
