@@ -61,7 +61,8 @@ public class IFrameConfigurationAction extends DefaultConfigurationAction {
 
 		String src = getParameter(actionRequest, "src");
 
-		if (!src.startsWith("/") && !StringUtil.startsWith(src, "http://") &&
+		if (Validator.isNotNull(src) && !src.startsWith("/") &&
+			!StringUtil.startsWith(src, "http://") &&
 			!StringUtil.startsWith(src, "https://") &&
 			!StringUtil.startsWith(src, "mhtml://")) {
 

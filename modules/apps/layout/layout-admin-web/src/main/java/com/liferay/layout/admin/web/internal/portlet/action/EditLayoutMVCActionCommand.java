@@ -167,7 +167,8 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 		String src = formTypeSettingsProperties.getProperty(
 			"embeddedLayoutURL");
 
-		if (!src.startsWith("/") && !StringUtil.startsWith(src, "http://") &&
+		if (Validator.isNotNull(src) && !src.startsWith("/") &&
+			!StringUtil.startsWith(src, "http://") &&
 			!StringUtil.startsWith(src, "https://") &&
 			!StringUtil.startsWith(src, "mhtml://")) {
 
