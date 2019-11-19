@@ -196,22 +196,13 @@ public class VerifyProcessTrackerOSGiCommands {
 			ConfigurableUtil.createConfigurable(
 				VerifyProcessTrackerConfiguration.class, properties);
 
-		ServiceTrackerMapListener<String, VerifyProcess, List<VerifyProcess>>
-			verifyServiceTrackerMapListener = null;
-
-		if (_verifyProcessTrackerConfiguration.autoVerify()) {
-			verifyServiceTrackerMapListener =
-				new VerifyServiceTrackerMapListener();
-		}
-
 		_serviceRegistrations = new ConcurrentHashMap<>();
 
 		_verifyProcesses = ServiceTrackerMapFactory.openMultiValueMap(
 			_bundleContext, VerifyProcess.class, null,
 			new PropertyServiceReferenceMapper<String, VerifyProcess>(
 				"verify.process.name"),
-			new PropertyServiceReferenceComparator("service.ranking"),
-			verifyServiceTrackerMapListener);
+			new PropertyServiceReferenceComparator("service.ranking"));
 	}
 
 	protected void close(OutputStream outputStream) {
