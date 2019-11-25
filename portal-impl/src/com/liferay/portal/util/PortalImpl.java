@@ -129,6 +129,7 @@ import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
+import com.liferay.portal.kernel.service.PortletPreferencesLocalServiceUtil;
 import com.liferay.portal.kernel.service.ResourceLocalServiceUtil;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.kernel.service.TicketLocalServiceUtil;
@@ -4279,6 +4280,73 @@ public class PortalImpl implements Portal {
 				else {
 					friendlyURLMapper.populateParams(
 						url.substring(pos), actualParams, requestContext);
+				}
+
+				Layout friendlyLayout = null;
+
+				if (Validator.isNotNull(friendlyURL)) {
+					friendlyLayout =
+						LayoutLocalServiceUtil.getFriendlyURLLayout(
+							groupId, privateLayout, friendlyURL);
+
+					if (Validator.isNotNull(
+						friendlyLayout.getSourcePrototypeLayoutUuid())) {
+
+						friendlyLayout = LayoutLocalServiceUtil.getLayout(
+							friendlyLayout.getPlid());
+					}
+				}
+				else {
+					long defaultPlid = LayoutLocalServiceUtil.getDefaultPlid(
+						groupId, privateLayout);
+
+					friendlyLayout =
+						LayoutLocalServiceUtil.getLayout(defaultPlid);
+				}
+
+				if (friendlyLayout != null) {
+					List<com.liferay.portal.kernel.model.PortletPreferences>
+						portletPreferencesList =
+							PortletPreferencesLocalServiceUtil.
+								getPortletPreferencesByPlid(
+									friendlyLayout.getPlid());
+
+					InheritableMap<String, String[]> renamedKey =
+						new InheritableMap<>();
+
+					for (com.liferay.portal.kernel.model.PortletPreferences
+							portletPreferences : portletPreferencesList) {
+
+						String portletId = portletPreferences.getPortletId();
+						String rootPortletId = portlet.getPortletId();
+
+						if (portletId.contains(rootPortletId)) {
+							Set<Map.Entry<String, String[]>> paramSet =
+								actualParams.entrySet();
+
+							paramSet.forEach(
+								stringEntry -> {
+									String key = stringEntry.getKey();
+
+									if (key.contains(rootPortletId)) {
+										String updatedKey = key.replaceAll(
+											rootPortletId, portletId);
+
+										String[] value = actualParams.get(key);
+
+										renamedKey.put(updatedKey, value);
+									}
+								});
+
+							paramSet.removeIf(
+								stringEntry -> stringEntry.getKey(
+								).contains(
+									rootPortletId
+								));
+						}
+					}
+
+					actualParams.putAll(renamedKey);
 				}
 
 				queryString =
