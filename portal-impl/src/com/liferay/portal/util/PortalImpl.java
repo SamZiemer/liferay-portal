@@ -4282,27 +4282,8 @@ public class PortalImpl implements Portal {
 						url.substring(pos), actualParams, requestContext);
 				}
 
-				Layout friendlyLayout = null;
-
-				if (Validator.isNotNull(friendlyURL)) {
-					friendlyLayout =
-						LayoutLocalServiceUtil.getFriendlyURLLayout(
-							groupId, privateLayout, friendlyURL);
-
-					if (Validator.isNotNull(
-						friendlyLayout.getSourcePrototypeLayoutUuid())) {
-
-						friendlyLayout = LayoutLocalServiceUtil.getLayout(
-							friendlyLayout.getPlid());
-					}
-				}
-				else {
-					long defaultPlid = LayoutLocalServiceUtil.getDefaultPlid(
-						groupId, privateLayout);
-
-					friendlyLayout =
-						LayoutLocalServiceUtil.getLayout(defaultPlid);
-				}
+				Layout friendlyLayout = getLayout(
+					friendlyURL, groupId, privateLayout);
 
 				if (friendlyLayout != null) {
 					List<com.liferay.portal.kernel.model.PortletPreferences>
@@ -4403,22 +4384,7 @@ public class PortalImpl implements Portal {
 			friendlyURL = friendlyURL.substring(0, friendlyURL.length() - 1);
 		}
 
-		Layout layout = null;
-
-		if (Validator.isNotNull(friendlyURL)) {
-			layout = LayoutLocalServiceUtil.getFriendlyURLLayout(
-				groupId, privateLayout, friendlyURL);
-
-			if (Validator.isNotNull(layout.getSourcePrototypeLayoutUuid())) {
-				layout = LayoutLocalServiceUtil.getLayout(layout.getPlid());
-			}
-		}
-		else {
-			long defaultPlid = LayoutLocalServiceUtil.getDefaultPlid(
-				groupId, privateLayout);
-
-			layout = LayoutLocalServiceUtil.getLayout(defaultPlid);
-		}
+		Layout layout = getLayout(friendlyURL, groupId, privateLayout);
 
 		return new LayoutQueryStringComposite(layout, friendlyURL, queryString);
 	}
@@ -7681,6 +7647,30 @@ public class PortalImpl implements Portal {
 			ResourceActionsUtil.getModelResourceGuestDefaultActions(className);
 
 		return guestDefaultActions.toArray(new String[0]);
+	}
+
+	protected Layout getLayout(
+			String friendlyURL, long groupId, boolean privateLayout)
+		throws PortalException {
+
+		Layout layout = null;
+
+		if (Validator.isNotNull(friendlyURL)) {
+			layout = LayoutLocalServiceUtil.getFriendlyURLLayout(
+				groupId, privateLayout, friendlyURL);
+
+			if (Validator.isNotNull(layout.getSourcePrototypeLayoutUuid())) {
+				layout = LayoutLocalServiceUtil.getLayout(layout.getPlid());
+			}
+		}
+		else {
+			long defaultPlid = LayoutLocalServiceUtil.getDefaultPlid(
+				groupId, privateLayout);
+
+			layout = LayoutLocalServiceUtil.getLayout(defaultPlid);
+		}
+
+		return layout;
 	}
 
 	protected long getPlidFromPortletId(
