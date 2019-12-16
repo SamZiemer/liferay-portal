@@ -12,33 +12,33 @@
  * details.
  */
 
-package com.liferay.site.verify.test;
+package com.liferay.portal.upgrade.v7_0_0.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.portal.verify.VerifyGroup;
-import com.liferay.portal.verify.VerifyProcess;
-import com.liferay.portal.verify.test.util.BaseVerifyProcessTestCase;
+import com.liferay.portal.upgrade.v7_0_0.UpgradeGroup;
 
 import org.junit.ClassRule;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
  * @author Manuel de la Peña
+ * @author Samuel Ziemer
  */
 @RunWith(Arquillian.class)
-public class VerifyGroupTest extends BaseVerifyProcessTestCase {
+public class UpgradeGroupTest {
 
 	@ClassRule
 	@Rule
 	public static final AggregateTestRule aggregateTestRule =
 		new LiferayIntegrationTestRule();
 
-	@Override
-	protected VerifyProcess getVerifyProcess() {
-		return new VerifyGroup();
+	@Test
+	public void testUpgrade() throws Exception {
+		new UpgradeGroup().upgrade();
 	}
 
 }
