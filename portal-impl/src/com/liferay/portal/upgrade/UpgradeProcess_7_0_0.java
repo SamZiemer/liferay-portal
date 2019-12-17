@@ -15,7 +15,6 @@
 package com.liferay.portal.upgrade;
 
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeAddress;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeAsset;
@@ -56,10 +55,9 @@ import com.liferay.portal.upgrade.v7_0_0.UpgradeSchema;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeSharding;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeSocial;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeSubscription;
+import com.liferay.portal.upgrade.v7_0_0.UpgradeTeamUUID;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeWebsite;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeWorkflow;
-import com.liferay.portal.verify.VerifyUUID;
-import com.liferay.portal.verify.model.TeamVerifiableModel;
 
 /**
  * @author Julio Camarero
@@ -114,20 +112,13 @@ public class UpgradeProcess_7_0_0 extends UpgradeProcess {
 		upgrade(new UpgradeResourcePermission());
 		upgrade(new UpgradeSocial());
 		upgrade(new UpgradeSubscription());
+		upgrade(new UpgradeTeamUUID());
 		upgrade(new UpgradeWebsite());
 		upgrade(new UpgradeWorkflow());
 
 		upgrade(new UpgradeMobileDeviceRules());
 
-		populateUUIDModels();
-
 		clearIndexesCache();
-	}
-
-	protected void populateUUIDModels() throws Exception {
-		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			VerifyUUID.verify(new TeamVerifiableModel());
-		}
 	}
 
 }
