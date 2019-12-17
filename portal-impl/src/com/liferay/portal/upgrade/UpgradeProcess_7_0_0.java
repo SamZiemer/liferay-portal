@@ -47,6 +47,7 @@ import com.liferay.portal.upgrade.v7_0_0.UpgradePortletDisplayTemplatePreference
 import com.liferay.portal.upgrade.v7_0_0.UpgradePortletId;
 import com.liferay.portal.upgrade.v7_0_0.UpgradePostgreSQL;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeRatings;
+import com.liferay.portal.upgrade.v7_0_0.UpgradeRatingsEntryUUID;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeRelease;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeRepository;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeRepositoryEntry;
@@ -58,7 +59,6 @@ import com.liferay.portal.upgrade.v7_0_0.UpgradeSubscription;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeWebsite;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeWorkflow;
 import com.liferay.portal.verify.VerifyUUID;
-import com.liferay.portal.verify.model.RatingsEntryVerifiableModel;
 import com.liferay.portal.verify.model.TeamVerifiableModel;
 
 /**
@@ -107,6 +107,7 @@ public class UpgradeProcess_7_0_0 extends UpgradeProcess {
 		upgrade(new UpgradePortletId());
 		upgrade(new UpgradePostgreSQL());
 		upgrade(new UpgradeRatings());
+		upgrade(new UpgradeRatingsEntryUUID());
 		upgrade(new UpgradeRelease());
 		upgrade(new UpgradeRepository());
 		upgrade(new UpgradeRepositoryEntry());
@@ -125,8 +126,7 @@ public class UpgradeProcess_7_0_0 extends UpgradeProcess {
 
 	protected void populateUUIDModels() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			VerifyUUID.verify(
-				new RatingsEntryVerifiableModel(), new TeamVerifiableModel());
+			VerifyUUID.verify(new TeamVerifiableModel());
 		}
 	}
 
