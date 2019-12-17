@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeAddress;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeAsset;
+import com.liferay.portal.upgrade.v7_0_0.UpgradeAssetTagUUID;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeAssetTagsResourcePermission;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeCompanyId;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeDocumentLibrary;
@@ -57,7 +58,6 @@ import com.liferay.portal.upgrade.v7_0_0.UpgradeSubscription;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeWebsite;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeWorkflow;
 import com.liferay.portal.verify.VerifyUUID;
-import com.liferay.portal.verify.model.AssetTagVerifiableModel;
 import com.liferay.portal.verify.model.RatingsEntryVerifiableModel;
 import com.liferay.portal.verify.model.TeamVerifiableModel;
 
@@ -82,6 +82,7 @@ public class UpgradeProcess_7_0_0 extends UpgradeProcess {
 		upgrade(new UpgradeAddress());
 		upgrade(new UpgradeAsset());
 		upgrade(new UpgradeAssetTagsResourcePermission());
+		upgrade(new UpgradeAssetTagUUID());
 		upgrade(new UpgradeCompanyId());
 		upgrade(new UpgradeDocumentLibrary());
 		upgrade(new UpgradeDocumentLibraryPortletId());
@@ -125,7 +126,6 @@ public class UpgradeProcess_7_0_0 extends UpgradeProcess {
 	protected void populateUUIDModels() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			VerifyUUID.verify(
-				new AssetTagVerifiableModel(),
 				new RatingsEntryVerifiableModel(), new TeamVerifiableModel());
 		}
 	}
