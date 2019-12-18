@@ -12,33 +12,24 @@
  * details.
  */
 
-package com.liferay.portal.verify.test;
+package com.liferay.portal.upgrade.v7_0_0.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.portal.kernel.concurrent.ThrowableAwareRunnable;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.db.DBType;
-import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.verify.model.VerifiableUUIDModel;
 import com.liferay.portal.test.rule.ExpectedDBType;
 import com.liferay.portal.test.rule.ExpectedLog;
 import com.liferay.portal.test.rule.ExpectedLogs;
 import com.liferay.portal.test.rule.ExpectedType;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.verify.VerifyProcess;
-import com.liferay.portal.verify.VerifyUUID;
-import com.liferay.portal.verify.model.AssetTagVerifiableModel;
-import com.liferay.portal.verify.test.util.BaseVerifyProcessTestCase;
+import com.liferay.portal.upgrade.util.BaseUpgradeUUID;
+import com.liferay.portal.upgrade.v7_0_0.UpgradeAssetTagUUID;
 
 import java.lang.reflect.Method;
-
-import java.util.Collection;
-import java.util.concurrent.Callable;
 
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -48,9 +39,10 @@ import org.junit.runner.RunWith;
 
 /**
  * @author Manuel de la Peña
+ * @author Samuel Ziemer
  */
 @RunWith(Arquillian.class)
-public class VerifyUUIDTest extends BaseVerifyProcessTestCase {
+public class UpgradeUUIDTest {
 
 	@ClassRule
 	@Rule
@@ -58,8 +50,8 @@ public class VerifyUUIDTest extends BaseVerifyProcessTestCase {
 		new LiferayIntegrationTestRule();
 
 	@Test
-	public void testVerifyModel() {
-		_testDoVerify(new AssetTagVerifiableModel());
+	public void testUpgrade() throws Exception {
+		new UpgradeAssetTagUUID().upgrade();
 	}
 
 	@ExpectedLogs(
@@ -103,27 +95,24 @@ public class VerifyUUIDTest extends BaseVerifyProcessTestCase {
 		level = "ERROR", loggerClass = ThrowableAwareRunnable.class
 	)
 	@Test
-	public void testVerifyModelWithUnknownPKColumnName() {
+	public void testUpgradeModelWithUnknownPKColumnName() {
 		try {
-			ReflectionTestUtil.invoke(
-				_verifyUUID, "verifyUUID",
-				new Class<?>[] {VerifiableUUIDModel.class},
-				new VerifiableUUIDModel() {
+			new BaseUpgradeUUID() {
 
-					@Override
-					public String getPrimaryKeyColumnName() {
-						return _UNKNOWN;
-					}
+				@Override
+				public String getPrimaryKeyColumnName() {
+					return _UNKNOWN;
+				}
 
-					@Override
-					public String getTableName() {
-						return "Layout";
-					}
+				@Override
+				public String getTableName() {
+					return "Layout";
+				}
 
-				});
+			}.upgrade();
 		}
 		catch (Exception e) {
-			_verifyException("testVerifyModelWithUnknownPKColumnName", e);
+			_upgradeException("testUpgradeModelWithUnknownPKColumnName", e);
 		}
 	}
 
@@ -166,14 +155,9 @@ public class VerifyUUIDTest extends BaseVerifyProcessTestCase {
 		level = "ERROR", loggerClass = ThrowableAwareRunnable.class
 	)
 	@Test
-	public void testVerifyParallelUnknownModelWithUnknownPKColumnName() {
-		VerifiableUUIDModel[] verifiableUUIDModels = new VerifiableUUIDModel
-			[PropsValues.VERIFY_PROCESS_CONCURRENCY_THRESHOLD];
-
-		for (int i = 0; i < PropsValues.VERIFY_PROCESS_CONCURRENCY_THRESHOLD;
-			 i++) {
-
-			verifiableUUIDModels[i] = new VerifiableUUIDModel() {
+	public void testUpgradeUnknownModelWithUnknownPKColumnName() {
+		try {
+			new BaseUpgradeUUID() {
 
 				@Override
 				public String getPrimaryKeyColumnName() {
@@ -185,90 +169,19 @@ public class VerifyUUIDTest extends BaseVerifyProcessTestCase {
 					return _UNKNOWN;
 				}
 
-			};
-		}
-
-		try {
-			_testDoVerify(verifiableUUIDModels);
+			}.upgrade();
 		}
 		catch (Exception e) {
-			_verifyException(
-				"testVerifyParallelUnknownModelWithUnknownPKColumnName", e);
+			_upgradeException(
+				"testUpgradeUnknownModelWithUnknownPKColumnName", e);
 		}
 	}
 
-	@ExpectedLogs(
-		expectedLogs = {
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.DB2,
-				expectedLog = "DB2 SQL Error: SQLCODE=",
-				expectedType = ExpectedType.PREFIX
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.HYPERSONIC,
-				expectedLog = "user lacks privilege or object not found:",
-				expectedType = ExpectedType.PREFIX
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.MARIADB, expectedLog = "Table ",
-				expectedType = ExpectedType.PREFIX
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.MYSQL, expectedLog = "Table ",
-				expectedType = ExpectedType.PREFIX
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.ORACLE,
-				expectedLog = "ORA-00942: table or view does not exist",
-				expectedType = ExpectedType.PREFIX
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.POSTGRESQL,
-				expectedLog = "ERROR: relation \"unknown\" does not exist",
-				expectedType = ExpectedType.PREFIX
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.SYBASE,
-				expectedLog = "Unknown not found.",
-				expectedType = ExpectedType.PREFIX
-			)
-		},
-		level = "ERROR", loggerClass = ThrowableAwareRunnable.class
-	)
-	@Test
-	public void testVerifyUnknownModelWithUnknownPKColumnName() {
-		try {
-			_testDoVerify(
-				new VerifiableUUIDModel() {
-
-					@Override
-					public String getPrimaryKeyColumnName() {
-						return _UNKNOWN;
-					}
-
-					@Override
-					public String getTableName() {
-						return _UNKNOWN;
-					}
-
-				});
-		}
-		catch (Exception e) {
-			_verifyException(
-				"testVerifyUnknownModelWithUnknownPKColumnName", e);
-		}
-	}
-
-	@Override
-	protected VerifyProcess getVerifyProcess() {
-		return _verifyUUID;
-	}
-
-	private static void _verifyException(String methodName, Exception e) {
+	private static void _upgradeException(String methodName, Exception e) {
 		Method method = null;
 
 		try {
-			method = VerifyUUIDTest.class.getMethod(methodName);
+			method = UpgradeUUIDTest.class.getMethod(methodName);
 		}
 		catch (NoSuchMethodException nsme) {
 			ReflectionUtil.throwException(nsme);
@@ -320,29 +233,6 @@ public class VerifyUUIDTest extends BaseVerifyProcessTestCase {
 		}
 	}
 
-	private void _testDoVerify(VerifiableUUIDModel... verifiableUUIDModels) {
-		ReflectionTestUtil.invoke(
-			_verifyUUID, "doVerify",
-			new Class<?>[] {VerifiableUUIDModel[].class},
-			new Object[] {verifiableUUIDModels});
-	}
-
 	private static final String _UNKNOWN = "Unknown";
-
-	private final VerifyUUID _verifyUUID = new VerifyUUID() {
-
-		@Override
-		protected void doVerify(
-			Collection<? extends Callable<Void>> callables) {
-
-			try {
-				UnsafeConsumer.accept(callables, Callable<Void>::call);
-			}
-			catch (Throwable t) {
-				ReflectionUtil.throwException(t);
-			}
-		}
-
-	};
 
 }
