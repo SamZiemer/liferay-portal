@@ -44,7 +44,6 @@ import com.liferay.portal.util.InitUtil;
 import com.liferay.portal.util.PortalClassPathUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.verify.VerifyGroup;
-import com.liferay.portal.verify.VerifyProcessUtil;
 import com.liferay.portal.verify.VerifyProperties;
 import com.liferay.portal.verify.VerifyResourcePermissions;
 import com.liferay.registry.Registry;
@@ -268,41 +267,6 @@ public class DBUpgrader {
 		// Register release service
 
 		_registerReleaseService();
-	}
-
-	public static void verify() throws Exception {
-
-		// Disable database caching before verify
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("Disable cache registry");
-		}
-
-		CacheRegistryUtil.setActive(false);
-
-		// Verify
-
-		if (PropsValues.VERIFY_DATABASE_TRANSACTIONS_DISABLED) {
-			TransactionsUtil.disableTransactions();
-		}
-
-		try {
-			VerifyProcessUtil.verifyProcess();
-		}
-		catch (Exception exception) {
-			_log.error(
-				"Unable to execute verify process: " + exception.getMessage(),
-				exception);
-		}
-		finally {
-			if (PropsValues.VERIFY_DATABASE_TRANSACTIONS_DISABLED) {
-				TransactionsUtil.enableTransactions();
-			}
-		}
-
-		// Enable database caching after verify
-
-		CacheRegistryUtil.setActive(true);
 	}
 
 	private static void _checkClassNamesAndResourceActions() {

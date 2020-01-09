@@ -197,14 +197,6 @@ public class StartupAction extends SimpleAction {
 			DBUpgrader.upgrade();
 		}
 
-		// Verify
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("Verify database");
-		}
-
-		DBUpgrader.verify();
-
 		// Liferay JspFactory
 
 		JspFactorySwapper.swap();
