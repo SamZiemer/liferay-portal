@@ -3295,16 +3295,11 @@ public interface PropsKeys {
 	public static final String VALUE_OBJECT_MVCC_ENTITY_CACHE_ENABLED =
 		"value.object.mvcc.entity.cache.enabled";
 
-	public static final String VERIFY_DATABASE_TRANSACTIONS_DISABLED =
-		"verify.database.transactions.disabled";
-
 	public static final String VERIFY_PATCH_LEVELS_DISABLED =
 		"verify.patch.levels.disabled";
 
 	public static final String VERIFY_PROCESS_CONCURRENCY_THRESHOLD =
 		"verify.process.concurrency.threshold";
-
-	public static final String VERIFY_PROCESSES = "verify.processes";
 
 	public static final String VIRTUAL_HOSTS_DEFAULT_SITE_NAME =
 		"virtual.hosts.default.site.name";
