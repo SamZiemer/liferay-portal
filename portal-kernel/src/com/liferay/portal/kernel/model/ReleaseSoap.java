@@ -39,7 +39,6 @@ public class ReleaseSoap implements Serializable {
 		soapModel.setSchemaVersion(model.getSchemaVersion());
 		soapModel.setBuildNumber(model.getBuildNumber());
 		soapModel.setBuildDate(model.getBuildDate());
-		soapModel.setVerified(model.isVerified());
 		soapModel.setState(model.getState());
 		soapModel.setTestString(model.getTestString());
 
@@ -159,18 +158,6 @@ public class ReleaseSoap implements Serializable {
 		_buildDate = buildDate;
 	}
 
-	public boolean getVerified() {
-		return _verified;
-	}
-
-	public boolean isVerified() {
-		return _verified;
-	}
-
-	public void setVerified(boolean verified) {
-		_verified = verified;
-	}
-
 	public int getState() {
 		return _state;
 	}
@@ -195,7 +182,6 @@ public class ReleaseSoap implements Serializable {
 	private String _schemaVersion;
 	private int _buildNumber;
 	private Date _buildDate;
-	private boolean _verified;
 	private int _state;
 	private String _testString;
 

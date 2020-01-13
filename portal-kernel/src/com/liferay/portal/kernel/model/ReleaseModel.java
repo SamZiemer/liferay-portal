@@ -171,27 +171,6 @@ public interface ReleaseModel extends BaseModel<Release>, MVCCModel {
 	public void setBuildDate(Date buildDate);
 
 	/**
-	 * Returns the verified of this release.
-	 *
-	 * @return the verified of this release
-	 */
-	public boolean getVerified();
-
-	/**
-	 * Returns <code>true</code> if this release is verified.
-	 *
-	 * @return <code>true</code> if this release is verified; <code>false</code> otherwise
-	 */
-	public boolean isVerified();
-
-	/**
-	 * Sets whether this release is verified.
-	 *
-	 * @param verified the verified of this release
-	 */
-	public void setVerified(boolean verified);
-
-	/**
 	 * Returns the state of this release.
 	 *
 	 * @return the state of this release

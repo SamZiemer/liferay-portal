@@ -49,7 +49,6 @@ public class ReleaseWrapper
 		attributes.put("schemaVersion", getSchemaVersion());
 		attributes.put("buildNumber", getBuildNumber());
 		attributes.put("buildDate", getBuildDate());
-		attributes.put("verified", isVerified());
 		attributes.put("state", getState());
 		attributes.put("testString", getTestString());
 
@@ -105,12 +104,6 @@ public class ReleaseWrapper
 
 		if (buildDate != null) {
 			setBuildDate(buildDate);
-		}
-
-		Boolean verified = (Boolean)attributes.get("verified");
-
-		if (verified != null) {
-			setVerified(verified);
 		}
 
 		Integer state = (Integer)attributes.get("state");
@@ -241,26 +234,6 @@ public class ReleaseWrapper
 		return model.getTestString();
 	}
 
-	/**
-	 * Returns the verified of this release.
-	 *
-	 * @return the verified of this release
-	 */
-	@Override
-	public boolean getVerified() {
-		return model.getVerified();
-	}
-
-	/**
-	 * Returns <code>true</code> if this release is verified.
-	 *
-	 * @return <code>true</code> if this release is verified; <code>false</code> otherwise
-	 */
-	@Override
-	public boolean isVerified() {
-		return model.isVerified();
-	}
-
 	@Override
 	public void persist() {
 		model.persist();
@@ -374,16 +347,6 @@ public class ReleaseWrapper
 	@Override
 	public void setTestString(String testString) {
 		model.setTestString(testString);
-	}
-
-	/**
-	 * Sets whether this release is verified.
-	 *
-	 * @param verified the verified of this release
-	 */
-	@Override
-	public void setVerified(boolean verified) {
-		model.setVerified(verified);
 	}
 
 	@Override

@@ -68,8 +68,7 @@ public class ReleaseModelImpl
 		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
 		{"servletContextName", Types.VARCHAR}, {"schemaVersion", Types.VARCHAR},
 		{"buildNumber", Types.INTEGER}, {"buildDate", Types.TIMESTAMP},
-		{"verified", Types.BOOLEAN}, {"state_", Types.INTEGER},
-		{"testString", Types.VARCHAR}
+		{"state_", Types.INTEGER}, {"testString", Types.VARCHAR}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -84,13 +83,12 @@ public class ReleaseModelImpl
 		TABLE_COLUMNS_MAP.put("schemaVersion", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("buildNumber", Types.INTEGER);
 		TABLE_COLUMNS_MAP.put("buildDate", Types.TIMESTAMP);
-		TABLE_COLUMNS_MAP.put("verified", Types.BOOLEAN);
 		TABLE_COLUMNS_MAP.put("state_", Types.INTEGER);
 		TABLE_COLUMNS_MAP.put("testString", Types.VARCHAR);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table Release_ (mvccVersion LONG default 0 not null,releaseId LONG not null primary key,createDate DATE null,modifiedDate DATE null,servletContextName VARCHAR(75) null,schemaVersion VARCHAR(75) null,buildNumber INTEGER,buildDate DATE null,verified BOOLEAN,state_ INTEGER,testString VARCHAR(1024) null)";
+		"create table Release_ (mvccVersion LONG default 0 not null,releaseId LONG not null primary key,createDate DATE null,modifiedDate DATE null,servletContextName VARCHAR(75) null,schemaVersion VARCHAR(75) null,buildNumber INTEGER,buildDate DATE null,state_ INTEGER,testString VARCHAR(1024) null)";
 
 	public static final String TABLE_SQL_DROP = "drop table Release_";
 
@@ -284,9 +282,6 @@ public class ReleaseModelImpl
 		attributeGetterFunctions.put("buildDate", Release::getBuildDate);
 		attributeSetterBiConsumers.put(
 			"buildDate", (BiConsumer<Release, Date>)Release::setBuildDate);
-		attributeGetterFunctions.put("verified", Release::getVerified);
-		attributeSetterBiConsumers.put(
-			"verified", (BiConsumer<Release, Boolean>)Release::setVerified);
 		attributeGetterFunctions.put("state", Release::getState);
 		attributeSetterBiConsumers.put(
 			"state", (BiConsumer<Release, Integer>)Release::setState);
@@ -407,21 +402,6 @@ public class ReleaseModelImpl
 	}
 
 	@Override
-	public boolean getVerified() {
-		return _verified;
-	}
-
-	@Override
-	public boolean isVerified() {
-		return _verified;
-	}
-
-	@Override
-	public void setVerified(boolean verified) {
-		_verified = verified;
-	}
-
-	@Override
 	public int getState() {
 		return _state;
 	}
@@ -490,7 +470,6 @@ public class ReleaseModelImpl
 		releaseImpl.setSchemaVersion(getSchemaVersion());
 		releaseImpl.setBuildNumber(getBuildNumber());
 		releaseImpl.setBuildDate(getBuildDate());
-		releaseImpl.setVerified(isVerified());
 		releaseImpl.setState(getState());
 		releaseImpl.setTestString(getTestString());
 
@@ -618,8 +597,6 @@ public class ReleaseModelImpl
 			releaseCacheModel.buildDate = Long.MIN_VALUE;
 		}
 
-		releaseCacheModel.verified = isVerified();
-
 		releaseCacheModel.state = getState();
 
 		releaseCacheModel.testString = getTestString();
@@ -713,7 +690,6 @@ public class ReleaseModelImpl
 	private String _schemaVersion;
 	private int _buildNumber;
 	private Date _buildDate;
-	private boolean _verified;
 	private int _state;
 	private String _testString;
 	private long _columnBitmask;

@@ -137,8 +137,6 @@ public class ReleasePersistenceTest {
 
 		newRelease.setBuildDate(RandomTestUtil.nextDate());
 
-		newRelease.setVerified(RandomTestUtil.randomBoolean());
-
 		newRelease.setState(RandomTestUtil.nextInt());
 
 		newRelease.setTestString(RandomTestUtil.randomString());
@@ -168,8 +166,6 @@ public class ReleasePersistenceTest {
 		Assert.assertEquals(
 			Time.getShortTimestamp(existingRelease.getBuildDate()),
 			Time.getShortTimestamp(newRelease.getBuildDate()));
-		Assert.assertEquals(
-			existingRelease.isVerified(), newRelease.isVerified());
 		Assert.assertEquals(existingRelease.getState(), newRelease.getState());
 		Assert.assertEquals(
 			existingRelease.getTestString(), newRelease.getTestString());
@@ -212,7 +208,7 @@ public class ReleasePersistenceTest {
 			"Release_", "mvccVersion", true, "releaseId", true, "createDate",
 			true, "modifiedDate", true, "servletContextName", true,
 			"schemaVersion", true, "buildNumber", true, "buildDate", true,
-			"verified", true, "state", true, "testString", true);
+			"state", true, "testString", true);
 	}
 
 	@Test
@@ -453,8 +449,6 @@ public class ReleasePersistenceTest {
 		release.setBuildNumber(RandomTestUtil.nextInt());
 
 		release.setBuildDate(RandomTestUtil.nextDate());
-
-		release.setVerified(RandomTestUtil.randomBoolean());
 
 		release.setState(RandomTestUtil.nextInt());
 
