@@ -69,7 +69,6 @@ import org.osgi.service.component.annotations.Reference;
 	configurationPid = "com.liferay.portal.verify.extender.internal.configuration.VerifyProcessTrackerConfiguration",
 	configurationPolicy = ConfigurationPolicy.OPTIONAL, immediate = true,
 	property = {
-		"osgi.command.function=check", "osgi.command.function=checkAll",
 		"osgi.command.function=execute", "osgi.command.function=executeAll",
 		"osgi.command.function=help", "osgi.command.function=list",
 		"osgi.command.function=show", "osgi.command.function=showReports",
@@ -78,48 +77,6 @@ import org.osgi.service.component.annotations.Reference;
 	service = VerifyProcessTrackerOSGiCommands.class
 )
 public class VerifyProcessTrackerOSGiCommands {
-
-	@Descriptor("List latest execution result for a specific verify process")
-	public void check(final String verifyProcessName) {
-		try {
-			getVerifyProcesses(_verifyProcesses, verifyProcessName);
-		}
-		catch (IllegalArgumentException illegalArgumentException) {
-			System.out.println(
-				"No verify process with name " + verifyProcessName);
-
-			return;
-		}
-
-		Release release = releaseLocalService.fetchRelease(verifyProcessName);
-
-		if ((release == null) ||
-			(!release.isVerified() &&
-			 (release.getState() == ReleaseConstants.STATE_GOOD))) {
-
-			System.out.println(
-				verifyProcessName + " verify process has not executed");
-		}
-		else {
-			if (release.isVerified()) {
-				System.out.println(
-					verifyProcessName + " verify process succeeded");
-			}
-			else if (release.getState() ==
-						ReleaseConstants.STATE_VERIFY_FAILURE) {
-
-				System.out.println(
-					verifyProcessName + " verify process failed");
-			}
-		}
-	}
-
-	@Descriptor("List latest execution result for all verify processes")
-	public void checkAll() {
-		for (String verifyProcessName : _verifyProcesses.keySet()) {
-			check(verifyProcessName);
-		}
-	}
 
 	@Descriptor("Execute a specific verify process")
 	public void execute(final String verifyProcessName) {
@@ -275,33 +232,15 @@ public class VerifyProcessTrackerOSGiCommands {
 			printWriter.println(
 				"Executing verifiers registered for " + verifyProcessName);
 
-			VerifyException verifyException1 = null;
-
 			for (VerifyProcess verifyProcess : verifyProcesses) {
 				try {
 					verifyProcess.verify();
 				}
-				catch (VerifyException verifyException2) {
-					_log.error(verifyException2, verifyException2);
-
-					verifyException1 = verifyException2;
+				catch (Exception exception) {
+					_log.error(exception, exception);
 				}
 			}
 
-			if (verifyException1 == null) {
-				release.setVerified(true);
-				release.setState(ReleaseConstants.STATE_GOOD);
-
-				releaseLocalService.updateRelease(release);
-
-				_registerMarkerObject(verifyProcessName);
-			}
-			else {
-				release.setState(ReleaseConstants.STATE_VERIFY_FAILURE);
-				release.setVerified(false);
-
-				releaseLocalService.updateRelease(release);
-			}
 		}
 		finally {
 			indexStatusManager.setIndexReadOnly(indexReadOnly);
