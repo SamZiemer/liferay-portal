@@ -321,11 +321,11 @@ public class ReleaseLocalServiceWrapper
 	@Override
 	public com.liferay.portal.kernel.model.Release updateRelease(
 			long releaseId, java.lang.String schemaVersion, int buildNumber,
-			java.util.Date buildDate, boolean verified)
+			java.util.Date buildDate)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _releaseLocalService.updateRelease(
-			releaseId, schemaVersion, buildNumber, buildDate, verified);
+			releaseId, schemaVersion, buildNumber, buildDate);
 	}
 
 	/**

@@ -256,7 +256,7 @@ public interface ReleaseLocalService
 
 	public Release updateRelease(
 			long releaseId, String schemaVersion, int buildNumber,
-			Date buildDate, boolean verified)
+			Date buildDate)
 		throws PortalException;
 
 	/**
