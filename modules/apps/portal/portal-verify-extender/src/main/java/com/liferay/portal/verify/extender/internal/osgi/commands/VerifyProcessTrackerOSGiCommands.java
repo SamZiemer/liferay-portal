@@ -206,28 +206,6 @@ public class VerifyProcessTrackerOSGiCommands {
 		WorkflowThreadLocal.setEnabled(false);
 
 		try {
-			Release release = releaseLocalService.fetchRelease(
-				verifyProcessName);
-
-			if ((release != null) && !force && release.isVerified()) {
-				if (!_serviceRegistrations.containsKey(verifyProcessName)) {
-					_registerMarkerObject(verifyProcessName);
-				}
-
-				return;
-			}
-
-			if (release == null) {
-
-				// Verification state must be persisted even though not all
-				// verifiers are associated with a database service
-
-				release = releaseLocalService.createRelease(
-					counterLocalService.increment());
-
-				release.setServletContextName(verifyProcessName);
-				release.setVerified(false);
-			}
 
 			printWriter.println(
 				"Executing verifiers registered for " + verifyProcessName);
@@ -324,18 +302,6 @@ public class VerifyProcessTrackerOSGiCommands {
 			verifyProcessTrackerMap, verifyProcessName,
 			outputStreamContainerFactoryName, "verify-" + verifyProcessName,
 			force);
-	}
-
-	private void _registerMarkerObject(String verifyProcessName) {
-		Dictionary<String, String> dictionary = new HashMapDictionary<>();
-
-		dictionary.put("verify.process.name", verifyProcessName);
-
-		ServiceRegistration<Object> serviceRegistration =
-			_bundleContext.registerService(
-				Object.class, new Object(), dictionary);
-
-		_serviceRegistrations.put(verifyProcessName, serviceRegistration);
 	}
 
 	private void _runAllVerifiersWithFactory(
