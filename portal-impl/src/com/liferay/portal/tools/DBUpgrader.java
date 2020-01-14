@@ -141,7 +141,8 @@ public class DBUpgrader {
 
 			verifyGroup.verify();
 
-			VerifyResourcePermissions verifyResourcePermissions = new VerifyResourcePermissions();
+			VerifyResourcePermissions verifyResourcePermissions =
+				new VerifyResourcePermissions();
 
 			verifyResourcePermissions.verify();
 
