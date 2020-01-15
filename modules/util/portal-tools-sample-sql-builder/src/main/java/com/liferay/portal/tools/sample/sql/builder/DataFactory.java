@@ -3348,14 +3348,14 @@ public class DataFactory {
 						toInsertSQL(sb, resourcePermissionModel);
 					}
 				}
-				catch (NoSuchMethodException noSuchMethodException) {
+				catch (NoSuchMethodException nsme) {
 				}
 			}
 
 			return sb.toString();
 		}
-		catch (ReflectiveOperationException reflectiveOperationException) {
-			return ReflectionUtil.throwException(reflectiveOperationException);
+		catch (ReflectiveOperationException roe) {
+			return ReflectionUtil.throwException(roe);
 		}
 	}
 
@@ -4398,8 +4398,8 @@ public class DataFactory {
 
 			sb.append(");");
 		}
-		catch (ReflectiveOperationException reflectiveOperationException) {
-			ReflectionUtil.throwException(reflectiveOperationException);
+		catch (ReflectiveOperationException roe) {
+			ReflectionUtil.throwException(roe);
 		}
 	}
 

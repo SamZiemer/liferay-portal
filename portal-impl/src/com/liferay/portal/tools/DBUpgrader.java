@@ -56,7 +56,6 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.time.StopWatch;
@@ -384,14 +383,16 @@ public class DBUpgrader {
 		ServiceRegistrar<Release> serviceRegistrar =
 			registry.getServiceRegistrar(Release.class);
 
-		Map<String, Object> properties = new HashMap<>();
-
 		Release release = ReleaseLocalServiceUtil.fetchRelease(
 			ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME);
 
-		properties.put("build.date", release.getBuildDate());
-		properties.put("build.number", release.getBuildNumber());
-		properties.put("servlet.context.name", release.getServletContextName());
+		Map<String, Object> properties = HashMapBuilder.<String, Object>put(
+			"build.date", release.getBuildDate()
+		).put(
+			"build.number", release.getBuildNumber()
+		).put(
+			"servlet.context.name", release.getServletContextName()
+		).build();
 
 		serviceRegistrar.registerService(Release.class, release, properties);
 	}

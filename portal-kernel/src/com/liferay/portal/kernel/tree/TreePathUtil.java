@@ -100,8 +100,8 @@ public class TreePathUtil {
 				_treeModelTasks.rebuildDependentModelsTreePaths(
 					_parentPrimaryKey, _parentTreePath);
 			}
-			catch (PortalException portalException) {
-				ReflectionUtil.throwException(portalException);
+			catch (PortalException pe) {
+				ReflectionUtil.throwException(pe);
 			}
 
 			List<? extends TreeModel> treeModels =

@@ -113,7 +113,7 @@ public class VerifyProcessTrackerOSGiCommands {
 		try {
 			getVerifyProcesses(_verifyProcesses, verifyProcessName);
 		}
-		catch (IllegalArgumentException illegalArgumentException) {
+		catch (IllegalArgumentException iae) {
 			System.out.println(
 				"No verify process with name " + verifyProcessName);
 
@@ -159,8 +159,8 @@ public class VerifyProcessTrackerOSGiCommands {
 		try {
 			outputStream.close();
 		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
+		catch (IOException ioe) {
+			throw new RuntimeException(ioe);
 		}
 	}
 

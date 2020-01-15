@@ -76,8 +76,8 @@ public class StartupAction extends SimpleAction {
 		try {
 			doRun(ids);
 		}
-		catch (RuntimeException runtimeException) {
-			throw runtimeException;
+		catch (RuntimeException re) {
+			throw re;
 		}
 		catch (Exception exception) {
 			throw new ActionException(exception);
