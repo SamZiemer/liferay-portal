@@ -117,8 +117,8 @@ public class DBInitUtil {
 				StringBundler.concat(
 					"insert into Release_ (releaseId, createDate, ",
 					"modifiedDate, servletContextName, schemaVersion, ",
-					"buildNumber, verified, testString) values (",
-					ReleaseConstants.DEFAULT_ID, ", ?, ?, ?, ?, ?, ?, ?)"))) {
+					"buildNumber, testString) values (",
+					ReleaseConstants.DEFAULT_ID, ", ?, ?, ?, ?, ?, ?)"))) {
 
 			Date now = new Date(System.currentTimeMillis());
 
@@ -133,7 +133,6 @@ public class DBInitUtil {
 			ps.setString(4, latestSchemaVersion.toString());
 
 			ps.setInt(5, ReleaseInfo.getBuildNumber());
-			ps.setBoolean(6, false);
 			ps.setString(7, ReleaseConstants.TEST_STRING);
 
 			ps.executeUpdate();
