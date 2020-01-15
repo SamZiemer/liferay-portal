@@ -4115,7 +4115,6 @@ public class DataFactory {
 		releaseModelImpl.setServletContextName(servletContextName);
 		releaseModelImpl.setSchemaVersion(schemaVersion);
 		releaseModelImpl.setBuildDate(new Date());
-		releaseModelImpl.setVerified(true);
 
 		return releaseModelImpl;
 	}

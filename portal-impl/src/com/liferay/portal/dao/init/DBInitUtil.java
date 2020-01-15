@@ -133,7 +133,7 @@ public class DBInitUtil {
 			ps.setString(4, latestSchemaVersion.toString());
 
 			ps.setInt(5, ReleaseInfo.getBuildNumber());
-			ps.setString(7, ReleaseConstants.TEST_STRING);
+			ps.setString(6, ReleaseConstants.TEST_STRING);
 
 			ps.executeUpdate();
 		}
