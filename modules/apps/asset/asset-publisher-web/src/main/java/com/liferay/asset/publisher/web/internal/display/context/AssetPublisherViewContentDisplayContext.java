@@ -102,7 +102,7 @@ public class AssetPublisherViewContentDisplayContext {
 		try {
 			if (_assetRenderer.hasViewPermission(
 					_themeDisplay.getPermissionChecker()) &&
-				_assetRenderer.isDisplayable()) {
+				(_assetRenderer.isDisplayable() || _assetEntry.isVisible())) {
 
 				return true;
 			}
