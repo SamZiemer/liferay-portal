@@ -175,13 +175,13 @@ public class JournalArticleScheduledTest {
 
 		if (when == _WHEN_FUTURE) {
 			Assert.assertFalse(article.isApproved());
-			Assert.assertFalse(assetEntry.isVisible());
 
 			if (approved) {
 				Assert.assertTrue(article.isScheduled());
 			}
 			else {
 				Assert.assertTrue(article.isDraft());
+				Assert.assertFalse(assetEntry.isVisible());
 			}
 		}
 		else {
