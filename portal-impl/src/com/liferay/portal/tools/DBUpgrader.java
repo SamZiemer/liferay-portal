@@ -186,6 +186,10 @@ public class DBUpgrader {
 
 		checkRequiredBuildNumber(ReleaseInfo.RELEASE_6_2_0_BUILD_NUMBER);
 
+		if (_connection == null) {
+			_connection = DataAccess.getConnection();
+		}
+
 		if (PortalUpgradeProcess.isInLatestSchemaVersion(_connection)) {
 			return;
 		}
