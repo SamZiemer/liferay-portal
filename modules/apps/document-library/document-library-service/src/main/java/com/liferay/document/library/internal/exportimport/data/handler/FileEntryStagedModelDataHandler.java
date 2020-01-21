@@ -881,13 +881,6 @@ public class FileEntryStagedModelDataHandler
 		return ddmFormValuesSerializerSerializeResponse.getContent();
 	}
 
-	@Reference(
-		target = "(&(verify.process.name=com.liferay.document.library.service))",
-		unbind = "-"
-	)
-	protected void setVerifyProcessCompletionMarker(Object object) {
-	}
-
 	@Override
 	protected void validateExport(
 			PortletDataContext portletDataContext, FileEntry fileEntry)

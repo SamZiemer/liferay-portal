@@ -444,13 +444,6 @@ public class DLFileEntryTypeStagedModelDataHandler
 		_userLocalService = userLocalService;
 	}
 
-	@Reference(
-		target = "(&(verify.process.name=com.liferay.document.library.service))",
-		unbind = "-"
-	)
-	protected void setVerifyProcessCompletionMarker(Object object) {
-	}
-
 	private DDMStructureLocalService _ddmStructureLocalService;
 	private DLFileEntryTypeLocalService _dlFileEntryTypeLocalService;
 
