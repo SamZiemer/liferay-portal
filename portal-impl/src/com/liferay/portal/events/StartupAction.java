@@ -196,14 +196,13 @@ public class StartupAction extends SimpleAction {
 		if (PropsValues.UPGRADE_DATABASE_AUTO_RUN) {
 			DBUpgrader.upgrade();
 		}
+		else {
+			DBUpgrader.checkReleaseState();
 
-		// Verify
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("Verify database");
+			if (PropsValues.DATABASE_INDEXES_UPDATE_ON_STARTUP) {
+				StartupHelperUtil.updateIndexes(true);
+			}
 		}
-
-		DBUpgrader.verify();
 
 		// Liferay JspFactory
 
