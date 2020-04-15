@@ -175,9 +175,18 @@ public class JournalContentImpl
 		long groupId, String articleId, String ddmTemplateKey, String viewMode,
 		String languageId, ThemeDisplay themeDisplay) {
 
-		return getContent(
-			groupId, articleId, ddmTemplateKey, viewMode, languageId,
+		JournalArticle article = _journalArticleLocalService.fetchArticle(
+			groupId, articleId);
+
+		JournalArticleDisplay articleDisplay = getDisplay(
+			article, ddmTemplateKey, viewMode, languageId, 1,
 			(PortletRequestModel)null, themeDisplay);
+
+		if (articleDisplay != null) {
+			return articleDisplay.getContent();
+		}
+
+		return null;
 	}
 
 	@Override
