@@ -422,7 +422,9 @@ public class JournalContentImpl
 		String languageId, int page, PortletRequestModel portletRequestModel,
 		ThemeDisplay themeDisplay) {
 
-		if (article.getStatus() != WorkflowConstants.STATUS_APPROVED) {
+		if (!((article.getStatus() == WorkflowConstants.STATUS_APPROVED) ||
+			  (article.getStatus() == WorkflowConstants.STATUS_DRAFT))) {
+
 			return null;
 		}
 
