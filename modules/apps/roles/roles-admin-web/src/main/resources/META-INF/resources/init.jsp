@@ -30,6 +30,7 @@ taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %><%@
 taglib uri="http://liferay.com/tld/util" prefix="liferay-util" %>
 
 <%@ page import="com.liferay.account.constants.AccountPanelCategoryKeys" %><%@
+page import="com.liferay.account.constants.AccountRoleConstants" %><%@
 page import="com.liferay.account.model.AccountRole" %><%@
 page import="com.liferay.application.list.PanelApp" %><%@
 page import="com.liferay.application.list.PanelAppRegistry" %><%@
@@ -237,7 +238,7 @@ private StringBundler _getResourceHtmlId(String resource) {
 private boolean _isImpliedRole(Role role) {
 	String name = role.getName();
 
-	if (name.equals(RoleConstants.GUEST) || name.equals(RoleConstants.ORGANIZATION_USER) || name.equals(RoleConstants.OWNER) || name.equals(RoleConstants.SITE_MEMBER) || name.equals(RoleConstants.USER)) {
+	if (name.equals(RoleConstants.GUEST) || name.equals(RoleConstants.ORGANIZATION_USER) || name.equals(RoleConstants.OWNER) || name.equals(RoleConstants.SITE_MEMBER) || name.equals(RoleConstants.USER) || name.equals(AccountRoleConstants.REQUIRED_ROLE_NAME_ACCOUNT_MEMBER)) {
 		return true;
 	}
 
