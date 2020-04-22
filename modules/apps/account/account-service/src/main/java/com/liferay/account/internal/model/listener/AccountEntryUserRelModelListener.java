@@ -15,6 +15,7 @@
 package com.liferay.account.internal.model.listener;
 
 import com.liferay.account.constants.AccountConstants;
+import com.liferay.account.constants.AccountRoleConstants;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.model.AccountEntryUserRel;
 import com.liferay.account.service.AccountEntryLocalService;
@@ -23,11 +24,13 @@ import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.ModelListener;
+import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.SearchException;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
 import com.liferay.portal.kernel.util.ListUtil;
 
@@ -48,6 +51,10 @@ public class AccountEntryUserRelModelListener
 		throws ModelListenerException {
 
 		_updateDefaultAccountEntry(accountEntryUserRel.getAccountUserId());
+		_updateAccountMemberRole(
+			accountEntryUserRel.getAccountEntryId(),
+			accountEntryUserRel.getAccountUserId(),
+			accountEntryUserRel.getCompanyId());
 
 		_reindexAccountEntry(accountEntryUserRel.getAccountEntryId());
 		_reindexUser(accountEntryUserRel.getAccountUserId());
@@ -102,6 +109,27 @@ public class AccountEntryUserRelModelListener
 		}
 	}
 
+	private void _updateAccountMemberRole(
+			long accountEntryId, long accountUserId, long companyId)
+		throws ModelListenerException {
+
+		Role accountMemberRole = _roleLocalService.fetchRole(
+			companyId, AccountRoleConstants.REQUIRED_ROLE_NAME_ACCOUNT_MEMBER);
+
+		try {
+			if (accountEntryId == AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT) {
+				_roleLocalService.deleteUserRole(
+					accountUserId, accountMemberRole);
+			}
+			else {
+				_roleLocalService.addUserRole(accountUserId, accountMemberRole);
+			}
+		}
+		catch (PortalException portalException) {
+			throw new ModelListenerException(portalException);
+		}
+	}
+
 	private void _updateDefaultAccountEntry(long accountUserId)
 		throws ModelListenerException {
 
@@ -137,6 +165,9 @@ public class AccountEntryUserRelModelListener
 
 	@Reference
 	private AccountEntryUserRelLocalService _accountEntryUserRelLocalService;
+
+	@Reference
+	private RoleLocalService _roleLocalService;
 
 	@Reference
 	private UserGroupRoleLocalService _userGroupRoleLocalService;
