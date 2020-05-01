@@ -217,6 +217,19 @@ public class DefaultSearchResultPermissionFilter
 				PropsKeys.INDEX_PERMISSION_FILTER_SEARCH_AMPLIFICATION_FACTOR));
 	}
 
+	private int _getFilteredHitsSize(SearchContext searchContext) {
+		searchContext.setStart(QueryUtil.ALL_POS);
+		searchContext.setEnd(QueryUtil.ALL_POS);
+
+		Hits hits = getHits(searchContext);
+
+		filterHits(hits, searchContext);
+
+		Document[] documents = hits.getDocs();
+
+		return documents.length;
+	}
+
 	private boolean _isIncludeDocument(
 		Document document, long companyId, boolean companyAdmin, int status) {
 
@@ -302,7 +315,6 @@ public class DefaultSearchResultPermissionFilter
 			int amplifiedCount =
 				_permissionFilteredSearchResultAccurateCountThreshold;
 			double amplificationFactor = 1.0;
-			int excludedDocsSize = 0;
 			int filteredDocsCount = 0;
 			int hitsSize = 0;
 			int offset = 0;
@@ -341,8 +353,6 @@ public class DefaultSearchResultPermissionFilter
 
 				Document[] newDocs = hits.getDocs();
 
-				excludedDocsSize += oldDocs.length - newDocs.length;
-
 				filteredDocsCount += newDocs.length;
 
 				collectHits(hits, filteredDocsCount, start, end);
@@ -353,7 +363,8 @@ public class DefaultSearchResultPermissionFilter
 
 					updateDocuments(filteredDocsCount, start, end);
 
-					updateHits(hits, hitsSize - excludedDocsSize, startTime);
+					updateHits(
+						hits, _getFilteredHitsSize(searchContext), startTime);
 
 					return hits;
 				}
