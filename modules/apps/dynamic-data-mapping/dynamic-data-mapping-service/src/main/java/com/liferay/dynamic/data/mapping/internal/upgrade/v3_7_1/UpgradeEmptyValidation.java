@@ -59,7 +59,15 @@ public class UpgradeEmptyValidation extends UpgradeProcess {
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructure set definition = ? where " +
-						"structureId = ?")) {
+						"structureId = ?");
+			PreparedStatement ps3 = connection.prepareStatement(
+				"select structureVersionId, definition from " +
+					"DDMStructureVersion where structureId = ?");
+			PreparedStatement ps4 =
+				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
+					connection,
+					"update DDMStructureVersion set definition = ? where " +
+						"structureVersionId = ?")) {
 
 			long classNameId = PortalUtil.getClassNameId(
 				"com.liferay.dynamic.data.lists.model.DDLRecordSet");
@@ -83,9 +91,34 @@ public class UpgradeEmptyValidation extends UpgradeProcess {
 					ps2.setLong(2, structureId);
 
 					ps2.addBatch();
+
+					ps3.setLong(1, structureId);
+
+					try (ResultSet rs2 = ps3.executeQuery()) {
+						while (rs2.next()) {
+							definition = rs2.getString("definition");
+
+							newDefinition = _updateEmptyValidation(definition);
+
+							if (newDefinition.equals(definition)) {
+								continue;
+							}
+
+							ps4.setString(1, newDefinition);
+
+							long structureVersionId = rs2.getLong(
+								"structureVersionId");
+
+							ps4.setLong(2, structureVersionId);
+
+							ps4.addBatch();
+						}
+					}
 				}
 
 				ps2.executeBatch();
+
+				ps4.executeBatch();
 			}
 		}
 	}
