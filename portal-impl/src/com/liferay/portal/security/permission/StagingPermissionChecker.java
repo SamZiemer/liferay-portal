@@ -113,7 +113,9 @@ public class StagingPermissionChecker implements PermissionChecker {
 
 		long previousGroupId = GroupThreadLocal.getGroupId();
 
-		GroupThreadLocal.setGroupId(group.getGroupId());
+		if (group != null) {
+			GroupThreadLocal.setGroupId(group.getGroupId());
+		}
 
 		try {
 			if (_isStagingFolder(name, actionId)) {
