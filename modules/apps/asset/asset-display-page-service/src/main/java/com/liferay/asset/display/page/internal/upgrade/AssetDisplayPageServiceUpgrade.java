@@ -26,6 +26,7 @@ import com.liferay.layout.page.template.service.LayoutPageTemplateEntryService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.upgrade.BaseUpgradeSQLServerDatetime;
+import com.liferay.portal.kernel.upgrade.DummyUpgradeStep;
 import com.liferay.portal.kernel.upgrade.UpgradeCTModel;
 import com.liferay.portal.kernel.upgrade.UpgradeMVCCVersion;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
@@ -58,8 +59,10 @@ public class AssetDisplayPageServiceUpgrade implements UpgradeStepRegistrator {
 			new UpgradeAssetDisplayPrivateLayout(
 				_layoutLocalService, _resourceLocalService));
 
+		registry.register("2.1.1", "2.1.2", new DummyUpgradeStep());
+
 		registry.register(
-			"2.1.1", "2.2.0",
+			"2.1.2", "2.2.0",
 			new UpgradeMVCCVersion() {
 
 				@Override
