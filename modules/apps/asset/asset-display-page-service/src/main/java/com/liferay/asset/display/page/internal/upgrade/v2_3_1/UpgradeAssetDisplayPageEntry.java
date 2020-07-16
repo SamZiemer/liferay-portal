@@ -49,7 +49,7 @@ public class UpgradeAssetDisplayPageEntry extends UpgradeProcess {
 		long fileEntryClassNameId = PortalUtil.getClassNameId(
 			"com.liferay.portal.kernel.repository.model.FileEntry");
 
-		StringBundler sb1 = new StringBundler(10);
+		StringBundler sb1 = new StringBundler(16);
 
 		sb1.append("select groupId, companyId, userId, userName, createDate, ");
 		sb1.append("modifiedDate, classNameId, classPK from AssetEntry where ");
@@ -60,7 +60,13 @@ public class UpgradeAssetDisplayPageEntry extends UpgradeProcess {
 		sb1.append(", ");
 		sb1.append(journalArticleClassNameId);
 		sb1.append(") and classPK not in (select classPK from ");
-		sb1.append("AssetDisplayPageEntry)");
+		sb1.append("AssetDisplayPageEntry where classNameId in (");
+		sb1.append(blogsClassNameId);
+		sb1.append(", ");
+		sb1.append(fileEntryClassNameId);
+		sb1.append(", ");
+		sb1.append(journalArticleClassNameId);
+		sb1.append("))");
 
 		StringBundler sb2 = new StringBundler(5);
 
