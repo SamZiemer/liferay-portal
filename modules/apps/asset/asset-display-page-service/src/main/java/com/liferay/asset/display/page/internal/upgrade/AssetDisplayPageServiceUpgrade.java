@@ -14,11 +14,11 @@
 
 package com.liferay.asset.display.page.internal.upgrade;
 
-import com.liferay.asset.display.page.internal.upgrade.v1_0_1.UpgradeAssetDisplayPageEntry;
 import com.liferay.asset.display.page.internal.upgrade.v2_0_0.util.AssetDisplayPageEntryTable;
 import com.liferay.asset.display.page.internal.upgrade.v2_1_0.UpgradeAssetDisplayLayout;
 import com.liferay.asset.display.page.internal.upgrade.v2_1_1.UpgradeAssetDisplayPrivateLayout;
 import com.liferay.asset.display.page.internal.upgrade.v2_2_1.UpgradeAssetDisplayLayoutFriendlyURLPrivateLayout;
+import com.liferay.asset.display.page.internal.upgrade.v2_3_1.UpgradeAssetDisplayPageEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.counter.kernel.service.CounterLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;

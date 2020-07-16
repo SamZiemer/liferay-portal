@@ -12,7 +12,7 @@
  * details.
  */
 
-package com.liferay.asset.display.page.internal.upgrade.v1_0_1;
+package com.liferay.asset.display.page.internal.upgrade.v2_3_1;
 
 import com.liferay.counter.kernel.service.CounterLocalService;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
