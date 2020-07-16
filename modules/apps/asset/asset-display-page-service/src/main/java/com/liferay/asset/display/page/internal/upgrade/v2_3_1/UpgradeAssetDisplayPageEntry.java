@@ -14,7 +14,6 @@
 
 package com.liferay.asset.display.page.internal.upgrade.v2_3_1;
 
-import com.liferay.counter.kernel.service.CounterLocalService;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -29,12 +28,6 @@ import java.sql.Timestamp;
  * @author Samuel Ziemer
  */
 public class UpgradeAssetDisplayPageEntry extends UpgradeProcess {
-
-	public UpgradeAssetDisplayPageEntry(
-		CounterLocalService counterLocalService) {
-
-		_counterLocalService = counterLocalService;
-	}
 
 	@Override
 	protected void doUpgrade() throws Exception {
@@ -87,21 +80,20 @@ public class UpgradeAssetDisplayPageEntry extends UpgradeProcess {
 				while (rs.next()) {
 					Timestamp now = new Timestamp(System.currentTimeMillis());
 
-					ps2.setString(1, PortalUUIDUtil.generate());
-					ps2.setLong(2, _counterLocalService.increment());
-					ps2.setLong(3, rs.getLong("groupId"));
-					ps2.setLong(4, rs.getLong("companyId"));
-					ps2.setLong(5, rs.getLong("userId"));
-					ps2.setString(6, rs.getString("userName"));
-					ps2.setTimestamp(7, now);
-					ps2.setTimestamp(8, now);
-
 					long classNameId = rs.getLong("classNameId");
 
 					if (classNameId == dlFileEntryClassNameId) {
 						classNameId = fileEntryClassNameId;
 					}
 
+					ps2.setString(1, PortalUUIDUtil.generate());
+					ps2.setLong(2, increment());
+					ps2.setLong(3, rs.getLong("groupId"));
+					ps2.setLong(4, rs.getLong("companyId"));
+					ps2.setLong(5, rs.getLong("userId"));
+					ps2.setString(6, rs.getString("userName"));
+					ps2.setTimestamp(7, now);
+					ps2.setTimestamp(8, now);
 					ps2.setLong(9, classNameId);
 					ps2.setLong(10, rs.getLong("classPK"));
 					ps2.setLong(11, 0);
@@ -115,7 +107,5 @@ public class UpgradeAssetDisplayPageEntry extends UpgradeProcess {
 			}
 		}
 	}
-
-	private final CounterLocalService _counterLocalService;
 
 }

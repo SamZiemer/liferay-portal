@@ -85,14 +85,12 @@ public class AssetDisplayPageServiceUpgrade implements UpgradeStepRegistrator {
 
 		registry.register(
 			"2.3.0", "2.3.1",
-			new UpgradeAssetDisplayPageEntry(_counterLocalService));
+			new UpgradeAssetDisplayPageEntry());
 	}
 
 	@Reference
 	private AssetEntryLocalService _assetEntryLocalService;
 
-	@Reference
-	private CounterLocalService _counterLocalService;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
