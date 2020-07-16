@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
 
 /**
  * @author Samuel Ziemer
@@ -51,9 +52,9 @@ public class UpgradeAssetDisplayPageEntry extends UpgradeProcess {
 
 		StringBundler sb1 = new StringBundler(16);
 
-		sb1.append("select groupId, companyId, userId, userName, createDate, ");
-		sb1.append("modifiedDate, classNameId, classPK from AssetEntry where ");
-		sb1.append("classNameId in (");
+		sb1.append("select groupId, companyId, userId, userName, ");
+		sb1.append("classNameId, classPK from AssetEntry where classNameId ");
+		sb1.append("in (");
 		sb1.append(blogsClassNameId);
 		sb1.append(", ");
 		sb1.append(dlFileEntryClassNameId);
@@ -84,14 +85,16 @@ public class UpgradeAssetDisplayPageEntry extends UpgradeProcess {
 
 			try (ResultSet rs = ps1.executeQuery()) {
 				while (rs.next()) {
+					Timestamp now = new Timestamp(System.currentTimeMillis());
+
 					ps2.setString(1, PortalUUIDUtil.generate());
 					ps2.setLong(2, _counterLocalService.increment());
 					ps2.setLong(3, rs.getLong("groupId"));
 					ps2.setLong(4, rs.getLong("companyId"));
 					ps2.setLong(5, rs.getLong("userId"));
 					ps2.setString(6, rs.getString("userName"));
-					ps2.setTimestamp(7, rs.getTimestamp("createDate"));
-					ps2.setTimestamp(8, rs.getTimestamp("modifiedDate"));
+					ps2.setTimestamp(7, now);
+					ps2.setTimestamp(8, now);
 
 					long classNameId = rs.getLong("classNameId");
 
