@@ -148,8 +148,7 @@ public class DataCleanupTest {
 
 		if (Validator.isNotNull(sqlFilePath)) {
 			try (InputStream inputStream =
-					DataCleanupTest.class.getResourceAsStream(
-						sqlFilePath)) {
+					DataCleanupTest.class.getResourceAsStream(sqlFilePath)) {
 
 				DB db = DBManagerUtil.getDB();
 
@@ -224,7 +223,7 @@ public class DataCleanupTest {
 	}
 
 	private static final String _CONFIGURATION_PID =
-		"com.liferay.data.cleanup.internal.upgrade.DataCleanupConfiguration";
+		"com.liferay.data.cleanup.internal.DataCleanupConfiguration";
 
 	private static final String[] _SERVLET_CONTEXT_NAMES = {
 		"com.liferay.chat.service", "com.liferay.dictionary.web",
