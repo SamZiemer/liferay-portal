@@ -334,8 +334,17 @@ class LayoutProvider extends Component {
 				label: Liferay.Language.get('duplicate'),
 			},
 			{
-				action: ({activePage, fieldName}) =>
-					this.dispatch('fieldDeleted', {activePage, fieldName}),
+				action: ({activePage, fieldName}) => {
+					if (
+						confirm(
+							Liferay.Language.get(
+								'are-you-sure-you-want-to-delete-this-field'
+							)
+						)
+					) {
+						this.dispatch('fieldDeleted', {activePage, fieldName});
+					}
+				},
 				label: Liferay.Language.get('delete'),
 			},
 		];
