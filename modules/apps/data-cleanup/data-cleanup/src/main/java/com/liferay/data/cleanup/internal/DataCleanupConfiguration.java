@@ -23,6 +23,7 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
  */
 @ExtendedObjectClassDefinition(category = "upgrades")
 @Meta.OCD(
+	description = "data-cleanup-configuration-description",
 	id = "com.liferay.data.cleanup.internal.DataCleanupConfiguration",
 	name = "data-cleanup-configuration-name"
 )
