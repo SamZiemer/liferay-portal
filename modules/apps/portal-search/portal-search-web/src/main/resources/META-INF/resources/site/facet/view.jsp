@@ -82,7 +82,7 @@ List<ScopeSearchFacetTermDisplayContext> scopeSearchFacetTermDisplayContexts = s
 						id='<%= liferayPortletResponse.getNamespace() + "facetScopePanel" %>'
 						markupView="lexicon"
 						persistState="<%= true %>"
-						title="site"
+						title="sites-and-libraries"
 					>
 						<aui:fieldset>
 							<ul class="list-unstyled">
