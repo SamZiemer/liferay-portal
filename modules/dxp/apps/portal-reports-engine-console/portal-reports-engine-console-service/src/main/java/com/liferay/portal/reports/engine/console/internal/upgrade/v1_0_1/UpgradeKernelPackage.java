@@ -14,11 +14,52 @@
 
 package com.liferay.portal.reports.engine.console.internal.upgrade.v1_0_1;
 
+import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.upgrade.UpgradeException;
+import com.liferay.portal.kernel.util.LoggingTimer;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
 /**
  * @author Marcellus Tavares
  */
 public class UpgradeKernelPackage
 	extends com.liferay.portal.upgrade.v7_0_0.UpgradeKernelPackage {
+
+	protected void deleteDuplicateResources(String newName, String oldName)
+		throws UpgradeException {
+
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			String selectSQL =
+				"select actionId from ResourceAction where name like '" +
+					newName + "%'";
+
+			try (PreparedStatement ps = connection.prepareStatement(selectSQL);
+				ResultSet rs = ps.executeQuery()) {
+
+				while (rs.next()) {
+					runSQL(
+						StringBundler.concat(
+							"delete from ResourceAction where actionId = '",
+							rs.getString(1), "' and name like '", oldName,
+							"%'"));
+				}
+			}
+			catch (Exception exception) {
+				throw new UpgradeException(exception);
+			}
+		}
+	}
+
+	@Override
+	protected void doUpgrade() throws UpgradeException {
+		deleteDuplicateResources(_CLASS_NAMES[0][1], _CLASS_NAMES[0][0]);
+
+		deleteDuplicateResources(_RESOURCE_NAMES[0][1], _RESOURCE_NAMES[0][0]);
+
+		super.doUpgrade();
+	}
 
 	@Override
 	protected String[][] getClassNames() {
