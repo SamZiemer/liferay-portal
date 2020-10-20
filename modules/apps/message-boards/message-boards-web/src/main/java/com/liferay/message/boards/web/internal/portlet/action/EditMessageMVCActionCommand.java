@@ -284,6 +284,22 @@ public class EditMessageMVCActionCommand extends BaseMVCActionCommand {
 				actionRequest, actionResponse, message);
 		}
 
+		LiferayActionResponse liferayActionResponse =
+			(LiferayActionResponse)actionResponse;
+
+		PortletURL portletURL = liferayActionResponse.createRenderURL();
+
+		String url = portletURL.toString();
+
+		if (url.contains("/web/guest")) {
+			portletURL.setParameter(
+				"mvcRenderCommandName", "/message_boards/view_message");
+			portletURL.setParameter(
+				"messageId", String.valueOf(message.getMessageId()));
+
+			return portletURL.toString();
+		}
+
 		return ParamUtil.getString(actionRequest, "redirect");
 	}
 
