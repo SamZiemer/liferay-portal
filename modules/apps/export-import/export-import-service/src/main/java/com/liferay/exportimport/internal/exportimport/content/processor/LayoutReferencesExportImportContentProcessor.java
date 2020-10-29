@@ -250,7 +250,9 @@ public class LayoutReferencesExportImportContentProcessor
 
 				char c = content.charAt(beginPos + offset);
 
-				if ((c == CharPool.APOSTROPHE) || (c == CharPool.QUOTE)) {
+				if ((c == CharPool.APOSTROPHE) || (c == CharPool.QUOTE) ||
+					(c == CharPool.BACK_SLASH)) {
+
 					offset++;
 				}
 			}
@@ -260,9 +262,18 @@ public class LayoutReferencesExportImportContentProcessor
 				offset = 2;
 			}
 
-			endPos = StringUtil.indexOfAny(
-				content, _LAYOUT_REFERENCE_STOP_CHARS, beginPos + offset,
-				endPos);
+			if (content.startsWith("href=", beginPos)) {
+				String tempContent = content.substring(beginPos + offset);
+
+				endPos =
+					(beginPos + offset) +
+						tempContent.indexOf(CharPool.BACK_SLASH);
+			}
+			else {
+				endPos = StringUtil.indexOfAny(
+					content, _LAYOUT_REFERENCE_STOP_CHARS, beginPos + offset,
+					endPos);
+			}
 
 			if (endPos == -1) {
 				continue;
@@ -785,7 +796,9 @@ public class LayoutReferencesExportImportContentProcessor
 
 				char c = content.charAt(beginPos + offset);
 
-				if ((c == CharPool.APOSTROPHE) || (c == CharPool.QUOTE)) {
+				if ((c == CharPool.APOSTROPHE) || (c == CharPool.QUOTE) ||
+					(c == CharPool.BACK_SLASH)) {
+
 					offset++;
 				}
 			}
@@ -793,6 +806,14 @@ public class LayoutReferencesExportImportContentProcessor
 					 (content.charAt(beginPos) == CharPool.OPEN_CURLY_BRACE)) {
 
 				offset = 2;
+			}
+
+			if (content.startsWith("href=", beginPos)) {
+				String tempContent = content.substring(beginPos + offset);
+
+				endPos =
+					(beginPos + offset) +
+						tempContent.indexOf(CharPool.BACK_SLASH);
 			}
 
 			endPos = StringUtil.indexOfAny(
