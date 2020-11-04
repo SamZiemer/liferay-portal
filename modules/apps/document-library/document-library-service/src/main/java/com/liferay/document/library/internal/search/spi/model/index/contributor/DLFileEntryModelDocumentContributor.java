@@ -90,7 +90,7 @@ public class DLFileEntryModelDocumentContributor
 				DLFileVersion dlFileVersion = dlFileEntry.getFileVersion();
 
 				inputStream = _inputStreamSanitizer.sanitize(
-					dlFileVersion.getContentStream(false));
+					dlFileVersion.getTempContentStream(false));
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {

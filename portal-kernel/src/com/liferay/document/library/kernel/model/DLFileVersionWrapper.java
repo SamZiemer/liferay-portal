@@ -583,6 +583,13 @@ public class DLFileVersionWrapper
 		return model.getStatusDate();
 	}
 
+	@Override
+	public java.io.InputStream getTempContentStream(boolean incrementCounter)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return model.getTempContentStream(incrementCounter);
+	}
+
 	/**
 	 * Returns the title of this document library file version.
 	 *

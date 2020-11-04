@@ -1323,6 +1323,33 @@ public class DLFileEntryLocalServiceImpl
 	}
 
 	@Override
+	public InputStream getTempFileAsStream(
+			long fileEntryId, String version, boolean incrementCounter)
+		throws PortalException {
+
+		return getTempFileAsStream(fileEntryId, version, incrementCounter, 1);
+	}
+
+	@Override
+	public InputStream getTempFileAsStream(
+			long fileEntryId, String version, boolean incrementCounter,
+			int increment)
+		throws PortalException {
+
+		DLFileEntry dlFileEntry = dlFileEntryPersistence.findByPrimaryKey(
+			fileEntryId);
+
+		if (incrementCounter) {
+			dlFileEntryLocalService.incrementViewCounter(
+				dlFileEntry, increment);
+		}
+
+		return DLStoreUtil.getTempFileAsStream(
+			dlFileEntry.getCompanyId(), dlFileEntry.getDataRepositoryId(),
+			dlFileEntry.getName(), version);
+	}
+
+	@Override
 	public String getUniqueTitle(
 			long groupId, long folderId, long fileEntryId, String title,
 			String extension)

@@ -101,6 +101,11 @@ public interface DLStore {
 	public long getFileSize(long companyId, long repositoryId, String fileName)
 		throws PortalException;
 
+	public InputStream getTempFileAsStream(
+			long companyId, long repositoryId, String fileName,
+			String versionLabel)
+		throws PortalException;
+
 	public boolean hasFile(long companyId, long repositoryId, String fileName)
 		throws PortalException;
 

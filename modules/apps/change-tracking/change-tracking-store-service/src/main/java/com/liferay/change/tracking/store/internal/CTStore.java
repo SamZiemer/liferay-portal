@@ -290,6 +290,27 @@ public class CTStore implements Store {
 	}
 
 	@Override
+	public InputStream getTempFileAsStream(
+			long companyId, long repositoryId, String fileName,
+			String versionLabel)
+		throws PortalException {
+
+		if (!CTCollectionThreadLocal.isProductionMode() &&
+			_isCTSContentLoaded(
+				companyId, repositoryId, fileName, versionLabel)) {
+
+			CTSContent ctsContent = _ctsContentLocalService.getCTSContent(
+				companyId, repositoryId, fileName, versionLabel, _storeType);
+
+			return _ctsContentLocalService.openDataInputStream(
+				ctsContent.getCtsContentId());
+		}
+
+		return _store.getTempFileAsStream(
+			companyId, repositoryId, fileName, versionLabel);
+	}
+
+	@Override
 	public boolean hasFile(
 		long companyId, long repositoryId, String fileName,
 		String versionLabel) {

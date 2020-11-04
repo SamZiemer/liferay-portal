@@ -853,6 +853,23 @@ public class DLFileEntryLocalServiceUtil {
 		return getService().getRepositoryFileEntriesCount(repositoryId);
 	}
 
+	public static java.io.InputStream getTempFileAsStream(
+			long fileEntryId, String version, boolean incrementCounter)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().getTempFileAsStream(
+			fileEntryId, version, incrementCounter);
+	}
+
+	public static java.io.InputStream getTempFileAsStream(
+			long fileEntryId, String version, boolean incrementCounter,
+			int increment)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().getTempFileAsStream(
+			fileEntryId, version, incrementCounter, increment);
+	}
+
 	public static String getUniqueTitle(
 			long groupId, long folderId, long fileEntryId, String title,
 			String extension)

@@ -571,6 +571,17 @@ public interface DLFileEntryLocalService
 	public int getRepositoryFileEntriesCount(long repositoryId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public InputStream getTempFileAsStream(
+			long fileEntryId, String version, boolean incrementCounter)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public InputStream getTempFileAsStream(
+			long fileEntryId, String version, boolean incrementCounter,
+			int increment)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public String getUniqueTitle(
 			long groupId, long folderId, long fileEntryId, String title,
 			String extension)

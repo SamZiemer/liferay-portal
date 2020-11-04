@@ -153,6 +153,26 @@ public class DBStore implements Store {
 	}
 
 	@Override
+	public InputStream getTempFileAsStream(
+			long companyId, long repositoryId, String fileName,
+			String versionLabel)
+		throws NoSuchFileException {
+
+		try {
+			DLContent dlContent = _dlContentLocalService.getContent(
+				companyId, repositoryId, fileName, versionLabel);
+
+			return _dlContentLocalService.openDataInputStream(
+				dlContent.getContentId());
+		}
+		catch (NoSuchContentException noSuchContentException) {
+			throw new NoSuchFileException(
+				companyId, repositoryId, fileName, versionLabel,
+				noSuchContentException);
+		}
+	}
+
+	@Override
 	public boolean hasFile(
 		long companyId, long repositoryId, String fileName,
 		String versionLabel) {

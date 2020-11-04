@@ -117,6 +117,21 @@ public interface Store {
 		long companyId, long repositoryId, String fileName);
 
 	/**
+	 * Returns the file as an {@link InputStream} object.
+	 *
+	 * @param  companyId the primary key of the company
+	 * @param  repositoryId the primary key of the data repository (optionally
+	 *         {@link com.liferay.portal.kernel.model.CompanyConstants#SYSTEM})
+	 * @param  fileName the file's name
+	 * @param  versionLabel the file's version label
+	 * @return Returns the {@link InputStream} object with the file's name
+	 */
+	public InputStream getTempFileAsStream(
+			long companyId, long repositoryId, String fileName,
+			String versionLabel)
+		throws PortalException;
+
+	/**
 	 * Returns <code>true</code> if the file exists.
 	 *
 	 * @param  companyId the primary key of the company

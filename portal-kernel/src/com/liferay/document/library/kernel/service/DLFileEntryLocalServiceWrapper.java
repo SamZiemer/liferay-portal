@@ -870,6 +870,25 @@ public class DLFileEntryLocalServiceWrapper
 	}
 
 	@Override
+	public java.io.InputStream getTempFileAsStream(
+			long fileEntryId, String version, boolean incrementCounter)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dlFileEntryLocalService.getTempFileAsStream(
+			fileEntryId, version, incrementCounter);
+	}
+
+	@Override
+	public java.io.InputStream getTempFileAsStream(
+			long fileEntryId, String version, boolean incrementCounter,
+			int increment)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dlFileEntryLocalService.getTempFileAsStream(
+			fileEntryId, version, incrementCounter, increment);
+	}
+
+	@Override
 	public String getUniqueTitle(
 			long groupId, long folderId, long fileEntryId, String title,
 			String extension)

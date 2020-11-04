@@ -329,6 +329,20 @@ public class DLStoreImpl implements DLStore {
 	}
 
 	@Override
+	public InputStream getTempFileAsStream(
+			long companyId, long repositoryId, String fileName,
+			String versionLabel)
+		throws PortalException {
+
+		validate(fileName, false, versionLabel);
+
+		Store store = _storeFactory.getStore();
+
+		return store.getTempFileAsStream(
+			companyId, repositoryId, fileName, versionLabel);
+	}
+
+	@Override
 	public boolean hasFile(long companyId, long repositoryId, String fileName)
 		throws PortalException {
 

@@ -173,6 +173,26 @@ public class SafeFileNameStore implements Store {
 	}
 
 	@Override
+	public InputStream getTempFileAsStream(
+			long companyId, long repositoryId, String fileName,
+			String versionLabel)
+		throws PortalException {
+
+		String safeFileName = FileUtil.encodeSafeFileName(fileName);
+
+		if (safeFileName.equals(fileName) ||
+			_store.hasFile(
+				companyId, repositoryId, safeFileName, versionLabel)) {
+
+			return _store.getTempFileAsStream(
+				companyId, repositoryId, safeFileName, versionLabel);
+		}
+
+		return _store.getTempFileAsStream(
+			companyId, repositoryId, fileName, versionLabel);
+	}
+
+	@Override
 	public boolean hasFile(
 		long companyId, long repositoryId, String fileName,
 		String versionLabel) {

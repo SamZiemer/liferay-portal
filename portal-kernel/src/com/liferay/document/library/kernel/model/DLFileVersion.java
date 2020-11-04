@@ -91,4 +91,7 @@ public interface DLFileVersion
 		com.liferay.portal.kernel.util.UnicodeProperties
 			extraSettingsUnicodeProperties);
 
+	public java.io.InputStream getTempContentStream(boolean incrementCounter)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
 }

@@ -131,6 +131,14 @@ public class DLFileVersionImpl extends DLFileVersionBaseImpl {
 	}
 
 	@Override
+	public InputStream getTempContentStream(boolean incrementCounter)
+		throws PortalException {
+
+		return DLFileEntryLocalServiceUtil.getTempFileAsStream(
+			getFileEntryId(), getVersion(), incrementCounter);
+	}
+
+	@Override
 	public void setExtraSettings(String extraSettings) {
 		_extraSettingsUnicodeProperties = null;
 

@@ -200,6 +200,29 @@ public class FileSystemStore implements Store {
 	}
 
 	@Override
+	public InputStream getTempFileAsStream(
+			long companyId, long repositoryId, String fileName,
+			String versionLabel)
+		throws NoSuchFileException {
+
+		if (Validator.isNull(versionLabel)) {
+			versionLabel = getHeadVersionLabel(
+				companyId, repositoryId, fileName);
+		}
+
+		File fileNameVersionFile = getFileNameVersionFile(
+			companyId, repositoryId, fileName, versionLabel);
+
+		try {
+			return new FileInputStream(fileNameVersionFile);
+		}
+		catch (FileNotFoundException fileNotFoundException) {
+			throw new NoSuchFileException(
+				companyId, repositoryId, fileName, fileNotFoundException);
+		}
+	}
+
+	@Override
 	public boolean hasFile(
 		long companyId, long repositoryId, String fileName,
 		String versionLabel) {

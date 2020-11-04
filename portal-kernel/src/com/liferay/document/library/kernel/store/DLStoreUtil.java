@@ -362,6 +362,31 @@ public class DLStoreUtil {
 	}
 
 	/**
+	 * Returns the file as an {@link InputStream} object.
+	 *
+	 * <p>
+	 * If using an S3 store, it is preferable for performance reasons to use
+	 * this method to get the file as an {@link InputStream} instead of using
+	 * other methods to get the file as a {@link File}.
+	 * </p>
+	 *
+	 * @param  companyId the primary key of the company
+	 * @param  repositoryId the primary key of the data repository (optionally
+	 *         {@link com.liferay.portal.kernel.model.CompanyConstants#SYSTEM})
+	 * @param  fileName the file's name
+	 * @param  versionLabel the file's version label
+	 * @return Returns the {@link InputStream} object with the file's name
+	 */
+	public static InputStream getTempFileAsStream(
+			long companyId, long repositoryId, String fileName,
+			String versionLabel)
+		throws PortalException {
+
+		return getStore().getTempFileAsStream(
+			companyId, repositoryId, fileName, versionLabel);
+	}
+
+	/**
 	 * Returns <code>true</code> if the file exists.
 	 *
 	 * @param  companyId the primary key of the company
