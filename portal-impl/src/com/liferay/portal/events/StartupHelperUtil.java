@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.upgrade.util.UpgradeProcessUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.version.Version;
@@ -206,22 +207,26 @@ public class StartupHelperUtil {
 			Version requiredSchemaVersion =
 				PortalUpgradeProcess.getRequiredSchemaVersion();
 
-			String msg;
+			StringBundler sb = new StringBundler(5);
 
 			if (currentSchemaVersion.compareTo(requiredSchemaVersion) < 0) {
-				msg =
-					"You must first upgrade the portal to the required " +
-						"schema version " + requiredSchemaVersion;
+				sb.append("You must first upgrade the portal to the required ");
+				sb.append("schema version ");
+				sb.append(requiredSchemaVersion);
+				sb.append(StringPool.NEW_LINE);
+				sb.append(
+					PortalUpgradeProcess.getPendingUpgrades(
+						currentSchemaVersion));
 			}
 			else {
-				msg =
-					"Current portal schema version " + currentSchemaVersion +
-						" requires a newer version of Liferay";
+				sb.append("Current portal schema version ");
+				sb.append(currentSchemaVersion);
+				sb.append(" requires a newer version of Liferay");
 			}
 
-			System.out.println(msg);
+			System.out.println(sb.toString());
 
-			throw new RuntimeException(msg);
+			throw new RuntimeException(sb.toString());
 		}
 
 		if (!PortalUpgradeProcess.isInLatestSchemaVersion(
