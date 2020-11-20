@@ -20,6 +20,7 @@ import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.model.ReleaseConstants;
 import com.liferay.portal.kernel.upgrade.DummyUpgradeProcess;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.TreeMapBuilder;
 import com.liferay.portal.kernel.version.Version;
@@ -33,6 +34,7 @@ import java.sql.SQLException;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.SortedMap;
@@ -72,12 +74,16 @@ public class PortalUpgradeProcess extends UpgradeProcess {
 		SortedMap<Version, UpgradeProcess> pendingUpgradeProcesses =
 			_upgradeProcesses.tailMap(fromSchemaVersion, false);
 
-		StringBundler sb = new StringBundler(pendingUpgradeProcesses.size());
+		StringBundler sb1 = new StringBundler(pendingUpgradeProcesses.size());
 
-		for (Version version : pendingUpgradeProcesses.keySet()) {
-			Class<?> clazz = pendingUpgradeProcesses.get(
-				version
-			).getClass();
+		for (Map.Entry<Version, UpgradeProcess> entry :
+				pendingUpgradeProcesses.entrySet()) {
+
+			Version version = entry.getKey();
+
+			UpgradeProcess upgradeProcess = entry.getValue();
+
+			Class<?> clazz = upgradeProcess.getClass();
 
 			StringBundler sb2 = new StringBundler(8);
 
@@ -95,12 +101,12 @@ public class PortalUpgradeProcess extends UpgradeProcess {
 			sb2.append(version.toString());
 			sb2.append(StringPool.NEW_LINE);
 
-			sb.append(sb2.toString());
+			sb1.append(sb2.toString());
 
 			fromSchemaVersion = version;
 		}
 
-		return sb.toString();
+		return sb1.toString();
 	}
 
 	public static Version getRequiredSchemaVersion() {
@@ -168,21 +174,19 @@ public class PortalUpgradeProcess extends UpgradeProcess {
 		List<String> toSchemaVersions = StringUtil.split(
 			toSchemaString, CharPool.PERIOD);
 
-		if (toSchemaVersions.get(
-				0
-			).equals(
-				fromSchemaVersions.get(0)
-			)) {
+		int fromMajorVersion = GetterUtil.getInteger(fromSchemaVersions.get(0));
 
+		int toMajorVersion = GetterUtil.getInteger(toSchemaVersions.get(0));
+
+		if (toMajorVersion > fromMajorVersion) {
 			return false;
 		}
 
-		if (toSchemaVersions.get(
-				1
-			).equals(
-				fromSchemaVersions.get(1)
-			)) {
+		int fromMinorVersion = GetterUtil.getInteger(fromSchemaVersions.get(1));
 
+		int toMinorVersion = GetterUtil.getInteger(toSchemaVersions.get(1));
+
+		if (toMinorVersion > fromMinorVersion) {
 			return false;
 		}
 

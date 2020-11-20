@@ -80,7 +80,7 @@ public class ReleaseManagerOSGiCommands implements ReleaseManager {
 	}
 
 	public String check(boolean listAllUpgrades) {
-		StringBundler sb = new StringBundler(0);
+		StringBundler sb1 = new StringBundler(0);
 
 		Set<String> bundleSymbolicNames = _serviceTrackerMap.keySet();
 
@@ -97,31 +97,31 @@ public class ReleaseManagerOSGiCommands implements ReleaseManager {
 			int size = upgradeInfosList.size();
 
 			if (size > 1) {
-				sb.append("There are ");
-				sb.append(size);
-				sb.append(" possible end nodes for ");
-				sb.append(schemaVersionString);
-				sb.append(StringPool.NEW_LINE);
+				sb1.append("There are ");
+				sb1.append(size);
+				sb1.append(" possible end nodes for ");
+				sb1.append(schemaVersionString);
+				sb1.append(StringPool.NEW_LINE);
 			}
 
 			if (size == 0) {
 				continue;
 			}
 
-			sb.append("There is an upgrade process available for ");
-			sb.append(bundleSymbolicName);
-			sb.append(" from ");
-			sb.append(schemaVersionString);
-			sb.append(" to ");
+			sb1.append("There is an upgrade process available for ");
+			sb1.append(bundleSymbolicName);
+			sb1.append(" from ");
+			sb1.append(schemaVersionString);
+			sb1.append(" to ");
 
 			List<UpgradeInfo> upgradeInfos = upgradeInfosList.get(0);
 
 			UpgradeInfo lastUpgradeInfo = upgradeInfos.get(
 				upgradeInfos.size() - 1);
 
-			sb.append(lastUpgradeInfo.getToSchemaVersionString());
+			sb1.append(lastUpgradeInfo.getToSchemaVersionString());
 
-			sb.append(StringPool.NEW_LINE);
+			sb1.append(StringPool.NEW_LINE);
 
 			if (listAllUpgrades) {
 				for (UpgradeInfo upgradeInfo : upgradeInfos) {
@@ -146,19 +146,20 @@ public class ReleaseManagerOSGiCommands implements ReleaseManager {
 					Class<?> clazz = upgradeStep.getClass();
 
 					sb2.append(clazz.getName());
+
 					sb2.append(" from ");
 					sb2.append(fromSchemaString);
 					sb2.append(" to ");
 					sb2.append(toSchemaString);
 					sb2.append(StringPool.NEW_LINE);
 
-					sb.append(sb2.toString());
+					sb1.append(sb2.toString());
 				}
 			}
 		}
 
-		if (sb.index() > 0) {
-			return sb.toString();
+		if (sb1.index() > 0) {
+			return sb1.toString();
 		}
 
 		return null;
