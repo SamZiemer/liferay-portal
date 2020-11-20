@@ -14,9 +14,13 @@
 
 package com.liferay.portal.upgrade;
 
+import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringPool;
+import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.model.ReleaseConstants;
 import com.liferay.portal.kernel.upgrade.DummyUpgradeProcess;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.TreeMapBuilder;
 import com.liferay.portal.kernel.version.Version;
 import com.liferay.portal.upgrade.util.PortalUpgradeProcessRegistry;
@@ -28,6 +32,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.SortedMap;
@@ -61,6 +66,41 @@ public class PortalUpgradeProcess extends UpgradeProcess {
 
 	public static Version getLatestSchemaVersion() {
 		return _upgradeProcesses.lastKey();
+	}
+
+	public static String getPendingUpgrades(Version fromSchemaVersion) {
+		SortedMap<Version, UpgradeProcess> pendingUpgradeProcesses =
+			_upgradeProcesses.tailMap(fromSchemaVersion, false);
+
+		StringBundler sb = new StringBundler(pendingUpgradeProcesses.size());
+
+		for (Version version : pendingUpgradeProcesses.keySet()) {
+			Class<?> clazz = pendingUpgradeProcesses.get(
+				version
+			).getClass();
+
+			StringBundler sb2 = new StringBundler(8);
+
+			if (!isMicroVersionUpgrade(
+					fromSchemaVersion.toString(), version.toString())) {
+
+				sb2.append("**REQUIRED** ");
+			}
+
+			sb2.append("There is an upgrade process available for ");
+			sb2.append(clazz.getName());
+			sb2.append(" from ");
+			sb2.append(fromSchemaVersion.toString());
+			sb2.append(" to ");
+			sb2.append(version.toString());
+			sb2.append(StringPool.NEW_LINE);
+
+			sb.append(sb2.toString());
+
+			fromSchemaVersion = version;
+		}
+
+		return sb.toString();
 	}
 
 	public static Version getRequiredSchemaVersion() {
@@ -118,6 +158,35 @@ public class PortalUpgradeProcess extends UpgradeProcess {
 		}
 
 		return false;
+	}
+
+	public static boolean isMicroVersionUpgrade(
+		String fromSchemaString, String toSchemaString) {
+
+		List<String> fromSchemaVersions = StringUtil.split(
+			fromSchemaString, CharPool.PERIOD);
+		List<String> toSchemaVersions = StringUtil.split(
+			toSchemaString, CharPool.PERIOD);
+
+		if (toSchemaVersions.get(
+				0
+			).equals(
+				fromSchemaVersions.get(0)
+			)) {
+
+			return false;
+		}
+
+		if (toSchemaVersions.get(
+				1
+			).equals(
+				fromSchemaVersions.get(1)
+			)) {
+
+			return false;
+		}
+
+		return true;
 	}
 
 	@Override
