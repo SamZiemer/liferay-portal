@@ -19,10 +19,8 @@ import com.liferay.osgi.service.tracker.collections.map.PropertyServiceReference
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapListener;
-import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
 import com.liferay.portal.kernel.dao.db.DB;
@@ -36,6 +34,7 @@ import com.liferay.portal.kernel.upgrade.UpgradeStep;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.output.stream.container.constants.OutputStreamContainerConstants;
+import com.liferay.portal.upgrade.PortalUpgradeProcess;
 import com.liferay.portal.upgrade.internal.executor.SwappedLogExecutor;
 import com.liferay.portal.upgrade.internal.executor.UpgradeExecutor;
 import com.liferay.portal.upgrade.internal.graph.ReleaseGraphManager;
@@ -136,21 +135,8 @@ public class ReleaseManagerOSGiCommands implements ReleaseManager {
 					String toSchemaString =
 						upgradeInfo.getToSchemaVersionString();
 
-					List<String> fromSchemaVersions = StringUtil.split(
-						fromSchemaString, CharPool.PERIOD);
-					List<String> toSchemaVersions = StringUtil.split(
-						toSchemaString, CharPool.PERIOD);
-
-					if (!toSchemaVersions.get(
-							0
-						).equals(
-							fromSchemaVersions.get(0)
-						) ||
-						!toSchemaVersions.get(
-							1
-						).equals(
-							fromSchemaVersions.get(1)
-						)) {
+					if (!PortalUpgradeProcess.isMicroVersionUpgrade(
+							fromSchemaString, toSchemaString)) {
 
 						sb2.append("**REQUIRED** ");
 					}
