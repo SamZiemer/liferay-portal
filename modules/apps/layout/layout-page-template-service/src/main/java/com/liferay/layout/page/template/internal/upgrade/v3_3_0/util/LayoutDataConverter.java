@@ -89,7 +89,8 @@ public class LayoutDataConverter {
 				if (inputRowConfigJSONObject != null) {
 					JSONObject outerStylesJSONObject = JSONUtil.put(
 						"backgroundImage",
-						_getBackgroundImageJSONObject(inputRowConfigJSONObject)
+						_getBackgroundImageJSONObject(
+							inputRowConfigJSONObject)
 					);
 
 					JSONObject innerStylesJSONObject = JSONUtil.put(
