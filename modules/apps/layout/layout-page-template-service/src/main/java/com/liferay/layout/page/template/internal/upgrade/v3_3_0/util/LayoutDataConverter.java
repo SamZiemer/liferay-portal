@@ -29,7 +29,10 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Validator;
+
+import java.util.Map;
 
 /**
  * @author Rubén Pulido
@@ -109,11 +112,16 @@ public class LayoutDataConverter {
 								"widthType", "fixed"));
 					}
 
+					String backgroundColorCssClass =
+						inputRowConfigJSONObject.getString(
+							"backgroundColorCssClass");
+
 					containerStyledLayoutStructureItem.updateItemConfig(
 						JSONUtil.put(
 							"backgroundColorCssClass",
-							inputRowConfigJSONObject.getString(
-								"backgroundColorCssClass")
+							_colors.getOrDefault(
+								backgroundColorCssClass,
+								backgroundColorCssClass)
 						).put(
 							"styles", stylesJSONObject
 						));
@@ -221,5 +229,29 @@ public class LayoutDataConverter {
 
 		return JSONUtil.put("url", backgroundImage);
 	}
+
+	private static final Map<String, String> _colors = HashMapBuilder.put(
+		"danger", "dangerColor"
+	).put(
+		"dark", "darkColor"
+	).put(
+		"gray-dark", "gray800Color"
+	).put(
+		"info", "infoColor"
+	).put(
+		"light", "lightColor"
+	).put(
+		"lighter", "gray100Color"
+	).put(
+		"primary", "primaryColor"
+	).put(
+		"secondary", "secondaryColor"
+	).put(
+		"success", "successColor"
+	).put(
+		"warning", "warningColor"
+	).put(
+		"white", "whiteColor"
+	).build();
 
 }
