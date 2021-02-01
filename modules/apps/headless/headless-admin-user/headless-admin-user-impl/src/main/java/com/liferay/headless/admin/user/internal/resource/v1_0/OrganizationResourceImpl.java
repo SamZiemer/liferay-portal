@@ -173,8 +173,8 @@ public class OrganizationResourceImpl
 				ServiceContextFactory.getInstance(contextHttpServletRequest));
 
 		return _organizationResourceDTOConverter.toDTO(
-			_getDTOConverterContext(String.valueOf(serviceBuilderOrganization)),
-			serviceBuilderOrganization);
+			_getDTOConverterContext(
+				serviceBuilderOrganization.getExternalReferenceCode()));
 	}
 
 	@Override
