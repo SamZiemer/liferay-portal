@@ -189,27 +189,27 @@ public class UpgradeFragmentEntryLinkEditableValues extends UpgradeProcess {
 			"sm", "0.1875rem"
 		).build();
 	private static final Map<String, String> _colors = HashMapBuilder.put(
-		"danger", "#DA1414"
+		"danger", "dangerColor"
 	).put(
-		"dark", "#272833"
+		"dark", "darkColor"
 	).put(
-		"gray-dark", "#393A4A"
+		"gray-dark", "gray800Color"
 	).put(
-		"info", "#2E5AAC"
+		"info", "infoColor"
 	).put(
-		"light", "#F1F2F5"
+		"light", "lightColor"
 	).put(
-		"lighter", "#F7F8F9"
+		"lighter", "gray100Color"
 	).put(
-		"primary", "#0B5FFF"
+		"primary", "primaryColor"
 	).put(
-		"secondary", "#6B6C7E"
+		"secondary", "secondaryColor"
 	).put(
-		"success", "#287D3C"
+		"success", "successColor"
 	).put(
-		"warning", "#B95000"
+		"warning", "warningColor"
 	).put(
-		"white", "#FFFFFF"
+		"white", "whiteColor"
 	).build();
 	private static final Map<String, String> _shadows = HashMapBuilder.put(
 		"lg", "0 1rem 3rem rgba(0, 0, 0, .175)"
