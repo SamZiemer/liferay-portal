@@ -14,12 +14,15 @@
 
 package com.liferay.data.cleanup.internal.upgrade;
 
+import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleLocalService;
+import com.liferay.portal.kernel.dao.orm.DynamicQuery;
+import com.liferay.portal.kernel.dao.orm.Property;
+import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.util.List;
 
 /**
  * @author Kevin Lee
@@ -34,18 +37,17 @@ public class UpgradeExpiredJournalArticle extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try (PreparedStatement ps1 = connection.prepareStatement(
-				"select id_ from JournalArticle where status = " +
-					WorkflowConstants.STATUS_EXPIRED)) {
+		DynamicQuery dynamicQuery = _journalArticleLocalService.dynamicQuery();
 
-			ResultSet rs1 = ps1.executeQuery();
+		Property property = PropertyFactoryUtil.forName("status");
 
-			while (rs1.next()) {
-				long id = rs1.getLong("id_");
+		dynamicQuery.add(property.eq(WorkflowConstants.STATUS_EXPIRED));
 
-				_journalArticleLocalService.deleteArticle(
-					_journalArticleLocalService.getArticle(id));
-			}
+		List<JournalArticle> journalArticles =
+			_journalArticleLocalService.dynamicQuery(dynamicQuery);
+
+		for (JournalArticle journalArticle : journalArticles) {
+			_journalArticleLocalService.deleteArticle(journalArticle);
 		}
 	}
 
