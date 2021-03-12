@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ReleaseConstants;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
+import com.liferay.portal.kernel.report.ReportEventPublisherUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ReleaseInfo;
@@ -121,6 +122,8 @@ public class DBUpgrader {
 			StartupHelperUtil.printPatchLevel();
 
 			upgrade();
+
+			ReportEventPublisherUtil.generateUpgradeReport();
 
 			_registerModuleServiceLifecycle("portlets.initialized");
 
