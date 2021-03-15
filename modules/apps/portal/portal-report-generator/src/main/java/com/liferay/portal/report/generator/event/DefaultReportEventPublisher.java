@@ -38,7 +38,7 @@ public class DefaultReportEventPublisher implements ReportEventPublisher {
 		return _reportEvents;
 	}
 
-	public static Map<String, ArrayList<String>> getWarnings() {
+	public static Map<String, HashMap<String, Integer>> getWarnings() {
 		return _warnings;
 	}
 
@@ -59,10 +59,10 @@ public class DefaultReportEventPublisher implements ReportEventPublisher {
 
 	@Override
 	public void addWarning(String className, String warning) {
-		List<String> warnings = _warnings.computeIfAbsent(
-			className, key -> new ArrayList<>());
+		Map<String, Integer> warnings = _warnings.computeIfAbsent(
+			className, key -> new HashMap<>());
 
-		warnings.add(warning);
+		warnings.put(warning, warnings.get(warning) + 1);
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class DefaultReportEventPublisher implements ReportEventPublisher {
 	private static final Map<String, ArrayList<String>> _errors =
 		new HashMap<>();
 	private static final List<ReportEvent> _reportEvents = new ArrayList<>();
-	private static final Map<String, ArrayList<String>> _warnings =
+	private static final Map<String, HashMap<String, Integer>> _warnings =
 		new HashMap<>();
 
 }
