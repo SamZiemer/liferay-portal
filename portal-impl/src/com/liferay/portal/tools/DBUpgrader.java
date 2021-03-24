@@ -99,7 +99,7 @@ public class DBUpgrader {
 		}
 		else if (buildNumber < requiredBuildNumber) {
 			String msg =
-				"You must first upgrade to Liferay Portal " +
+				"You must first upgrade  to Liferay Portal " +
 					requiredBuildNumber;
 
 			System.out.println(msg);
