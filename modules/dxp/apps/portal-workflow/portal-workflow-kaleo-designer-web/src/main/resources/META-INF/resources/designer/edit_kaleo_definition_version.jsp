@@ -51,11 +51,11 @@ String successMessageKey = KaleoDesignerPortletKeys.KALEO_DESIGNER + "requestPro
 				name = kaleoDefinitionVersion.getName();
 			}
 
-			draftVersion = kaleoDefinitionVersion.getVersion();
+			draftVersion = String.valueOf(kaleoDefinitionVersion.getVersion());
 
 			latestKaleoDefinitionVersion = KaleoDefinitionVersionLocalServiceUtil.getLatestKaleoDefinitionVersion(themeDisplay.getCompanyId(), name);
 
-			latestDraftVersion = latestKaleoDefinitionVersion.getVersion();
+			latestDraftVersion = String.valueOf(latestKaleoDefinitionVersion.getVersion());
 
 			if (kaleoDefinition != null) {
 				version = kaleoDefinition.getVersion();
