@@ -14,6 +14,7 @@ dependencies {
 	compileOnly project(":apps:petra:petra-portlet-url-builder")
 	compileOnly project(":apps:site:site-memberships-api")
 	compileOnly project(":apps:static:portal:portal-upgrade-api")
+	compileOnly project(":apps:users-admin:users-admin-api")
 	compileOnly project(":core:petra:petra-function")
 	compileOnly project(":core:petra:petra-lang")
 	compileOnly project(":core:petra:petra-sql-dsl-api")
