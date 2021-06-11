@@ -85,7 +85,7 @@ public class ReportGeneratorLogWrapper extends LogWrapper {
 	}
 
 	private static final boolean _GENERATE_REPORT = GetterUtil.getBoolean(
-		SystemProperties.get(PropsKeys.GENERATE_REPORT));
+		SystemProperties.get(PropsKeys.REPORT_GENERATION));
 
 	private static final Map<String, HashMap<String, Integer>> _warnings =
 		new HashMap<>();
