@@ -45,9 +45,7 @@ public class LogFactoryUtil {
 
 			String className = StringUtil.toLowerCase(name);
 
-			if (ReportGeneratorLogWrapper.isEnabled() &&
-				className.contains("upgrade")) {
-
+			if (ReportGeneratorLogWrapper.isEnabled()) {
 				logWrapper = new ReportGeneratorLogWrapper(log, name);
 			}
 			else if (SanitizerLogWrapper.isEnabled()) {
