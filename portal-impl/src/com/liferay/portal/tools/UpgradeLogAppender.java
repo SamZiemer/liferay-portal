@@ -15,6 +15,8 @@
 package com.liferay.portal.tools;
 
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeReport;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.ErrorHandler;
@@ -22,8 +24,6 @@ import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 /**
  * @author Sam Ziemer
  */
@@ -32,16 +32,19 @@ public class UpgradeLogAppender implements Appender {
 
 	@Override
 	public void append(LogEvent event) {
+		String loggerName = event.getLoggerName();
+
+		String message = event.getMessage().getFormattedMessage();
+
 		if (event.getLevel() == Level.ERROR) {
-			_errorLogEvents.add(event);
+			_upgradeReport.addError(loggerName, message);
 		}
 		else if (event.getLevel() == Level.WARN) {
-			_warningLogEvents.add(event);
+			_upgradeReport.addWarning(loggerName, message);
 		}
 		else if (event.getLevel() == Level.INFO) {
-			String loggerName = event.getLoggerName();
 			if (loggerName.equals(UpgradeProcess.class.getName())) {
-				_reportEvents.add(event);
+				_upgradeReport.addEvent(loggerName, message);
 			}
 		}
 	}
@@ -57,7 +60,7 @@ public class UpgradeLogAppender implements Appender {
 	}
 
 	public static void close() {
-		return;
+		_upgradeReport.generateReport();
 	}
 
 	@Override
@@ -105,22 +108,9 @@ public class UpgradeLogAppender implements Appender {
 		return !_started;
 	}
 
-	public List<LogEvent> getErrorLogEvents() {
-		return _errorLogEvents;
-	}
-
-	public List<LogEvent> getEvents() {
-		return _reportEvents;
-	}
-
-	public List<LogEvent> getWarningLogEvents() {
-		return _warningLogEvents;
-	}
-
-	private final List<LogEvent> _errorLogEvents = new ArrayList<>();
-	private final List<LogEvent> _reportEvents = new ArrayList<>();
-	private final List<LogEvent> _warningLogEvents = new ArrayList<>();
-
 	private boolean _started = false;
 
+	private static volatile UpgradeReport _upgradeReport =
+		ServiceProxyFactory.newServiceTrackedInstance(UpgradeReport.class,
+			UpgradeLogAppender.class, "_upgradeReport", false);
 }
