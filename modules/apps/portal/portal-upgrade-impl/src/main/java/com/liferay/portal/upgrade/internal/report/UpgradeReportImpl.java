@@ -15,12 +15,13 @@
 package com.liferay.portal.upgrade.internal.report;
 
 import com.liferay.portal.kernel.upgrade.UpgradeReport;
-import org.osgi.service.component.annotations.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.osgi.service.component.annotations.Component;
 
 /**
  * @author Sam Ziemer
@@ -62,4 +63,5 @@ public class UpgradeReportImpl implements UpgradeReport {
 		new HashMap<>();
 	private static final Map<String, ArrayList<String>> _warnings =
 		new HashMap<>();
+
 }

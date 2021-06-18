@@ -56,9 +56,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 import org.apache.commons.lang.time.StopWatch;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
+
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -387,6 +387,8 @@ public class DBUpgrader {
 	private static final Version _VERSION_7010 = new Version(0, 0, 6);
 
 	private static final Log _log = LogFactoryUtil.getLog(DBUpgrader.class);
-	private static final Logger _rootLogger = (Logger)LogManager.getRootLogger();
+
+	private static final Logger _rootLogger =
+		(Logger)LogManager.getRootLogger();
 
 }

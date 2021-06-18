@@ -17,55 +17,44 @@ package com.liferay.portal.tools;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.upgrade.UpgradeReport;
 import com.liferay.portal.kernel.util.ServiceProxyFactory;
+
+import java.io.Serializable;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.ErrorHandler;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.message.Message;
 
-import java.io.Serializable;
 /**
  * @author Sam Ziemer
  */
-
 public class UpgradeLogAppender implements Appender {
-
-	@Override
-	public void append(LogEvent event) {
-		String loggerName = event.getLoggerName();
-
-		String message = event.getMessage().getFormattedMessage();
-
-		if (event.getLevel() == Level.ERROR) {
-			_upgradeReport.addError(loggerName, message);
-		}
-		else if (event.getLevel() == Level.WARN) {
-			_upgradeReport.addWarning(loggerName, message);
-		}
-		else if (event.getLevel() == Level.INFO) {
-			if (loggerName.equals(UpgradeProcess.class.getName())) {
-				_upgradeReport.addEvent(loggerName, message);
-			}
-		}
-	}
-
-	@Override
-	public String getName() {
-		return "UpgradeLogAppender";
-	}
-
-	@Override
-	public Layout<? extends Serializable> getLayout() {
-		return null;
-	}
 
 	public static void close() {
 		_upgradeReport.generateReport();
 	}
 
 	@Override
-	public boolean ignoreExceptions() {
-		return false;
+	public void append(LogEvent event) {
+		String loggerName = event.getLoggerName();
+
+		Message message = event.getMessage();
+
+		String formattedMessage = message.getFormattedMessage();
+
+		if (event.getLevel() == Level.ERROR) {
+			_upgradeReport.addError(loggerName, formattedMessage);
+		}
+		else if (event.getLevel() == Level.WARN) {
+			_upgradeReport.addWarning(loggerName, formattedMessage);
+		}
+		else if (event.getLevel() == Level.INFO) {
+			if (loggerName.equals(UpgradeProcess.class.getName())) {
+				_upgradeReport.addEvent(loggerName, formattedMessage);
+			}
+		}
 	}
 
 	@Override
@@ -74,8 +63,13 @@ public class UpgradeLogAppender implements Appender {
 	}
 
 	@Override
-	public void setHandler(ErrorHandler handler) {
-		return;
+	public Layout<? extends Serializable> getLayout() {
+		return null;
+	}
+
+	@Override
+	public String getName() {
+		return "UpgradeLogAppender";
 	}
 
 	@Override
@@ -84,7 +78,27 @@ public class UpgradeLogAppender implements Appender {
 	}
 
 	@Override
+	public boolean ignoreExceptions() {
+		return false;
+	}
+
+	@Override
 	public void initialize() {
+		return;
+	}
+
+	@Override
+	public boolean isStarted() {
+		return _started;
+	}
+
+	@Override
+	public boolean isStopped() {
+		return !_started;
+	}
+
+	@Override
+	public void setHandler(ErrorHandler handler) {
 		return;
 	}
 
@@ -98,19 +112,11 @@ public class UpgradeLogAppender implements Appender {
 		_started = false;
 	}
 
-	@Override
-	public boolean isStarted() {
-		return _started;
-	}
-
-	@Override
-	public boolean isStopped() {
-		return !_started;
-	}
-
-	private boolean _started = false;
-
 	private static volatile UpgradeReport _upgradeReport =
-		ServiceProxyFactory.newServiceTrackedInstance(UpgradeReport.class,
-			UpgradeLogAppender.class, "_upgradeReport", false);
+		ServiceProxyFactory.newServiceTrackedInstance(
+			UpgradeReport.class, UpgradeLogAppender.class, "_upgradeReport",
+			false);
+
+	private boolean _started;
+
 }

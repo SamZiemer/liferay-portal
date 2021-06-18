@@ -26,4 +26,5 @@ public interface UpgradeReport {
 	public void addWarning(String loggerName, String message);
 
 	public void generateReport();
+
 }
