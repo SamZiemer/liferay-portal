@@ -34,9 +34,10 @@ import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ReleaseInfo;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.version.Version;
-import com.liferay.portal.log.UpgradeLogAppender;
+import com.liferay.portal.log.LogAppender;
 import com.liferay.portal.module.framework.ModuleFrameworkUtil;
 import com.liferay.portal.transaction.TransactionsUtil;
 import com.liferay.portal.upgrade.PortalUpgradeProcess;
@@ -114,8 +115,6 @@ public class DBUpgrader {
 	}
 
 	public static void main(String[] args) {
-		UpgradeLogAppender upgradeLogAppender = new UpgradeLogAppender();
-
 		try {
 			StopWatch stopWatch = new StopWatch();
 
@@ -131,9 +130,9 @@ public class DBUpgrader {
 					ProxyModeThreadLocal.setWithSafeCloseable(false)) {
 
 				if (PropsValues.UPGRADE_REPORT_ENABLED) {
-					upgradeLogAppender.start();
+					_logAppender.start();
 
-					_rootLogger.addAppender(upgradeLogAppender);
+					_rootLogger.addAppender(_logAppender);
 				}
 
 				upgrade();
@@ -155,7 +154,7 @@ public class DBUpgrader {
 			System.exit(1);
 		}
 		finally {
-			upgradeLogAppender.stop();
+			_logAppender.stop();
 		}
 	}
 
@@ -391,6 +390,9 @@ public class DBUpgrader {
 
 	private static final Log _log = LogFactoryUtil.getLog(DBUpgrader.class);
 
+	private static volatile LogAppender _logAppender =
+		ServiceProxyFactory.newServiceTrackedInstance(
+			LogAppender.class, DBUpgrader.class, "_upgradeReport", false);
 	private static final Logger _rootLogger =
 		(Logger)LogManager.getRootLogger();
 

@@ -12,19 +12,22 @@
  * details.
  */
 
-package com.liferay.portal.kernel.upgrade;
+package com.liferay.portal.log;
+
+import java.util.List;
+
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.LogEvent;
 
 /**
  * @author Sam Ziemer
  */
-public interface UpgradeReport {
+public interface LogAppender extends Appender {
 
-	public void addError(String loggerName, String message);
+	public List<LogEvent> getErrorLogEvents();
 
-	public void addEvent(String loggerName, String message);
+	public List<LogEvent> getEvents();
 
-	public void addWarning(String loggerName, String message);
-
-	public void generateReport();
+	public List<LogEvent> getWarningLogEvents();
 
 }

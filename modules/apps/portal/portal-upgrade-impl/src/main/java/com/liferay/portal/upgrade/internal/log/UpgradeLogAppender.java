@@ -12,11 +12,11 @@
  * details.
  */
 
-package com.liferay.portal.log;
+package com.liferay.portal.upgrade.internal.log;
 
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import com.liferay.portal.kernel.upgrade.UpgradeReport;
-import com.liferay.portal.kernel.util.ServiceProxyFactory;
+import com.liferay.portal.log.LogAppender;
+import com.liferay.portal.upgrade.internal.report.UpgradeReport;
 
 import java.io.Serializable;
 
@@ -24,16 +24,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.ErrorHandler;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.message.Message;
 
+import org.osgi.service.component.annotations.Component;
+
 /**
  * @author Sam Ziemer
  */
-public class UpgradeLogAppender implements Appender {
+@Component(
+	immediate = true, service = {LogAppender.class, UpgradeLogAppender.class}
+)
+public class UpgradeLogAppender implements LogAppender {
 
 	@Override
 	public void append(LogEvent event) {
@@ -56,10 +60,12 @@ public class UpgradeLogAppender implements Appender {
 		}
 	}
 
+	@Override
 	public List<LogEvent> getErrorLogEvents() {
 		return _errorLogEvents;
 	}
 
+	@Override
 	public List<LogEvent> getEvents() {
 		return _reportEvents;
 	}
@@ -84,6 +90,7 @@ public class UpgradeLogAppender implements Appender {
 		return null;
 	}
 
+	@Override
 	public List<LogEvent> getWarningLogEvents() {
 		return _warningLogEvents;
 	}
@@ -114,6 +121,8 @@ public class UpgradeLogAppender implements Appender {
 	@Override
 	public void start() {
 		_started = true;
+
+		_upgradeReport = new UpgradeReport();
 	}
 
 	@Override
@@ -128,14 +137,10 @@ public class UpgradeLogAppender implements Appender {
 		}
 	}
 
-	private static volatile UpgradeReport _upgradeReport =
-		ServiceProxyFactory.newServiceTrackedInstance(
-			UpgradeReport.class, UpgradeLogAppender.class, "_upgradeReport",
-			false);
-
 	private final List<LogEvent> _errorLogEvents = new ArrayList<>();
 	private final List<LogEvent> _reportEvents = new ArrayList<>();
 	private boolean _started;
+	private UpgradeReport _upgradeReport;
 	private final List<LogEvent> _warningLogEvents = new ArrayList<>();
 
 }
