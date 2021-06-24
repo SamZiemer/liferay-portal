@@ -44,4 +44,6 @@ public interface ModuleServiceLifecycle {
 
 	public String SYSTEM_CHECK = "(module.service.lifecycle=system.check)";
 
+	public String UPGRADE_FINISHED =
+		"(module.service.lifecycle=upgrade.finished)";
 }
