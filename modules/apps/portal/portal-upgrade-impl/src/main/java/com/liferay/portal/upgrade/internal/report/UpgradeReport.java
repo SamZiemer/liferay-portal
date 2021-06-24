@@ -14,6 +14,12 @@
 
 package com.liferay.portal.upgrade.internal.report;
 
+import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.util.PropsValues;
+
+import java.io.File;
+import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,13 +52,17 @@ public class UpgradeReport {
 	}
 
 	public void generateReport() {
+		File file = new File(PropsValues.LIFERAY_HOME, "upgrade.log");
+
+		try {
+			FileUtil.write(file, "Report Generated");
+		}
+		catch (IOException ioException) {
+		}
 	}
 
-	private static final Map<String, ArrayList<String>> _errors =
-		new HashMap<>();
-	private static final Map<String, ArrayList<String>> _events =
-		new HashMap<>();
-	private static final Map<String, ArrayList<String>> _warnings =
-		new HashMap<>();
+	private final Map<String, ArrayList<String>> _errors = new HashMap<>();
+	private final Map<String, ArrayList<String>> _events = new HashMap<>();
+	private final Map<String, ArrayList<String>> _warnings = new HashMap<>();
 
 }

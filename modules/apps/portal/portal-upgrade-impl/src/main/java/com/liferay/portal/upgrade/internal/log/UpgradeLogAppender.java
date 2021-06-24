@@ -17,6 +17,7 @@ package com.liferay.portal.upgrade.internal.log;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.log.LogAppender;
 import com.liferay.portal.upgrade.internal.report.UpgradeReport;
+import com.liferay.portal.util.PropsValues;
 
 import java.io.Serializable;
 
@@ -24,11 +25,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.ErrorHandler;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.message.Message;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
 /**
@@ -118,24 +123,37 @@ public class UpgradeLogAppender implements LogAppender {
 	public void setHandler(ErrorHandler handler) {
 	}
 
+	public void setUpgradeReport(UpgradeReport upgradeReport) {
+		_upgradeReport = upgradeReport;
+	}
+
 	@Override
 	public void start() {
 		_started = true;
-
-		_upgradeReport = new UpgradeReport();
 	}
 
 	@Override
 	public void stop() {
-		try {
-			if (_started) {
-				_upgradeReport.generateReport();
-			}
+		if (_started) {
+			_upgradeReport.generateReport();
 		}
-		finally {
-			_started = false;
+
+		_started = false;
+	}
+
+	@Activate
+	protected void activate(BundleContext bundleContext) {
+		if (PropsValues.UPGRADE_REPORT_ENABLED) {
+			start();
+
+			_upgradeReport = new UpgradeReport();
+
+			_rootLogger.addAppender(this);
 		}
 	}
+
+	private static final Logger _rootLogger =
+		(Logger)LogManager.getRootLogger();
 
 	private final List<LogEvent> _errorLogEvents = new ArrayList<>();
 	private final List<LogEvent> _reportEvents = new ArrayList<>();
