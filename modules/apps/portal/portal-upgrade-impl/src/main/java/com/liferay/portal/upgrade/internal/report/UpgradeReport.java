@@ -46,12 +46,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UpgradeReport {
 
 	public UpgradeReport() {
-		_setInitialBuildNumber();
+		setInitialBuildNumber();
 
-		if ((_initialBuildNumber != -1) &&
-			(_initialBuildNumber > ReleaseInfo.RELEASE_7_0_0_BUILD_NUMBER)) {
+		if ((initialBuildNumber != -1) &&
+			(initialBuildNumber > ReleaseInfo.RELEASE_7_0_0_BUILD_NUMBER)) {
 
-			_setInitialSchemaVersion();
+			setInitialSchemaVersion();
 		}
 	}
 
@@ -77,7 +77,7 @@ public class UpgradeReport {
 	}
 
 	public void generateReport() {
-		File logFile = _getLogFile();
+		File logFile = getLogFile();
 
 		StringBuffer sb = new StringBuffer(3);
 
@@ -94,6 +94,51 @@ public class UpgradeReport {
 			}
 		}
 	}
+
+	protected File getLogFile() {
+		File logFile = new File(
+			PropsValues.LIFERAY_HOME, "upgrade_report.info");
+
+		if (logFile.exists()) {
+			String logFileName = logFile.getName();
+
+			logFile.renameTo(
+				new File(
+					PropsValues.LIFERAY_HOME,
+					logFileName + "." + logFile.lastModified()));
+
+			logFile = new File(PropsValues.LIFERAY_HOME, logFileName);
+		}
+
+		return logFile;
+	}
+
+	protected void setInitialBuildNumber() {
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				"select buildNumber from Release_ where releaseId = " +
+					ReleaseConstants.DEFAULT_ID)) {
+
+			ResultSet resultSet = preparedStatement.executeQuery();
+
+			if (resultSet.next()) {
+				initialBuildNumber = resultSet.getInt("buildNumber");
+			}
+		}
+		catch (Exception exception) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Unable to get initial build Number and schema version");
+			}
+		}
+	}
+
+	protected void setInitialSchemaVersion() {
+		initialSchemaVersion = _getSchemaVersion();
+	}
+
+	protected int initialBuildNumber = -1;
+	protected String initialSchemaVersion;
 
 	private String _getDialectInfo() {
 		StringBuffer sb = new StringBuffer(7);
@@ -116,13 +161,13 @@ public class UpgradeReport {
 
 		String currentSchemaVersion = _getSchemaVersion();
 
-		if (_initialBuildNumber != -1) {
+		if (initialBuildNumber != -1) {
 			sb.append("Initial version of Liferay: ");
-			sb.append(_initialBuildNumber);
+			sb.append(initialBuildNumber);
 
-			if (_initialSchemaVersion != null) {
+			if (initialSchemaVersion != null) {
 				sb.append(" and initial schema version ");
-				sb.append(_initialSchemaVersion);
+				sb.append(initialSchemaVersion);
 			}
 		}
 		else {
@@ -142,24 +187,6 @@ public class UpgradeReport {
 		sb.append(StringPool.NEW_LINE);
 
 		return sb.toString();
-	}
-
-	private File _getLogFile() {
-		File logFile = new File(
-			PropsValues.LIFERAY_HOME, "upgrade_report.info");
-
-		if (logFile.exists()) {
-			String logFileName = logFile.getName();
-
-			logFile.renameTo(
-				new File(
-					PropsValues.LIFERAY_HOME,
-					logFileName + "." + logFile.lastModified()));
-
-			logFile = new File(PropsValues.LIFERAY_HOME, logFileName);
-		}
-
-		return logFile;
 	}
 
 	private String _getProperties() {
@@ -211,38 +238,12 @@ public class UpgradeReport {
 		return null;
 	}
 
-	private void _setInitialBuildNumber() {
-		try (Connection connection = DataAccess.getConnection();
-			PreparedStatement preparedStatement = connection.prepareStatement(
-				"select buildNumber from Release_ where releaseId = " +
-					ReleaseConstants.DEFAULT_ID)) {
-
-			ResultSet resultSet = preparedStatement.executeQuery();
-
-			if (resultSet.next()) {
-				_initialBuildNumber = resultSet.getInt("buildNumber");
-			}
-		}
-		catch (Exception exception) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Unable to get initial build Number and schema version");
-			}
-		}
-	}
-
-	private void _setInitialSchemaVersion() {
-		_initialSchemaVersion = _getSchemaVersion();
-	}
-
 	private static final Log _log = LogFactoryUtil.getLog(UpgradeReport.class);
 
 	private final Map<String, ArrayList<String>> _errorMessages =
 		new ConcurrentHashMap<>();
 	private final Map<String, ArrayList<String>> _eventMessages =
 		new ConcurrentHashMap<>();
-	private int _initialBuildNumber = -1;
-	private String _initialSchemaVersion;
 	private final Map<String, ArrayList<String>> _warningMessages =
 		new ConcurrentHashMap<>();
 
