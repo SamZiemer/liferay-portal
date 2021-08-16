@@ -48,9 +48,7 @@ public class UpgradeReport {
 	public UpgradeReport() {
 		setInitialBuildNumber();
 
-		if ((initialBuildNumber != -1) &&
-			(initialBuildNumber > ReleaseInfo.RELEASE_7_0_0_BUILD_NUMBER)) {
-
+		if (initialBuildNumber > ReleaseInfo.RELEASE_7_0_0_BUILD_NUMBER) {
 			setInitialSchemaVersion();
 		}
 	}
