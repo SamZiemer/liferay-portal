@@ -2502,6 +2502,9 @@ public class PropsValues {
 	public static final String REDIRECT_URL_SECURITY_MODE = PropsUtil.get(
 		PropsKeys.REDIRECT_URL_SECURITY_MODE);
 
+	public static final boolean REPORT_GENERATION = GetterUtil.getBoolean(
+		PropsUtil.get(PropsKeys.REPORT_GENERATION));
+
 	public static final boolean REQUEST_HEADER_AUTH_IMPORT_FROM_LDAP =
 		GetterUtil.getBoolean(
 			PropsUtil.get(PropsKeys.REQUEST_HEADER_AUTH_IMPORT_FROM_LDAP));

@@ -2798,6 +2798,8 @@ public interface PropsKeys {
 	public static final String RELEASE_INFO_PREVIOUS_BUILD_NUMBER =
 		"release.info.previous.build.number";
 
+	public static final String REPORT_GENERATION = "report.generation";
+
 	public static final String REQUEST_HEADER_AUTH_IMPORT_FROM_LDAP =
 		"request.header.auth.import.from.ldap";
 
