@@ -87,9 +87,7 @@ public class UpgradeReport {
 			FileUtil.write(logFile, sb.toString());
 		}
 		catch (IOException ioException) {
-			if (_log.isWarnEnabled()) {
-				_log.warn("Unable to generate report");
-			}
+			_log.error("Unable to generate the upgrade report");
 		}
 	}
 
@@ -107,7 +105,7 @@ public class UpgradeReport {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn("Unable to get the build number");
+				_log.warn("Unable to get build number");
 			}
 		}
 
@@ -137,20 +135,20 @@ public class UpgradeReport {
 			reportsDir.mkdirs();
 		}
 
-		File logFile = new File(reportsDir, "upgrade_report.info");
+		File reportFile = new File(reportsDir, "upgrade_report.info");
 
-		if (logFile.exists()) {
-			String logFileName = logFile.getName();
+		if (reportFile.exists()) {
+			String logFileName = reportFile.getName();
 
-			logFile.renameTo(
+			reportFile.renameTo(
 				new File(
 					PropsValues.LIFERAY_HOME,
-					logFileName + "." + logFile.lastModified()));
+					logFileName + "." + reportFile.lastModified()));
 
-			logFile = new File(PropsValues.LIFERAY_HOME, logFileName);
+			reportFile = new File(PropsValues.LIFERAY_HOME, logFileName);
 		}
 
-		return logFile;
+		return reportFile;
 	}
 
 	private String _getPortalVersions() {
@@ -249,7 +247,7 @@ public class UpgradeReport {
 		}
 		catch (SQLException sqlException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn("Unable to get schemaVersion");
+				_log.warn("Unable to get schema version");
 			}
 		}
 
