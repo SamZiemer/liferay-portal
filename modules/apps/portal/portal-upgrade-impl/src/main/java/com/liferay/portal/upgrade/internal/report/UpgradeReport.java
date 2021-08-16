@@ -135,7 +135,7 @@ public class UpgradeReport {
 		initialSchemaVersion = _getSchemaVersion();
 	}
 
-	protected int initialBuildNumber = -1;
+	protected int initialBuildNumber;
 	protected String initialSchemaVersion;
 
 	private String _getDialectInfo() {
@@ -159,7 +159,7 @@ public class UpgradeReport {
 
 		String currentSchemaVersion = _getSchemaVersion();
 
-		if (initialBuildNumber != -1) {
+		if (initialBuildNumber != 0) {
 			sb.append("Initial version of Liferay: ");
 			sb.append(initialBuildNumber);
 
