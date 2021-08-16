@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.report.ReportEventPublisherUtil;
 import com.liferay.portal.kernel.upgrade.util.UpgradeColumn;
 import com.liferay.portal.kernel.upgrade.util.UpgradeTable;
 import com.liferay.portal.kernel.upgrade.util.UpgradeTableFactoryUtil;
@@ -117,17 +118,25 @@ public abstract class UpgradeProcess
 		catch (Throwable throwable) {
 			message = "Failed upgrade process ";
 
+			ReportEventPublisherUtil.addError(
+				ClassUtil.getClassName(this), throwable.getMessage());
+
 			throw new UpgradeException(throwable);
 		}
 		finally {
 			this.connection = null;
 
+			long duration = System.currentTimeMillis() - start;
+
 			if (_log.isInfoEnabled()) {
 				_log.info(
 					StringBundler.concat(
 						message, ClassUtil.getClassName(this), " in ",
-						System.currentTimeMillis() - start, " ms"));
+						duration, " ms"));
 			}
+
+			ReportEventPublisherUtil.addEvent(
+				ClassUtil.getClassName(this), duration);
 		}
 	}
 

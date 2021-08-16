@@ -21,8 +21,10 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
+import com.liferay.portal.kernel.report.ReportEventPublisherUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.util.ClassUtil;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -105,6 +107,9 @@ public class PermissionUpgradeProcess extends UpgradeProcess {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
+				ReportEventPublisherUtil.addWarning(
+					ClassUtil.getClassName(this), exception.getClass().getName());
+
 				_log.warn("Unable to add resource permission", exception);
 			}
 		}
@@ -137,6 +142,9 @@ public class PermissionUpgradeProcess extends UpgradeProcess {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
+				ReportEventPublisherUtil.addWarning(
+					this.getClass().getName(), exception.getMessage());
+
 				_log.warn("Unable to add resource action", exception);
 			}
 		}
