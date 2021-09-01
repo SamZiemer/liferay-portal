@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.version.Version;
 import com.liferay.portal.upgrade.PortalUpgradeProcess;
+import com.liferay.portal.upgrade.internal.release.osgi.commands.ReleaseManagerOSGiCommands;
 import com.liferay.portal.util.PropsValues;
 
 import java.io.File;
@@ -62,8 +63,12 @@ import org.apache.felix.cm.PersistenceManager;
  */
 public class UpgradeReport {
 
-	public UpgradeReport(PersistenceManager persistenceManager) {
+	public UpgradeReport(
+		PersistenceManager persistenceManager,
+		ReleaseManagerOSGiCommands releaseManagerOSGiCommands) {
+
 		_persistenceManager = persistenceManager;
+		_releaseManagerOSGiCommands = releaseManagerOSGiCommands;
 
 		_initialBuildNumber = _getBuildNumber();
 		_initialSchemaVersion = _getSchemaVersion();
@@ -106,7 +111,8 @@ public class UpgradeReport {
 					new String[] {
 						_getPortalVersions(), _getDialectInfo(),
 						_getProperties(), _getDLSize(), _getUpgradeTimes(),
-						_getLogEvents("errors"), _getLogEvents("warnings")
+						_getLogEvents("errors"), _getLogEvents("warnings"),
+						_getModuleUpgradeStatus()
 					},
 					StringPool.NEW_LINE + StringPool.NEW_LINE));
 		}
@@ -262,6 +268,10 @@ public class UpgradeReport {
 		}
 
 		return sb.toString();
+	}
+
+	private String _getModuleUpgradeStatus() {
+		return _releaseManagerOSGiCommands.checkAll(false);
 	}
 
 	private String _getPortalVersions() {
@@ -520,6 +530,7 @@ public class UpgradeReport {
 	private final int _initialBuildNumber;
 	private final String _initialSchemaVersion;
 	private final PersistenceManager _persistenceManager;
+	private final ReleaseManagerOSGiCommands _releaseManagerOSGiCommands;
 	private String _rootDir;
 	private final Map<String, Map<String, Integer>> _warningMessages =
 		new ConcurrentHashMap<>();
