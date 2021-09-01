@@ -301,6 +301,8 @@ public class ReleaseManagerOSGiCommands {
 							upgradeInfo.getToSchemaVersionString()));
 				}
 			}
+
+			sb.append(StringPool.NEW_LINE);
 		}
 
 		return sb.toString();
