@@ -68,6 +68,11 @@ public class ReleaseManagerOSGiCommands {
 		return _check(true);
 	}
 
+	@Descriptor("List pending upgrade processes and their upgrade steps")
+	public String checkAll(boolean showUpgradeSteps) {
+		return _check(showUpgradeSteps);
+	}
+
 	@Descriptor("Execute upgrade for a specific module")
 	public String execute(String bundleSymbolicName) {
 		List<UpgradeInfo> upgradeInfos = _releaseManagerImpl.getUpgradeInfos(
