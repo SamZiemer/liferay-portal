@@ -144,7 +144,7 @@ public class ReleaseManagerOSGiCommands {
 		return sb.toString();
 	}
 
-	@Descriptor("List registered upgrade processes for all modules")
+	@Descriptor("List registered upgrade processes for all modules test")
 	public String list() {
 		Set<String> bundleSymbolicNames =
 			_releaseManagerImpl.getBundleSymbolicNames();
