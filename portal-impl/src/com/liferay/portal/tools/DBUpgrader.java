@@ -76,7 +76,7 @@ public class DBUpgrader {
 
 		throw new IllegalStateException(
 			StringBundler.concat(
-				"The database contains changes from a previous upgrade ",
+				"Test The database contains changes from a previous upgrade ",
 				"attempt that failed. Please restore the old database and ",
 				"file system and retry the upgrade. A patch may be required ",
 				"if the upgrade failed due to a bug or an unforeseen data ",
