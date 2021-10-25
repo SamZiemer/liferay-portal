@@ -69,21 +69,17 @@ public class UpgradeReportLogAppenderTest {
 		_db = DBManagerUtil.getDB();
 
 		_db.runSQL(
-			new String[] {
-				"create table " + _TABLE_NAME_1 +
-					" (id LONG not null primary key)",
-				"create table " + _TABLE_NAME_2 +
-					" (id LONG not null primary key)"
-			});
+			"create table " + _TABLE_NAME_1 +
+				" (id LONG not null primary key)");
+		_db.runSQL(
+			"create table " + _TABLE_NAME_2 +
+				" (id LONG not null primary key)");
 	}
 
 	@AfterClass
 	public static void tearDownClass() throws Exception {
-		_db.runSQL(
-			new String[] {
-				"drop table if exists " + _TABLE_NAME_1,
-				"drop table if exists " + _TABLE_NAME_2
-			});
+		_db.runSQL("drop table if exists " + _TABLE_NAME_1);
+		_db.runSQL("drop table if exists " + _TABLE_NAME_2);
 	}
 
 	@After
