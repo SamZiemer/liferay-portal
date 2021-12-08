@@ -14,6 +14,7 @@
 
 package com.liferay.portal.service.impl;
 
+import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
@@ -49,6 +50,37 @@ import javax.portlet.PortletPreferences;
  */
 @JSONWebService
 public class CompanyServiceImpl extends CompanyServiceBaseImpl {
+
+	/**
+	 * Adds a company.
+	 *
+	 * @param	companyId the primary key of the company (optionally <code>null</code> or
+	 * 	 *         <code>0</code> to generate a key automatically)
+	 * @param  webId the company's web domain
+	 * @param  virtualHost the company's virtual host name
+	 * @param  mx the company's mail domain
+	 * @param  system whether the company is the very first company (i.e., the
+	 * @param  maxUsers the max number of company users (optionally
+	 *         <code>0</code>)
+	 * @param  active whether the company is active
+	 * @return the company
+	 */
+	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
+	@Override
+	public Company addCompany(
+			long companyId, String webId, String virtualHost, String mx,
+			boolean system, int maxUsers, boolean active)
+		throws PortalException {
+
+		PermissionChecker permissionChecker = getPermissionChecker();
+
+		if (!permissionChecker.isOmniadmin()) {
+			throw new PrincipalException.MustBeOmniadmin(permissionChecker);
+		}
+
+		return companyLocalService.addCompany(
+			companyId, webId, virtualHost, mx, system, maxUsers, active);
+	}
 
 	/**
 	 * Adds a company.
@@ -105,6 +137,20 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 		}
 
 		companyLocalService.deleteLogo(companyId);
+	}
+
+	@Override
+	public void forEachCompany(
+			UnsafeConsumer<Company, Exception> unsafeConsumer)
+		throws Exception {
+
+		PermissionChecker permissionChecker = getPermissionChecker();
+
+		if (!permissionChecker.isOmniadmin()) {
+			throw new PrincipalException.MustBeOmniadmin(permissionChecker);
+		}
+
+		companyLocalService.forEachCompany(unsafeConsumer);
 	}
 
 	/**
