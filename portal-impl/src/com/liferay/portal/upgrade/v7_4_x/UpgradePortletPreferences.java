@@ -16,10 +16,14 @@ package com.liferay.portal.upgrade.v7_4_x;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.dao.orm.common.SQLTransformer;
+import com.liferay.portal.kernel.dao.db.DB;
+import com.liferay.portal.kernel.dao.db.DBManagerUtil;
+import com.liferay.portal.kernel.dao.db.DBType;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.model.PortletConstants;
 import com.liferay.portal.kernel.model.PortletPreferenceValue;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.impl.PortletPreferenceValueImpl;
 import com.liferay.portal.upgrade.v7_4_x.util.PortletPreferencesTable;
 import com.liferay.portlet.PortletPreferencesFactoryImpl;
@@ -46,14 +50,27 @@ public class UpgradePortletPreferences extends UpgradeProcess {
 				"VARCHAR(255) null, primary key (portletPreferenceValueId, ",
 				"ctCollectionId))"));
 
-		processConcurrently(
-			SQLTransformer.transform(
+		DB db = DBManagerUtil.getDB();
+
+		String query = SQLTransformer.transform(
+			StringBundler.concat(
+				"select ctCollectionId, portletPreferencesId, companyId, ",
+				"preferences from PortletPreferences where ",
+				"CAST_CLOB_TEXT(preferences) != '",
+				PortletConstants.DEFAULT_PREFERENCES,
+				"' and preferences is not null"));
+
+		if (db.getDBType() == DBType.ORACLE) {
+			int length = PortletConstants.DEFAULT_PREFERENCES.length();
+
+			query = StringUtil.replace(
+				query, "DBMS_LOB.SUBSTR(preferences, 4000, 1)",
 				StringBundler.concat(
-					"select ctCollectionId, portletPreferencesId, companyId, ",
-					"preferences from PortletPreferences where ",
-					"CAST_CLOB_TEXT(preferences) != '",
-					PortletConstants.DEFAULT_PREFERENCES,
-					"' and preferences is not null")),
+					"DBMS_LOB.SUBSTR(preferences, ", length + 1, ", 1)"));
+		}
+
+		processConcurrently(
+			query,
 			resultSet -> new Object[] {
 				resultSet.getLong("ctCollectionId"),
 				resultSet.getLong("portletPreferencesId"),
