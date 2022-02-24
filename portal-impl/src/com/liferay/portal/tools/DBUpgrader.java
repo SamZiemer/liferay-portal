@@ -119,6 +119,8 @@ public class DBUpgrader {
 
 			StartupHelperUtil.printPatchLevel();
 
+			StartupHelperUtil.checkFileStore();
+
 			try (SafeCloseable safeCloseable =
 					ProxyModeThreadLocal.setWithSafeCloseable(false)) {
 

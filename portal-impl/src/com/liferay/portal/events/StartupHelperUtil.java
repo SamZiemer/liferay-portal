@@ -36,6 +36,11 @@ import com.liferay.portal.kernel.version.Version;
 import com.liferay.portal.upgrade.PortalUpgradeProcess;
 import com.liferay.portal.util.PropsValues;
 
+import java.io.File;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import java.sql.Connection;
 
 import java.util.List;
@@ -46,6 +51,39 @@ import java.util.List;
  * @author Raymond Augé
  */
 public class StartupHelperUtil {
+
+	public static void checkFileStore() {
+		if (_log.isInfoEnabled()) {
+			_log.info("Checking File Store...");
+
+			if (StringUtil.equals(
+					PropsValues.DL_STORE_IMPL,
+					"com.liferay.portal.store.file.system." +
+						"AdvancedFileSystemStore")) {
+
+				_log.info("Advance File System Store is enabled");
+
+				Path osgiConfigPath = Paths.get(
+					PropsValues.MODULE_FRAMEWORK_CONFIGS_DIR,
+					"/" + _CONFIGURATION_PID_ADVANCED_FILE_SYSTEM_STORE_CONFIG);
+
+				File osgiConfig = osgiConfigPath.toFile();
+
+				if (osgiConfig.exists()) {
+					_log.info("File Store Configuration found");
+				}
+				else {
+					_log.info(
+						"File Store Configuration does not exist. Please " +
+							"check OSGI/configs.");
+					System.exit(1);
+				}
+			}
+		}
+		else {
+			_log.info("File store set to default");
+		}
+	}
 
 	public static void initResourceActions() {
 		ResourceActionLocalServiceUtil.checkResourceActions();
@@ -188,6 +226,11 @@ public class StartupHelperUtil {
 			throw new RuntimeException(msg);
 		}
 	}
+
+	private static final String
+		_CONFIGURATION_PID_ADVANCED_FILE_SYSTEM_STORE_CONFIG =
+			"com.liferay.portal.store.file.system.configuration." +
+				"AdvancedFileSystemStoreConfiguration.config";
 
 	private static final String[] _UPGRADE_PROCESS_CLASS_NAMES = {
 		"com.liferay.portal.upgrade.UpgradeProcess_7_0_0",

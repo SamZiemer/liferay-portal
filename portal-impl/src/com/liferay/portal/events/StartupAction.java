@@ -80,6 +80,8 @@ public class StartupAction extends SimpleAction {
 
 		StartupHelperUtil.printPatchLevel();
 
+		StartupHelperUtil.checkFileStore();
+
 		// MySQL version
 
 		DB db = DBManagerUtil.getDB();
