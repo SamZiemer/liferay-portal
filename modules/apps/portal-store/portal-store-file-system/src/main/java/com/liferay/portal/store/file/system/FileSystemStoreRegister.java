@@ -18,9 +18,12 @@ import com.liferay.document.library.kernel.store.Store;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.convert.documentlibrary.FileSystemStoreRootDirException;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.store.file.system.configuration.FileSystemStoreConfiguration;
 import com.liferay.portal.store.file.system.safe.file.name.SafeFileNameStore;
+import com.liferay.portal.util.PropsValues;
 
 import java.util.Map;
 
@@ -47,6 +50,17 @@ public class FileSystemStoreRegister {
 			ConfigurableUtil.createConfigurable(
 				FileSystemStoreConfiguration.class, properties);
 
+		if (!StringUtil.equals(
+				PropsValues.DL_STORE_IMPL, _CLASS_NAME_FILE_SYSTEM_STORE)) {
+
+			throw new IllegalArgumentException(
+				StringBundler.concat(
+					"File System does not match settings. File store set to ",
+					PropsValues.DL_STORE_IMPL,
+					"Check OSGI/config for required configuration."),
+				new FileSystemStoreRootDirException());
+		}
+
 		if (Validator.isBlank(fileSystemStoreConfiguration.rootDir())) {
 			throw new IllegalArgumentException(
 				"File system root directory is not set",
@@ -69,6 +83,9 @@ public class FileSystemStoreRegister {
 	protected void deactivate() {
 		_serviceRegistration.unregister();
 	}
+
+	private static final String _CLASS_NAME_FILE_SYSTEM_STORE =
+		"com.liferay.portal.store.file.system.FileSystemStore";
 
 	private ServiceRegistration<Store> _serviceRegistration;
 
