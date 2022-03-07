@@ -79,9 +79,9 @@ public class StartupHelperUtil {
 					System.exit(1);
 				}
 			}
-		}
-		else {
-			_log.info("File store set to default");
+			else {
+				_log.info("File store set to default");
+			}
 		}
 	}
 
