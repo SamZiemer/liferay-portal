@@ -45,6 +45,55 @@ public class DDMFormValuesMergerTest {
 		LiferayUnitTestRule.INSTANCE;
 
 	@Test
+	public void testAddLongDecimalValueDDMFormFieldValue() {
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm();
+
+		ddmForm.addDDMFormField(
+			DDMFormTestUtil.createNumericDDMFormField(
+				"number1","number1","decimal",true,false,
+				false,null,null,null));
+
+		ddmForm.addDDMFormField(
+			DDMFormTestUtil.createNumericDDMFormField(
+				"number2","number2","decimal",true,false,
+				false,null,null,null));
+
+		// Existing dynamic data mapping form values
+
+		String decimalStringValue = "8.9999999999999999999999999999999999999999";
+
+		LocalizedValue decimalStringLocalizedValue =
+			DDMFormValuesTestUtil.createLocalizedValue(
+				decimalStringValue, LocaleUtil.US);
+
+		DDMFormFieldValue decimalStringDDMFormFieldValue =
+			DDMFormValuesTestUtil.createDDMFormFieldValue(
+				"number1", decimalStringLocalizedValue);
+
+		DDMFormValues existingDDMFormValues = createDDMFormValues(
+			ddmForm, decimalStringDDMFormFieldValue);
+
+		// New dynamic data mapping form values
+
+		LocalizedValue decimal2StringLocalizedValue =
+			DDMFormValuesTestUtil.createLocalizedValue(
+				"null", LocaleUtil.US);
+
+		DDMFormFieldValue decimal2StringDDMFormFieldValue =
+			DDMFormValuesTestUtil.createDDMFormFieldValue(
+				"number2", decimal2StringLocalizedValue);
+
+		DDMFormValues newDDMFormValues = createDDMFormValues(
+			ddmForm, decimal2StringDDMFormFieldValue);
+
+		DDMFormValues mergedDDMFormValues = _ddmFormValuesMerger.merge(
+			newDDMFormValues, existingDDMFormValues);
+
+		Assert.assertEquals(
+			decimalStringValue, mergedDDMFormValues.getDDMFormFieldValues().get(0).getValue().getString(LocaleUtil.US));
+	}
+
+	@Test
 	public void testAddMissingDDMFormFieldValue() {
 		DDMForm ddmForm = DDMFormTestUtil.createDDMForm();
 
