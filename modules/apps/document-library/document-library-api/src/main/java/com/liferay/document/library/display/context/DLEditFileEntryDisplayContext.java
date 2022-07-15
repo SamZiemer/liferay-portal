@@ -16,6 +16,7 @@ package com.liferay.document.library.display.context;
 
 import com.liferay.dynamic.data.mapping.kernel.DDMStructure;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 
 import java.util.Locale;
@@ -26,6 +27,9 @@ import java.util.Locale;
 public interface DLEditFileEntryDisplayContext extends DLDisplayContext {
 
 	public DDMFormValues getDDMFormValues(long classPK) throws PortalException;
+	public default String getAllMimeTypeSizeLimit() throws PortalException {
+		               return StringPool.BLANK;
+		      }
 
 	public String getDLFileEntryTypeLanguageId(
 		DDMStructure ddmStructure, Locale locale);
