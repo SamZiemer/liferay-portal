@@ -832,7 +832,7 @@
 	<sql id="com.liferay.portal.kernel.service.persistence.RoleFinder.countByC_N_D_T">
 		<![CDATA[
 			SELECT
-				COUNT(DISTINCT Role_.roleId) AS COUNT_VALUE
+				COUNT(Role_.roleId) AS COUNT_VALUE
 			FROM
 				Role_
 			[$JOIN$]
@@ -850,7 +850,7 @@
 	<sql id="com.liferay.portal.kernel.service.persistence.RoleFinder.countByC_N_T_D_T">
 		<![CDATA[
 			SELECT
-				COUNT(DISTINCT Role_.roleId) AS COUNT_VALUE
+				COUNT(Role_.roleId) AS COUNT_VALUE
 			FROM
 				Role_
 			[$JOIN$]
@@ -909,7 +909,7 @@
 	<sql id="com.liferay.portal.kernel.service.persistence.RoleFinder.findByC_N_D_T">
 		<![CDATA[
 			SELECT
-				DISTINCT {Role_.*}
+				{Role_.*}
 			FROM
 				Role_
 			[$JOIN$]
@@ -929,7 +929,7 @@
 	<sql id="com.liferay.portal.kernel.service.persistence.RoleFinder.findByC_N_T_D_T">
 		<![CDATA[
 			SELECT
-				DISTINCT {Role_.*}
+				{Role_.*}
 			FROM
 				Role_
 			[$JOIN$]
