@@ -69,7 +69,7 @@ public class DDMFormInstanceSubmissionLimitStatusUtil {
 		Optional<DDMFormInstanceRecordVersion> optional = stream.filter(
 			ddmFormInstanceRecordVersion ->
 				ddmFormInstanceRecordVersion.getStatus() !=
-					WorkflowConstants.STATUS_DRAFT
+					WorkflowConstants.ACTION_PUBLISH
 		).findFirst();
 
 		if (optional.isPresent()) {
