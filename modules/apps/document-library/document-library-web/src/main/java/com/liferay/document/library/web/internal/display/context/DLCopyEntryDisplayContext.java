@@ -127,6 +127,18 @@ public class DLCopyEntryDisplayContext {
 					_getSourceFolderId(), _getSourceRepositoryId())));
 	}
 
+	public long getSourceFolderId() throws PortalException {
+		return _getSourceFolderId();
+	}
+
+	public String getSourceFolderName() {
+		if (_sourceFolderName == null) {
+			_sourceFolderName = LanguageUtil.get(_httpServletRequest, "home");
+		}
+
+		return _sourceFolderName;
+	}
+
 	public void setViewAttributes() {
 		PortletDisplay portletDisplay = _themeDisplay.getPortletDisplay();
 
@@ -194,6 +206,10 @@ public class DLCopyEntryDisplayContext {
 	}
 
 	private Repository _getSourceRepository() throws PortalException {
+		if (_sourceRepositoryId != -1) {
+			return RepositoryProviderUtil.getRepository(_sourceRepositoryId);
+		}
+
 		if (_sourceRepository == null) {
 			if (getFileShortcutId() > 0) {
 				_sourceRepository =
@@ -211,6 +227,13 @@ public class DLCopyEntryDisplayContext {
 	}
 
 	private long _getSourceRepositoryId() throws PortalException {
+		_sourceRepositoryId = ParamUtil.getLong(
+			_httpServletRequest, "sourceRepositoryId");
+
+		if (_sourceRepositoryId != 0) {
+			return _sourceRepositoryId;
+		}
+
 		Repository repository = _getSourceRepository();
 
 		return repository.getRepositoryId();
@@ -222,7 +245,9 @@ public class DLCopyEntryDisplayContext {
 	private final HttpServletRequest _httpServletRequest;
 	private final LiferayPortletResponse _liferayPortletResponse;
 	private String _redirect;
+	private String _sourceFolderName;
 	private Repository _sourceRepository;
+	private long _sourceRepositoryId = -1;
 	private final ThemeDisplay _themeDisplay;
 
 }
