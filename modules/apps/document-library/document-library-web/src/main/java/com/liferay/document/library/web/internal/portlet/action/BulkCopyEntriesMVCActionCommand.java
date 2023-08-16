@@ -17,9 +17,11 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -107,6 +109,13 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
+	private void _checkDestinationGroup(Group group) throws PortalException {
+		if ((group != null) && group.isStaged() && !group.isStagingGroup()) {
+			throw new PortalException(
+				"cannot-copy-into-the-live-version-of-a-group");
+		}
+	}
+
 	private void _copyEntities(
 			long[] entityIds, long destinationFolderId,
 			long destinationRepositoryId, long sourceFolderId,
@@ -114,6 +123,10 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 			ServiceContext dlFileShortcutServiceContext,
 			ServiceContext dlFolderServiceContext)
 		throws PortalException {
+
+		Group group = _groupLocalService.fetchGroup(destinationRepositoryId);
+
+		_checkDestinationGroup(group);
 
 		for (long entityId : entityIds) {
 			DLFileShortcut dlFileShortcut =
@@ -165,5 +178,8 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 
 	private long _errorsCount;
 	private final Map<Long, String> _errorsMap = new HashMap<>();
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 }
