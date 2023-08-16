@@ -18,7 +18,7 @@ dlCopyEntryDisplayContext.setViewAttributes();
 		module="document_library/js/DDMFolderSelector"
 		props='<%=
 			HashMapBuilder.<String, Object>put(
-				"copyActionURL", "/document_library/bulk_copy_entries"
+				"copyActionURL", dlCopyEntryDisplayContext.getCopyEntriesActionURL()
 			).put(
 				"itemType", "fileEntry"
 			).put(

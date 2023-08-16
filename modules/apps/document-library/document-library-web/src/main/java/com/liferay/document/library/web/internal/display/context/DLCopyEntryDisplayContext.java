@@ -63,6 +63,16 @@ public class DLCopyEntryDisplayContext {
 		).buildString();
 	}
 
+	public String getCopyEntriesActionURL() {
+		return PortletURLBuilder.createActionURL(
+			_liferayPortletResponse
+		).setActionName(
+			"/document_library/bulk_copy_entries"
+		).setMVCRenderCommandName(
+			"/document_library/bulk_copy_entries"
+		).buildString();
+	}
+
 	public long getFileEntryId() {
 		if (_fileEntryId < 0) {
 			_fileEntryId = ParamUtil.getLong(
