@@ -5,6 +5,7 @@
 
 package com.liferay.document.library.web.internal.portlet.action;
 
+import com.liferay.depot.group.provider.SiteConnectedGroupGroupProvider;
 import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileShortcut;
@@ -128,6 +129,10 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 
 		_checkDestinationGroup(group);
 
+		long[] currentAndAncestorSiteAndDepotGroupIds =
+			_siteConnectedGroupGroupProvider.
+				getCurrentAndAncestorSiteAndDepotGroupIds(group.getGroupId());
+
 		for (long entityId : entityIds) {
 			DLFileShortcut dlFileShortcut =
 				_dlFileShortcutLocalService.fetchDLFileShortcut(entityId);
@@ -138,6 +143,7 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 
 					_dlAppService.copyFileEntry(
 						entityId, destinationFolderId, destinationRepositoryId,
+						currentAndAncestorSiteAndDepotGroupIds,
 						dlFileEntryServiceContext);
 				}
 				else if (dlFileShortcut != null) {
@@ -150,7 +156,9 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 
 					_dlAppService.copyFolder(
 						entityId, sourceFolderId, destinationRepositoryId,
-						destinationFolderId, dlFolderServiceContext);
+						destinationFolderId,
+						currentAndAncestorSiteAndDepotGroupIds,
+						dlFolderServiceContext);
 				}
 			}
 			catch (PortalException portalException) {
@@ -181,5 +189,8 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private SiteConnectedGroupGroupProvider _siteConnectedGroupGroupProvider;
 
 }
