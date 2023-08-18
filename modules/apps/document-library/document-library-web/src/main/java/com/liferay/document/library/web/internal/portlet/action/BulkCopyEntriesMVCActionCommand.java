@@ -59,20 +59,15 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		try {
-			_copyEntities(actionRequest);
-		}
-		catch (PortalException portalException) {
-			String errorMessage = StringBundler.concat(
-				portalException.getMessage(), StringPool.SPACE,
-				themeDisplay.translate(
-					"documents-folders-could-not-be-copied"));
+		_copyEntities(actionRequest);
+
+		if (!_errorsMap.isEmpty()) {
+			String errorMessage = themeDisplay.translate(
+				"documents-folders-could-not-be-copied");
 
 			if (_errorsMap.size() < 10) {
-				errorMessage = StringBundler.concat(
-					portalException.getMessage(), StringPool.SPACE,
-					themeDisplay.translate(
-						"the-following-documents-folders-could-not-be-copied"));
+				errorMessage = themeDisplay.translate(
+						"the-following-documents-folders-could-not-be-copied");
 			}
 
 			JSONPortletResponseUtil.writeJSON(
@@ -111,14 +106,18 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 				getCurrentAndAncestorSiteAndDepotGroupIds(group.getGroupId());
 
 		for (long entryId : entries) {
+			DLFileEntry dlFileEntry = _dlFileEntryLocalService.fetchDLFileEntry(entryId);
+
 			DLFileShortcut dlFileShortcut =
 				_dlFileShortcutLocalService.fetchDLFileShortcut(entryId);
 
 			DLFolder dlFolder = _dlFolderLocalService.fetchDLFolder(entryId);
 
+			String name = StringPool.BLANK;
+
 			try {
-				if (_dlFileEntryLocalService.fetchDLFileEntry(entryId) !=
-						null) {
+				if (dlFileEntry != null) {
+					name = dlFileEntry.getName();
 
 					_dlAppService.copyFileEntry(
 						entryId, destinationFolderId, destinationRepositoryId,
@@ -127,12 +126,16 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 							DLFileEntry.class.getName(), actionRequest));
 				}
 				else if (dlFileShortcut != null) {
+					name = dlFileShortcut.getToTitle();
+
 					_dlAppService.copyFileShortcut(
 						entryId, destinationFolderId, destinationRepositoryId,
 						ServiceContextFactory.getInstance(
 							DLFileShortcut.class.getName(), actionRequest));
 				}
 				else if (dlFolder != null) {
+					name = dlFolder.getName();
+
 					_dlAppService.copyFolder(
 						dlFolder.getRepositoryId(), entryId,
 						destinationRepositoryId, destinationFolderId,
@@ -142,12 +145,9 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 				}
 			}
 			catch (PortalException portalException) {
-				_errorsMap.put(entryId, portalException.getMessage());
+				_errorsMap.put(entryId, StringBundler.concat(
+					name, StringPool.SPACE, portalException.getMessage()));
 			}
-		}
-
-		if (!_errorsMap.isEmpty()) {
-			throw new PortalException();
 		}
 	}
 

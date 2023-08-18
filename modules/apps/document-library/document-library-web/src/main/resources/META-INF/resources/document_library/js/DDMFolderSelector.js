@@ -66,7 +66,6 @@ const DDMFolderSelector = ({
 		const bodyContentObject = objectToFormData(
 			itemType === 'folder'
 				? {
-						[`${portletNamespace}selectedEntries`]: selectedEntries,
 						[`${portletNamespace}sourceRepositoryId`]: sourceRepositoryId,
 						[`${portletNamespace}sourceFolderId`]: sourceFolderId,
 						[`${portletNamespace}destinationParentFolderId`]: destinationParentFolderId,
