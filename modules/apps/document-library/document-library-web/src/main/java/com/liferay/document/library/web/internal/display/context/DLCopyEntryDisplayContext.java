@@ -129,6 +129,7 @@ public class DLCopyEntryDisplayContext {
 			_selectedEntries = ParamUtil.getLongValues(
 				_httpServletRequest, "selectedEntries");
 		}
+
 		return _selectedEntries;
 	}
 

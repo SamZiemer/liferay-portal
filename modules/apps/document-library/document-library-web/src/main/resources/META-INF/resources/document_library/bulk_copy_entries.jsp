@@ -24,9 +24,9 @@ dlCopyEntryDisplayContext.setViewAttributes();
 			).put(
 				"redirect", dlCopyEntryDisplayContext.getRedirect()
 			).put(
-				"selectionModalURL", dlCopyEntryDisplayContext.getSelectFolderURL()
-			).put(
 				"selectedEntries", dlCopyEntryDisplayContext.getSelectedEntries()
+			).put(
+				"selectionModalURL", dlCopyEntryDisplayContext.getSelectFolderURL()
 			).put(
 				"sourceFileName", dlCopyEntryDisplayContext.getSourceFolderName()
 			).build()

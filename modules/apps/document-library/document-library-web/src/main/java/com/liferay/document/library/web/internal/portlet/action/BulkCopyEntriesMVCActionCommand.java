@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.service.GroupLocalService;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -56,6 +55,7 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
+
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
@@ -68,7 +68,7 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 				themeDisplay.translate(
 					"documents-folders-could-not-be-copied"));
 
-			if (_errorsCount < 10) {
+			if (_errorsMap.size() < 10) {
 				errorMessage = StringBundler.concat(
 					portalException.getMessage(), StringPool.SPACE,
 					themeDisplay.translate(
@@ -94,14 +94,13 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 
 	private void _copyEntities(ActionRequest actionRequest)
 		throws PortalException {
+
 		long destinationFolderId = ParamUtil.getLong(
 			actionRequest, "destinationFolderId");
 		long destinationRepositoryId = ParamUtil.getLong(
 			actionRequest, "destinationRepositoryId");
 		long[] entries = ParamUtil.getLongValues(
 			actionRequest, "selectedEntries");
-		long sourceFolderId = ParamUtil.getLong(
-			actionRequest, "sourceFolderId");
 
 		Group group = _groupLocalService.fetchGroup(destinationRepositoryId);
 
@@ -120,44 +119,35 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 			try {
 				if (_dlFileEntryLocalService.fetchDLFileEntry(entryId) !=
 						null) {
-					ServiceContext dlFileEntryServiceContext =
-						ServiceContextFactory.getInstance(
-							DLFileEntry.class.getName(), actionRequest);
 
 					_dlAppService.copyFileEntry(
 						entryId, destinationFolderId, destinationRepositoryId,
 						currentAndAncestorSiteAndDepotGroupIds,
-						dlFileEntryServiceContext);
+						ServiceContextFactory.getInstance(
+							DLFileEntry.class.getName(), actionRequest));
 				}
 				else if (dlFileShortcut != null) {
-					ServiceContext dlFileShortcutServiceContext =
-						ServiceContextFactory.getInstance(
-							DLFileShortcut.class.getName(), actionRequest);
-
 					_dlAppService.copyFileShortcut(
 						entryId, destinationFolderId, destinationRepositoryId,
-						dlFileShortcutServiceContext);
+						ServiceContextFactory.getInstance(
+							DLFileShortcut.class.getName(), actionRequest));
 				}
 				else if (dlFolder != null) {
-					ServiceContext dlFolderServiceContext =
-						ServiceContextFactory.getInstance(
-							DLFolder.class.getName(), actionRequest);
-
 					_dlAppService.copyFolder(
 						dlFolder.getRepositoryId(), entryId,
 						destinationRepositoryId, destinationFolderId,
 						currentAndAncestorSiteAndDepotGroupIds,
-						dlFolderServiceContext);
+						ServiceContextFactory.getInstance(
+							DLFolder.class.getName(), actionRequest));
 				}
 			}
 			catch (PortalException portalException) {
 				_errorsMap.put(entryId, portalException.getMessage());
-				_errorsCount++;
 			}
+		}
 
-			if (_errorsCount > 0) {
-				throw new PortalException();
-			}
+		if (!_errorsMap.isEmpty()) {
+			throw new PortalException();
 		}
 	}
 
@@ -173,7 +163,6 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 	@Reference
 	private DLFolderLocalService _dlFolderLocalService;
 
-	private long _errorsCount;
 	private final Map<Long, String> _errorsMap = new HashMap<>();
 
 	@Reference
