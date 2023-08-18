@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RepositoryLocalServiceUtil;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 
 import javax.portlet.RenderResponse;
@@ -121,6 +122,14 @@ public class DLCopyEntryDisplayContext {
 		_redirect = ParamUtil.getString(_httpServletRequest, "redirect");
 
 		return _redirect;
+	}
+
+	public long[] getSelectedEntries() {
+		if (ArrayUtil.isEmpty(_selectedEntries)) {
+			_selectedEntries = ParamUtil.getLongValues(
+				_httpServletRequest, "selectedEntries");
+		}
+		return _selectedEntries;
 	}
 
 	public String getSelectFolderURL() throws PortalException {
@@ -255,6 +264,7 @@ public class DLCopyEntryDisplayContext {
 	private final HttpServletRequest _httpServletRequest;
 	private final LiferayPortletResponse _liferayPortletResponse;
 	private String _redirect;
+	private long[] _selectedEntries;
 	private String _sourceFolderName;
 	private Repository _sourceRepository;
 	private long _sourceRepositoryId = -1;

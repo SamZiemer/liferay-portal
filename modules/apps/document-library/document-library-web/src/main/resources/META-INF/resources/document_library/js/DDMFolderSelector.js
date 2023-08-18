@@ -23,6 +23,7 @@ const DDMFolderSelector = ({
 	portletNamespace,
 	redirect,
 	selectionModalURL,
+	selectedEntries,
 	sourceFileEntryId,
 	sourceFileName,
 	sourceFolderId,
@@ -65,12 +66,14 @@ const DDMFolderSelector = ({
 		const bodyContentObject = objectToFormData(
 			itemType === 'folder'
 				? {
+						[`${portletNamespace}selectedEntries`]: selectedEntries,
 						[`${portletNamespace}sourceRepositoryId`]: sourceRepositoryId,
 						[`${portletNamespace}sourceFolderId`]: sourceFolderId,
 						[`${portletNamespace}destinationParentFolderId`]: destinationParentFolderId,
 						[`${portletNamespace}destinationRepositoryId`]: destinationRepositoryId,
 				  }
 				: {
+						[`${portletNamespace}selectedEntries`]: selectedEntries,
 						[`${portletNamespace}fileEntryId`]: sourceFileEntryId,
 						[`${portletNamespace}fileShortcutId`]: fileShortcutId,
 						[`${portletNamespace}destinationFolderId`]: destinationParentFolderId,

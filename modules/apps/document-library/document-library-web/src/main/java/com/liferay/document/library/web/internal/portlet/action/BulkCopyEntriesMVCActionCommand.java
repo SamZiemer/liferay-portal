@@ -56,36 +56,11 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
-
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		long destinationFolderId = ParamUtil.getLong(
-			actionRequest, "destinationFolderId");
-		long destinationRepositoryId = ParamUtil.getLong(
-			actionRequest, "destinationRepositoryId");
-		long[] entityIds = ParamUtil.getLongValues(
-			actionRequest, "selectedEntries");
-		long sourceFolderId = ParamUtil.getLong(
-			actionRequest, "sourceFolderId");
-
-		ServiceContext dlFileEntryServiceContext =
-			ServiceContextFactory.getInstance(
-				DLFileEntry.class.getName(), actionRequest);
-
-		ServiceContext dlFileShortcutServiceContext =
-			ServiceContextFactory.getInstance(
-				DLFileShortcut.class.getName(), actionRequest);
-
-		ServiceContext dlFolderServiceContext =
-			ServiceContextFactory.getInstance(
-				DLFolder.class.getName(), actionRequest);
-
 		try {
-			_copyEntities(
-				entityIds, destinationFolderId, destinationRepositoryId,
-				sourceFolderId, dlFileEntryServiceContext,
-				dlFileShortcutServiceContext, dlFolderServiceContext);
+			_copyEntities(actionRequest);
 		}
 		catch (PortalException portalException) {
 			String errorMessage = StringBundler.concat(
@@ -117,13 +92,16 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	private void _copyEntities(
-			long[] entityIds, long destinationFolderId,
-			long destinationRepositoryId, long sourceFolderId,
-			ServiceContext dlFileEntryServiceContext,
-			ServiceContext dlFileShortcutServiceContext,
-			ServiceContext dlFolderServiceContext)
+	private void _copyEntities(ActionRequest actionRequest)
 		throws PortalException {
+		long destinationFolderId = ParamUtil.getLong(
+			actionRequest, "destinationFolderId");
+		long destinationRepositoryId = ParamUtil.getLong(
+			actionRequest, "destinationRepositoryId");
+		long[] entries = ParamUtil.getLongValues(
+			actionRequest, "selectedEntries");
+		long sourceFolderId = ParamUtil.getLong(
+			actionRequest, "sourceFolderId");
 
 		Group group = _groupLocalService.fetchGroup(destinationRepositoryId);
 
@@ -133,36 +111,47 @@ public class BulkCopyEntriesMVCActionCommand extends BaseMVCActionCommand {
 			_siteConnectedGroupGroupProvider.
 				getCurrentAndAncestorSiteAndDepotGroupIds(group.getGroupId());
 
-		for (long entityId : entityIds) {
+		for (long entryId : entries) {
 			DLFileShortcut dlFileShortcut =
-				_dlFileShortcutLocalService.fetchDLFileShortcut(entityId);
+				_dlFileShortcutLocalService.fetchDLFileShortcut(entryId);
+
+			DLFolder dlFolder = _dlFolderLocalService.fetchDLFolder(entryId);
 
 			try {
-				if (_dlFileEntryLocalService.fetchDLFileEntry(entityId) !=
+				if (_dlFileEntryLocalService.fetchDLFileEntry(entryId) !=
 						null) {
+					ServiceContext dlFileEntryServiceContext =
+						ServiceContextFactory.getInstance(
+							DLFileEntry.class.getName(), actionRequest);
 
 					_dlAppService.copyFileEntry(
-						entityId, destinationFolderId, destinationRepositoryId,
+						entryId, destinationFolderId, destinationRepositoryId,
 						currentAndAncestorSiteAndDepotGroupIds,
 						dlFileEntryServiceContext);
 				}
 				else if (dlFileShortcut != null) {
+					ServiceContext dlFileShortcutServiceContext =
+						ServiceContextFactory.getInstance(
+							DLFileShortcut.class.getName(), actionRequest);
+
 					_dlAppService.copyFileShortcut(
-						entityId, destinationFolderId, destinationRepositoryId,
+						entryId, destinationFolderId, destinationRepositoryId,
 						dlFileShortcutServiceContext);
 				}
-				else if (_dlFolderLocalService.fetchDLFolder(entityId) !=
-							null) {
+				else if (dlFolder != null) {
+					ServiceContext dlFolderServiceContext =
+						ServiceContextFactory.getInstance(
+							DLFolder.class.getName(), actionRequest);
 
 					_dlAppService.copyFolder(
-						entityId, sourceFolderId, destinationRepositoryId,
-						destinationFolderId,
+						dlFolder.getRepositoryId(), entryId,
+						destinationRepositoryId, destinationFolderId,
 						currentAndAncestorSiteAndDepotGroupIds,
 						dlFolderServiceContext);
 				}
 			}
 			catch (PortalException portalException) {
-				_errorsMap.put(entityId, portalException.getMessage());
+				_errorsMap.put(entryId, portalException.getMessage());
 				_errorsCount++;
 			}
 
