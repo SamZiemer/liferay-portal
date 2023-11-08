@@ -7,6 +7,8 @@ package com.liferay.layout.type.controller.display.page.internal.layout.type.con
 
 import com.liferay.asset.display.page.portlet.AssetDisplayPageFriendlyURLProvider;
 import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.util.PortletLayoutAssetEntryProvider;
+import com.liferay.asset.util.PortletLayoutAssetEntryProviderRegistry;
 import com.liferay.info.display.request.attributes.contributor.InfoDisplayRequestAttributesContributor;
 import com.liferay.info.item.ClassPKInfoItemIdentifier;
 import com.liferay.info.item.InfoItemReference;
@@ -34,6 +36,7 @@ import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.servlet.PipingServletResponse;
 import com.liferay.portal.kernel.servlet.TransferHeadersHelperUtil;
+import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
@@ -71,16 +74,37 @@ public class DisplayPageLayoutTypeController
 			return null;
 		}
 
-		Object object = httpServletRequest.getAttribute(
-			WebKeys.LAYOUT_ASSET_ENTRY);
+		AssetEntry assetEntry = null;
 
-		if ((object != null) && (object instanceof AssetEntry)) {
-			AssetEntry assetEntry = (AssetEntry)object;
+		try {
+			assetEntry = (AssetEntry)httpServletRequest.getAttribute(
+				WebKeys.LAYOUT_ASSET_ENTRY);
+		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug("Unable to retrieve asset entry", exception);
+			}
+		}
 
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)httpServletRequest.getAttribute(
-					WebKeys.THEME_DISPLAY);
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
+		if (assetEntry == null) {
+			String portletId = ParamUtil.getString(httpServletRequest, "p_p_id");
+
+			PortletLayoutAssetEntryProvider portletLayoutAssetEntryProvider =
+				_portletLayoutAssetEntryProviderRegistry.
+					getPortletLayoutAssetEntryProvider(portletId);
+
+			if (portletLayoutAssetEntryProvider != null) {
+				assetEntry =
+					portletLayoutAssetEntryProvider.getLayoutAssetEntry(
+						httpServletRequest, layout);
+			}
+		}
+
+		if (assetEntry != null) {
 			return _assetDisplayPageFriendlyURLProvider.getFriendlyURL(
 				new InfoItemReference(
 					assetEntry.getClassName(),
@@ -370,6 +394,10 @@ public class DisplayPageLayoutTypeController
 	@Reference
 	private LayoutPageTemplateEntryLocalService
 		_layoutPageTemplateEntryLocalService;
+
+	@Reference
+	private PortletLayoutAssetEntryProviderRegistry
+		_portletLayoutAssetEntryProviderRegistry;
 
 	@Reference(
 		target = "(osgi.web.symbolicname=com.liferay.layout.type.controller.display.page)"
