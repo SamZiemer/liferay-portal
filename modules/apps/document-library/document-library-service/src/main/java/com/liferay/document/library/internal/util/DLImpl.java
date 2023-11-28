@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.portlet.documentlibrary.util;
+package com.liferay.document.library.internal.util;
 
+import com.liferay.asset.display.page.constants.AssetDisplayPageConstants;
+import com.liferay.asset.display.page.portlet.AssetDisplayPageFriendlyURLProvider;
 import com.liferay.document.library.kernel.exception.InvalidFolderException;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryConstants;
@@ -13,20 +15,22 @@ import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
 import com.liferay.document.library.kernel.model.DLFileVersion;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
-import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
-import com.liferay.document.library.kernel.service.DLFolderLocalServiceUtil;
+import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.document.library.kernel.service.DLFolderLocalService;
 import com.liferay.document.library.kernel.util.DL;
 import com.liferay.document.library.kernel.util.comparator.RepositoryModelCreateDateComparator;
 import com.liferay.document.library.kernel.util.comparator.RepositoryModelModifiedDateComparator;
 import com.liferay.document.library.kernel.util.comparator.RepositoryModelReadCountComparator;
 import com.liferay.document.library.kernel.util.comparator.RepositoryModelSizeComparator;
 import com.liferay.document.library.kernel.util.comparator.RepositoryModelTitleComparator;
+import com.liferay.info.item.ClassPKInfoItemIdentifier;
+import com.liferay.info.item.InfoItemReference;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -44,7 +48,7 @@ import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalServiceUtil;
+import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.trash.helper.TrashHelper;
@@ -58,7 +62,8 @@ import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
@@ -88,10 +93,14 @@ import javax.portlet.PortletURL;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Brian Wing Shun Chan
  * @author Julio Camarero
  */
+@Component(service = DL.class)
 public class DLImpl implements DL {
 
 	@Override
@@ -142,12 +151,12 @@ public class DLImpl implements DL {
 			return themeDisplay.translate("home");
 		}
 
-		Folder folder = DLAppLocalServiceUtil.getFolder(folderId);
+		Folder folder = _dlAppLocalService.getFolder(folderId);
 
 		List<Folder> folders = folder.getAncestors();
 
 		if (rootFolderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			Folder rootFolder = DLAppLocalServiceUtil.getFolder(rootFolderId);
+			Folder rootFolder = _dlAppLocalService.getFolder(rootFolderId);
 
 			if (!folders.contains(rootFolder)) {
 				throw new InvalidFolderException(
@@ -236,40 +245,40 @@ public class DLImpl implements DL {
 
 		return LinkedHashMapBuilder.put(
 			"[$COMPANY_ID$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(),
 				"the-company-id-associated-with-the-document")
 		).put(
 			"[$COMPANY_MX$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(),
 				"the-company-mx-associated-with-the-document")
 		).put(
 			"[$COMPANY_NAME$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(),
 				"the-company-name-associated-with-the-document")
 		).put(
 			"[$DOCUMENT_TITLE$]",
-			LanguageUtil.get(themeDisplay.getLocale(), "the-document-title")
+			_language.get(themeDisplay.getLocale(), "the-document-title")
 		).put(
 			"[$DOCUMENT_TYPE$]",
-			LanguageUtil.get(themeDisplay.getLocale(), "the-document-type")
+			_language.get(themeDisplay.getLocale(), "the-document-type")
 		).put(
 			"[$DOCUMENT_URL$]",
-			LanguageUtil.get(themeDisplay.getLocale(), "the-document-url")
+			_language.get(themeDisplay.getLocale(), "the-document-url")
 		).put(
 			"[$DOCUMENT_USER_ADDRESS$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(),
 				"the-email-address-of-the-user-who-added-the-document")
 		).put(
 			"[$DOCUMENT_USER_NAME$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(), "the-user-who-added-the-document")
 		).put(
 			"[$FOLDER_NAME$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(),
 				"the-folder-in-which-the-document-has-been-added")
 		).put(
@@ -293,16 +302,16 @@ public class DLImpl implements DL {
 			}
 		).put(
 			"[$SITE_NAME$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(),
 				"the-site-name-associated-with-the-document")
 		).put(
 			"[$TO_ADDRESS$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(), "the-address-of-the-email-recipient")
 		).put(
 			"[$TO_NAME$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(), "the-name-of-the-email-recipient")
 		).build();
 	}
@@ -317,31 +326,31 @@ public class DLImpl implements DL {
 
 		return LinkedHashMapBuilder.put(
 			"[$COMPANY_ID$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(),
 				"the-company-id-associated-with-the-document")
 		).put(
 			"[$COMPANY_MX$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(),
 				"the-company-mx-associated-with-the-document")
 		).put(
 			"[$COMPANY_NAME$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(),
 				"the-company-name-associated-with-the-document")
 		).put(
 			"[$DOCUMENT_STATUS_BY_USER_NAME$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(), "the-user-who-updated-the-document")
 		).put(
 			"[$DOCUMENT_USER_ADDRESS$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(),
 				"the-email-address-of-the-user-who-added-the-document")
 		).put(
 			"[$DOCUMENT_USER_NAME$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(), "the-user-who-added-the-document")
 		).put(
 			"[$PORTLET_NAME$]",
@@ -353,7 +362,7 @@ public class DLImpl implements DL {
 			}
 		).put(
 			"[$SITE_NAME$]",
-			LanguageUtil.get(
+			_language.get(
 				themeDisplay.getLocale(),
 				"the-site-name-associated-with-the-document")
 		).build();
@@ -368,7 +377,7 @@ public class DLImpl implements DL {
 				document.get(Field.ENTRY_CLASS_PK));
 
 			try {
-				entries.add(DLAppLocalServiceUtil.getFileEntry(fileEntryId));
+				entries.add(_dlAppLocalService.getFileEntry(fileEntryId));
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
@@ -451,7 +460,7 @@ public class DLImpl implements DL {
 			sb.append(themeDisplay.getPortalURL());
 		}
 
-		sb.append(PortalUtil.getPathContext());
+		sb.append(_portal.getPathContext());
 		sb.append("/documents/");
 		sb.append(fileEntry.getRepositoryId());
 		sb.append(StringPool.SLASH);
@@ -490,12 +499,12 @@ public class DLImpl implements DL {
 
 		if (themeDisplay != null) {
 			if (Validator.isNotNull(themeDisplay.getDoAsUserId())) {
-				previewURL = PortalUtil.addPreservedParameters(
+				previewURL = _portal.addPreservedParameters(
 					themeDisplay, previewURL, false, true);
 			}
 
 			if (themeDisplay.isAddSessionIdToURL()) {
-				previewURL = PortalUtil.getURLWithSessionId(
+				previewURL = _portal.getURLWithSessionId(
 					previewURL, themeDisplay.getSessionId());
 			}
 		}
@@ -706,8 +715,7 @@ public class DLImpl implements DL {
 		long companyId, long groupId, long folderId, long fileEntryTypeId) {
 
 		while (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			DLFolder dlFolder = DLFolderLocalServiceUtil.fetchDLFolder(
-				folderId);
+			DLFolder dlFolder = _dlFolderLocalService.fetchDLFolder(folderId);
 
 			if (dlFolder == null) {
 				return false;
@@ -722,10 +730,10 @@ public class DLImpl implements DL {
 			folderId = dlFolder.getParentFolderId();
 		}
 
-		if (WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(
+		if (_workflowDefinitionLinkLocalService.hasWorkflowDefinitionLink(
 				companyId, groupId, DLFolderConstants.getClassName(), folderId,
 				fileEntryTypeId) ||
-			WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(
+			_workflowDefinitionLinkLocalService.hasWorkflowDefinitionLink(
 				companyId, groupId, DLFolderConstants.getClassName(), folderId,
 				DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_ALL)) {
 
@@ -807,6 +815,22 @@ public class DLImpl implements DL {
 				serviceContext.getCurrentURL();
 		}
 
+		ThemeDisplay themeDisplay = serviceContext.getThemeDisplay();
+
+		if ((themeDisplay != null) && _hasAssetDisplayPage(serviceContext)) {
+			String friendlyURL =
+				_assetDisplayPageFriendlyURLProvider.getFriendlyURL(
+					new InfoItemReference(
+						FileEntry.class.getName(),
+						new ClassPKInfoItemIdentifier(
+							dlFileVersion.getFileEntryId())),
+					themeDisplay);
+
+			if (Validator.isNotNull(friendlyURL)) {
+				return friendlyURL;
+			}
+		}
+
 		String entryURL = GetterUtil.getString(
 			serviceContext.getAttribute("entryURL"));
 
@@ -815,7 +839,6 @@ public class DLImpl implements DL {
 		}
 
 		HttpServletRequest httpServletRequest = serviceContext.getRequest();
-		ThemeDisplay themeDisplay = serviceContext.getThemeDisplay();
 
 		if ((httpServletRequest == null) || (themeDisplay == null)) {
 			return StringPool.BLANK;
@@ -824,7 +847,7 @@ public class DLImpl implements DL {
 		PortletURL portletURL = null;
 
 		long plid = serviceContext.getPlid();
-		long controlPanelPlid = PortalUtil.getControlPanelPlid(
+		long controlPanelPlid = _portal.getControlPanelPlid(
 			serviceContext.getCompanyId());
 		String portletId = PortletProviderUtil.getPortletId(
 			FileEntry.class.getName(), PortletProvider.Action.VIEW);
@@ -846,7 +869,7 @@ public class DLImpl implements DL {
 		if ((plid == controlPanelPlid) ||
 			(plid == LayoutConstants.DEFAULT_PLID)) {
 
-			portletURL = PortalUtil.getControlPanelPortletURL(
+			portletURL = _portal.getControlPanelPortletURL(
 				httpServletRequest, portletId, PortletRequest.RENDER_PHASE);
 		}
 		else {
@@ -899,7 +922,7 @@ public class DLImpl implements DL {
 		long groupId, String extension, long folderId, String title) {
 
 		try {
-			DLAppLocalServiceUtil.getFileEntryByFileName(
+			_dlAppLocalService.getFileEntryByFileName(
 				groupId, folderId, getTitleWithExtension(title, extension));
 		}
 		catch (Exception exception) {
@@ -917,14 +940,25 @@ public class DLImpl implements DL {
 		long groupId, long folderId, String uniqueFileTitle) {
 
 		try {
-			DLAppLocalServiceUtil.getFileEntry(
-				groupId, folderId, uniqueFileTitle);
+			_dlAppLocalService.getFileEntry(groupId, folderId, uniqueFileTitle);
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
 				_log.debug(exception);
 			}
 
+			return false;
+		}
+
+		return true;
+	}
+
+	private boolean _hasAssetDisplayPage(ServiceContext serviceContext) {
+		int displayPageType = ParamUtil.getInteger(
+			serviceContext, "displayPageType",
+			AssetDisplayPageConstants.TYPE_DEFAULT);
+
+		if (displayPageType == AssetDisplayPageConstants.TYPE_NONE) {
 			return false;
 		}
 
@@ -1038,5 +1072,25 @@ public class DLImpl implements DL {
 			_populateGenericNamesMap(genericName);
 		}
 	}
+
+	@Reference
+	private AssetDisplayPageFriendlyURLProvider
+		_assetDisplayPageFriendlyURLProvider;
+
+	@Reference
+	private DLAppLocalService _dlAppLocalService;
+
+	@Reference
+	private DLFolderLocalService _dlFolderLocalService;
+
+	@Reference
+	private Language _language;
+
+	@Reference
+	private Portal _portal;
+
+	@Reference
+	private WorkflowDefinitionLinkLocalService
+		_workflowDefinitionLinkLocalService;
 
 }
