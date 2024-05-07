@@ -1575,6 +1575,51 @@ components:
             required:
                 - name
             type: object
+        DocumentShortcut:
+            description:
+                Represents a document shortcut.
+            properties:
+                creator:
+                    $ref: "#/components/schemas/Creator"
+                    description:
+                        The shorcut's creator.
+                    readOnly: true
+                dateCreated:
+                    description:
+                        The shorcut's creation date.
+                    format: date-time
+                    readOnly: true
+                    type: string
+                dateModified:
+                    description:
+                        The last time a field of the shorcut changed.
+                    format: date-time
+                    readOnly: true
+                    type: string
+                folderId:
+                    description:
+                        The shorcut's folder ID.
+                    format: int64
+                    readOnly: true
+                    type: integer
+                id:
+                    description:
+                        The shorcut's ID.
+                    format: int64
+                    readOnly: true
+                    type: integer
+                referencedDocument:
+                    $ref: "#/components/schemas/Document"
+                    description:
+                        The document that is being referenced.
+                    readOnly: true
+                siteId:
+                    description:
+                        The ID of the site to which this folder is scoped.
+                    format: int64
+                    readOnly: true
+                    type: integer
+            type: object
         Experience:
             description:
                 # @review
