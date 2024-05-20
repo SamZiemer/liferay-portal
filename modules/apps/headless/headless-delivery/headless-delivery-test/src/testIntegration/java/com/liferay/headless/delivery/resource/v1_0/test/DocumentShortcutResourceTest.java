@@ -10,6 +10,7 @@ import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.headless.delivery.client.dto.v1_0.DocumentShortcut;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileShortcut;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -19,18 +20,17 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ContentTypes;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+import com.liferay.portal.vulcan.util.GroupUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -48,8 +48,26 @@ public class DocumentShortcutResourceTest
 			PermissionCheckerMethodTestRule.INSTANCE);
 
 	@Override
-	@Test
-	public void testGetDocumentShortcut() throws Exception {
+	protected DocumentShortcut testGetDocumentShortcut_addDocumentShortcut()
+		throws Exception {
+
+		return _addDocumentShortcut();
+	}
+
+	@Override
+	protected DocumentShortcut testGraphQLDocumentShortcut_addDocumentShortcut()
+		throws Exception {
+
+		return _addDocumentShortcut();
+	}
+
+	private DocumentShortcut _addDocumentShortcut() throws Exception {
+		return _addDocumentShortcut(testGroup);
+	}
+
+	private DocumentShortcut _addDocumentShortcut(Group group)
+		throws Exception {
+
 		byte[] bytes = TestDataConstants.TEST_BYTE_ARRAY;
 
 		InputStream inputStream = new ByteArrayInputStream(bytes);
@@ -58,45 +76,46 @@ public class DocumentShortcutResourceTest
 			ServiceContextTestUtil.getServiceContext(
 				testGroup.getGroupId(), TestPropsValues.getUserId());
 
+		String title = "title";
+		String urlTitle = "urltitle";
+
+		if (_titleSuffix != 0) {
+			title = StringUtil.add(title, String.valueOf(_titleSuffix));
+			urlTitle = StringUtil.add(urlTitle, String.valueOf(_titleSuffix));
+		}
+
 		FileEntry fileEntry = _dlAppService.addFileEntry(
-			null, testGroup.getGroupId(),
+			null, group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(),
-			ContentTypes.APPLICATION_OCTET_STREAM, "title", "urltitle",
+			ContentTypes.APPLICATION_OCTET_STREAM, title, urlTitle,
 			StringPool.BLANK, StringPool.BLANK, inputStream, bytes.length, null,
 			null, null, serviceContext);
 
-		FileShortcut fileShortcut = _dlAppService.addFileShortcut(
+		_titleSuffix++;
+
+		_fileShortcut = _dlAppService.addFileShortcut(
 			fileEntry.getRepositoryId(), fileEntry.getFolderId(),
 			fileEntry.getFileEntryId(), serviceContext);
 
-		DocumentShortcut documentShortcut =
-			documentShortcutResource.getDocumentShortcut(
-				fileShortcut.getFileShortcutId());
-
-		Assert.assertNotNull(documentShortcut);
-
-		Assert.assertEquals(
-			fileShortcut.getFolderId(),
-			GetterUtil.getLong(documentShortcut.getFolderId()));
-
-		Assert.assertEquals(
-			fileShortcut.getFileShortcutId(),
-			GetterUtil.getLong(documentShortcut.getId()));
-
-		Assert.assertEquals(
-			fileShortcut.getGroupId(),
-			GetterUtil.getLong(documentShortcut.getSiteId()));
-
-		Assert.assertEquals(
-			fileShortcut.getToFileEntryId(),
-			GetterUtil.getLong(documentShortcut.getTargetDocumentId()));
-
-		Assert.assertEquals(
-			fileShortcut.getToTitle(), documentShortcut.getTitle());
+		return new DocumentShortcut() {
+			{
+				assetLibraryKey = GroupUtil.getAssetLibraryKey(group);
+				dateCreated = _fileShortcut.getCreateDate();
+				dateModified = _fileShortcut.getModifiedDate();
+				folderId = _fileShortcut.getFolderId();
+				id = _fileShortcut.getFileShortcutId();
+				siteId = _fileShortcut.getGroupId();
+				targetDocumentId = _fileShortcut.getToFileEntryId();
+				title = _fileShortcut.getToTitle();
+			}
+		};
 	}
 
 	@Inject
 	private static DLAppService _dlAppService;
+
+	private FileShortcut _fileShortcut;
+	private long _titleSuffix;
 
 }
