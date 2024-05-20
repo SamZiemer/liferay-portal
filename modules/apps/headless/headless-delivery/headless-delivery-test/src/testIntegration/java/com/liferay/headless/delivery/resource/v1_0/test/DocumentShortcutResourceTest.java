@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ContentTypes;
-import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -76,46 +75,34 @@ public class DocumentShortcutResourceTest
 			ServiceContextTestUtil.getServiceContext(
 				testGroup.getGroupId(), TestPropsValues.getUserId());
 
-		String title = "title";
-		String urlTitle = "urltitle";
-
-		if (_titleSuffix != 0) {
-			title = StringUtil.add(title, String.valueOf(_titleSuffix));
-			urlTitle = StringUtil.add(urlTitle, String.valueOf(_titleSuffix));
-		}
-
 		FileEntry fileEntry = _dlAppService.addFileEntry(
 			null, group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(),
-			ContentTypes.APPLICATION_OCTET_STREAM, title, urlTitle,
+			ContentTypes.APPLICATION_OCTET_STREAM,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			StringPool.BLANK, StringPool.BLANK, inputStream, bytes.length, null,
 			null, null, serviceContext);
 
-		_titleSuffix++;
-
-		_fileShortcut = _dlAppService.addFileShortcut(
+		FileShortcut fileShortcut = _dlAppService.addFileShortcut(
 			fileEntry.getRepositoryId(), fileEntry.getFolderId(),
 			fileEntry.getFileEntryId(), serviceContext);
 
 		return new DocumentShortcut() {
 			{
 				assetLibraryKey = GroupUtil.getAssetLibraryKey(group);
-				dateCreated = _fileShortcut.getCreateDate();
-				dateModified = _fileShortcut.getModifiedDate();
-				folderId = _fileShortcut.getFolderId();
-				id = _fileShortcut.getFileShortcutId();
-				siteId = _fileShortcut.getGroupId();
-				targetDocumentId = _fileShortcut.getToFileEntryId();
-				title = _fileShortcut.getToTitle();
+				dateCreated = fileShortcut.getCreateDate();
+				dateModified = fileShortcut.getModifiedDate();
+				folderId = fileShortcut.getFolderId();
+				id = fileShortcut.getFileShortcutId();
+				siteId = fileShortcut.getGroupId();
+				targetDocumentId = fileShortcut.getToFileEntryId();
+				title = fileShortcut.getToTitle();
 			}
 		};
 	}
 
 	@Inject
 	private static DLAppService _dlAppService;
-
-	private FileShortcut _fileShortcut;
-	private long _titleSuffix;
 
 }
