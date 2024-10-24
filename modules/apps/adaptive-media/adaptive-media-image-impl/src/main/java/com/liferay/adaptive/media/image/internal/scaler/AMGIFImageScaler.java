@@ -12,26 +12,31 @@ import com.liferay.adaptive.media.image.internal.util.RenderedImageUtil;
 import com.liferay.adaptive.media.image.internal.util.Tuple;
 import com.liferay.adaptive.media.image.scaler.AMImageScaledImage;
 import com.liferay.adaptive.media.image.scaler.AMImageScaler;
-import com.liferay.petra.process.CollectorOutputProcessor;
-import com.liferay.petra.process.ProcessException;
-import com.liferay.petra.process.ProcessUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileVersion;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.awt.image.RenderedImage;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -60,18 +65,23 @@ public class AMGIFImageScaler implements AMImageScaler {
 		try {
 			File file = _getFile(fileVersion);
 
-			Future<Map.Entry<byte[], byte[]>> collectorFuture =
-				ProcessUtil.execute(
-					CollectorOutputProcessor.INSTANCE, "gifsicle",
-					"--resize-fit",
-					_getResizeFitValues(amImageConfigurationEntry), "--output",
-					"-", file.getAbsolutePath());
+			File destinationFile = FileUtil.createTempFile();
 
-			Map.Entry<byte[], byte[]> objectValuePair = collectorFuture.get();
+			_runGifsicleCommand(
+				Arrays.asList(
+					"gifsicle", "--resize-fit",
+					_getResizeFitValues(amImageConfigurationEntry), "--output",
+					destinationFile.getAbsolutePath(), file.getAbsolutePath()));
 
 			file.delete();
 
-			byte[] bytes = objectValuePair.getKey();
+			byte[] bytes = new byte[(int)destinationFile.length()];
+
+			try (FileInputStream fileInputStream = new FileInputStream(
+					destinationFile)) {
+
+				fileInputStream.read(bytes);
+			}
 
 			Tuple<Integer, Integer> dimension = _getDimension(bytes);
 
@@ -79,9 +89,7 @@ public class AMGIFImageScaler implements AMImageScaler {
 				bytes, dimension.second, fileVersion.getMimeType(),
 				dimension.first);
 		}
-		catch (ExecutionException | InterruptedException | IOException |
-			   PortalException | ProcessException exception) {
-
+		catch (Exception exception) {
 			throw new AMRuntimeException.IOException(exception);
 		}
 	}
@@ -91,6 +99,17 @@ public class AMGIFImageScaler implements AMImageScaler {
 	protected void activate(Map<String, Object> properties) {
 		_amImageConfiguration = ConfigurableUtil.createConfigurable(
 			AMImageConfiguration.class, properties);
+	}
+
+	private void _consumeProcessInputStream(InputStream inputStream)
+		throws IOException {
+
+		BufferedReader bufferedReader = new BufferedReader(
+			new InputStreamReader(inputStream));
+
+		while (bufferedReader.ready()) {
+			bufferedReader.readLine();
+		}
 	}
 
 	private Tuple<Integer, Integer> _getDimension(byte[] bytes)
@@ -137,6 +156,46 @@ public class AMGIFImageScaler implements AMImageScaler {
 
 		return StringBundler.concat(maxWidthString, "x", maxHeightString);
 	}
+
+	private void _runGifsicleCommand(List<String> gifsicleCommand)
+		throws Exception {
+
+		ProcessBuilder processBuilder = new ProcessBuilder(gifsicleCommand);
+
+		processBuilder.redirectErrorStream(true);
+
+		Process process = processBuilder.start();
+
+		InputStream inputStream = process.getInputStream();
+
+		while (true) {
+			try {
+				_consumeProcessInputStream(inputStream);
+
+				if (!process.waitFor(5, TimeUnit.SECONDS)) {
+					continue;
+				}
+
+				if (process.exitValue() != 0) {
+					throw new Exception(
+						StringBundler.concat(
+							"Gifsicle command ",
+							StringUtil.merge(gifsicleCommand, StringPool.SPACE),
+							" failed with exit status ", process.exitValue()));
+				}
+
+				return;
+			}
+			catch (InterruptedException interruptedException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(interruptedException);
+				}
+			}
+		}
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		AMGIFImageScaler.class);
 
 	private volatile AMImageConfiguration _amImageConfiguration;
 
