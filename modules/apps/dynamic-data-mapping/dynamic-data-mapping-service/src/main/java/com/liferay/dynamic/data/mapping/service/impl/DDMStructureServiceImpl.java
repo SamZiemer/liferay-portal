@@ -301,6 +301,21 @@ public class DDMStructureServiceImpl extends DDMStructureServiceBaseImpl {
 	}
 
 	@Override
+	public DDMStructure getStructureByExternalReferenceCode(
+			String externalReferenceCode, long groupId, long classNameId)
+		throws PortalException {
+
+		DDMStructure structure =
+			ddmStructureLocalService.getStructureByExternalReferenceCode(
+				externalReferenceCode, groupId, classNameId);
+
+		_ddmStructureModelResourcePermission.check(
+			getPermissionChecker(), structure, ActionKeys.VIEW);
+
+		return structure;
+	}
+
+	@Override
 	public List<DDMStructure> getStructures(
 		long companyId, long[] groupIds, long classNameId, int status) {
 
