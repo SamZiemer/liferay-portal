@@ -235,6 +235,15 @@ public class DDMStructureServiceWrapper
 	}
 
 	@Override
+	public DDMStructure getStructureByExternalReferenceCode(
+			String externalReferenceCode, long groupId, long classNameId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _ddmStructureService.getStructureByExternalReferenceCode(
+			externalReferenceCode, groupId, classNameId);
+	}
+
+	@Override
 	public java.util.List<DDMStructure> getStructures(
 		long companyId, long[] groupIds, long classNameId, int status) {
 
