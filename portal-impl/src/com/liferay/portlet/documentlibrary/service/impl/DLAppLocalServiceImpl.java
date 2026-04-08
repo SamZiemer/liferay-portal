@@ -11,7 +11,9 @@ import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
 import com.liferay.document.library.kernel.service.DLAppHelperLocalService;
 import com.liferay.document.library.kernel.service.DLFolderLocalService;
+import com.liferay.document.library.kernel.util.DLAppHelperThreadLocal;
 import com.liferay.petra.io.unsync.UnsyncByteArrayInputStream;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.bean.BeanReference;
@@ -31,6 +33,8 @@ import com.liferay.portal.kernel.repository.model.FileShortcut;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.repository.model.RepositoryEntry;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.service.RepositoryLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.persistence.RepositoryPersistence;
@@ -51,6 +55,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -1432,6 +1437,17 @@ public class DLAppLocalServiceImpl extends DLAppLocalServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
+		return copyFileEntry(
+			userId, targetLocalRepository, sourceFileEntry, targetFolderId,
+			null, serviceContext);
+	}
+
+	protected FileEntry copyFileEntry(
+			long userId, LocalRepository targetLocalRepository,
+			FileEntry sourceFileEntry, long targetFolderId,
+			List<Long> dlFileEntryIds, ServiceContext serviceContext)
+		throws PortalException {
+
 		List<FileVersion> sourceFileVersions = sourceFileEntry.getFileVersions(
 			WorkflowConstants.STATUS_ANY);
 
@@ -1482,6 +1498,10 @@ public class DLAppLocalServiceImpl extends DLAppLocalServiceBaseImpl {
 			}
 		}
 
+		if (dlFileEntryIds != null) {
+			dlFileEntryIds.add(targetFileEntry.getFileEntryId());
+		}
+
 		return targetFileEntry;
 	}
 
@@ -1494,35 +1514,69 @@ public class DLAppLocalServiceImpl extends DLAppLocalServiceBaseImpl {
 
 		Folder targetFolder = null;
 
-		try {
-			Folder sourceFolder = sourceLocalRepository.getFolder(folderId);
+		List<DLFolder> updatedDLFolders = new ArrayList<>();
+		List<Long> updatedDLFileEntryIds = new ArrayList<>();
 
-			targetFolder = targetLocalRepository.addFolder(
-				null, userId, parentFolderId, sourceFolder.getName(),
-				sourceFolder.getDescription(), serviceContext);
+		try (SafeCloseable safeCloseable =
+				DLAppHelperThreadLocal.setEnabledWithSafeCloseable(false)) {
 
-			_dlAppHelperLocalService.addFolder(
-				userId, targetFolder, serviceContext);
+			boolean indexingEnabled = serviceContext.isIndexingEnabled();
 
-			copyFolderDependencies(
-				userId, sourceFolder, targetFolder, sourceLocalRepository,
-				targetLocalRepository, serviceContext);
+			serviceContext.setIndexingEnabled(false);
 
-			return targetFolder;
-		}
-		catch (PortalException portalException) {
-			if (targetFolder != null) {
-				targetLocalRepository.deleteFolder(targetFolder.getFolderId());
+			try {
+				Folder sourceFolder = sourceLocalRepository.getFolder(folderId);
+
+				targetFolder = targetLocalRepository.addFolder(
+					null, userId, parentFolderId, sourceFolder.getName(),
+					sourceFolder.getDescription(), serviceContext);
+
+				_dlAppHelperLocalService.addFolder(
+					userId, targetFolder, serviceContext);
+
+				if (targetFolder instanceof LiferayFolder) {
+					updatedDLFolders.add(
+						((LiferayFolder)targetFolder).getDLFolder());
+				}
+
+				copyFolderDependencies(
+					userId, sourceFolder, targetFolder, sourceLocalRepository,
+					targetLocalRepository, updatedDLFolders,
+					updatedDLFileEntryIds, serviceContext);
 			}
+			catch (PortalException portalException) {
+				if (targetFolder != null) {
+					targetLocalRepository.deleteFolder(
+						targetFolder.getFolderId());
+				}
 
-			throw portalException;
+				throw portalException;
+			}
+			finally {
+				serviceContext.setIndexingEnabled(indexingEnabled);
+			}
 		}
+
+		if (!updatedDLFolders.isEmpty()) {
+			Indexer<DLFolder> indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+				DLFolder.class);
+
+			indexer.reindex(updatedDLFolders);
+		}
+
+		if (!updatedDLFileEntryIds.isEmpty()) {
+			_dlAppHelperLocalService.reindex(
+				targetFolder.getCompanyId(), updatedDLFileEntryIds);
+		}
+
+		return targetFolder;
 	}
 
 	protected void copyFolderDependencies(
 			long userId, Folder sourceFolder, Folder targetFolder,
 			LocalRepository sourceLocalRepository,
 			LocalRepository targetLocalRepository,
+			List<DLFolder> updatedDLFolders, List<Long> updatedDLFileEntryIds,
 			ServiceContext serviceContext)
 		throws PortalException {
 
@@ -1537,7 +1591,8 @@ public class DLAppLocalServiceImpl extends DLAppLocalServiceBaseImpl {
 
 				copyFileEntry(
 					userId, targetLocalRepository, fileEntry,
-					targetFolder.getFolderId(), serviceContext);
+					targetFolder.getFolderId(), updatedDLFileEntryIds,
+					serviceContext);
 			}
 			else if (repositoryEntry instanceof FileShortcut) {
 				if (targetFolder.isSupportsShortcuts()) {
@@ -1559,9 +1614,15 @@ public class DLAppLocalServiceImpl extends DLAppLocalServiceBaseImpl {
 				_dlAppHelperLocalService.addFolder(
 					userId, newFolder, serviceContext);
 
+				if (newFolder instanceof LiferayFolder) {
+					updatedDLFolders.add(
+						((LiferayFolder)newFolder).getDLFolder());
+				}
+
 				copyFolderDependencies(
 					userId, currentFolder, newFolder, sourceLocalRepository,
-					targetLocalRepository, serviceContext);
+					targetLocalRepository, updatedDLFolders,
+					updatedDLFileEntryIds, serviceContext);
 			}
 		}
 	}
