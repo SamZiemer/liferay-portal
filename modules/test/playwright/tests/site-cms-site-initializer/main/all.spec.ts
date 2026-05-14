@@ -1873,3 +1873,151 @@ test(
 		}
 	}
 );
+
+test(
+	'Table view shows the expected columns for an asset',
+	{tag: ['@LPD-85551', '@LPD-87956']},
+	async ({apiHelpers, assetsPage, page}) => {
+		const applicationName = 'cms/basic-web-contents';
+		const fileTitle = `Columns ${getRandomString()}`;
+		let objectEntry: ObjectEntry;
+
+		try {
+			await test.step('Create a content', async () => {
+				objectEntry = await apiHelpers.objectEntry.postObjectEntry(
+					{
+						objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+						title: fileTitle,
+					},
+					applicationName,
+					'Default'
+				);
+
+				await assetsPage.gotoAll();
+			});
+
+			await test.step('Check the expected columns are visible', async () => {
+				for (const columnName of [
+					'Title',
+					'Type',
+					'Space',
+					'Author',
+					'Modified',
+					'Status',
+				]) {
+					await expect(
+						page.getByRole('columnheader', {name: columnName})
+					).toBeVisible();
+				}
+			});
+
+			await test.step('Check the row exposes type, space, author, and status', async () => {
+				const row = assetsPage.table.bodyRows.filter({
+					hasText: fileTitle,
+				});
+
+				await expect(row).toBeVisible();
+				await expect(row).toContainText('Basic Web Content');
+				await expect(row).toContainText('Default');
+				await expect(row).toContainText('Test Test');
+				await expect(row).toContainText('Approved');
+			});
+
+			await test.step('Check the row shows structure icon, Space sticker, and Author avatar', async () => {
+				const row = assetsPage.table.bodyRows.filter({
+					hasText: fileTitle,
+				});
+
+				await expect(
+					row.getByRole('cell', {name: fileTitle}).locator('.sticker')
+				).toBeVisible();
+				await expect(
+					row.locator('.space-renderer-sticker')
+				).toBeVisible();
+				await expect(row.locator('.lexicon-icon-user')).toBeVisible();
+			});
+		}
+		finally {
+			if (objectEntry) {
+				await apiHelpers.objectEntry.deleteObjectEntry(
+					applicationName,
+					String(objectEntry.id)
+				);
+			}
+		}
+	}
+);
+
+test(
+	'Table view supports sorting by Modified date',
+	{tag: ['@LPD-85551', '@LPD-87956']},
+	async ({apiHelpers, assetsPage, page}) => {
+		const applicationName = 'cms/basic-web-contents';
+		const sortToken = `Sort${getRandomString()}`;
+		const firstTitle = `First ${sortToken}`;
+		const secondTitle = `Second ${sortToken}`;
+		let firstEntry: ObjectEntry;
+		let secondEntry: ObjectEntry;
+
+		try {
+			await test.step('Create two contents in order', async () => {
+				firstEntry = await apiHelpers.objectEntry.postObjectEntry(
+					{
+						objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+						title: firstTitle,
+					},
+					applicationName,
+					'Default'
+				);
+
+				secondEntry = await apiHelpers.objectEntry.postObjectEntry(
+					{
+						objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+						title: secondTitle,
+					},
+					applicationName,
+					'Default'
+				);
+
+				await assetsPage.gotoAll();
+			});
+
+			await test.step('Search to scope to the two created contents', async () => {
+				const searchInput = page.getByPlaceholder('Search');
+
+				await searchInput.fill(sortToken);
+				await searchInput.press('Enter');
+
+				await expect(assetsPage.table.bodyRows).toHaveCount(2);
+				await expect(assetsPage.table.bodyRows.first()).toContainText(
+					secondTitle
+				);
+			});
+
+			await test.step('Toggle Modified sort and verify the order flips', async () => {
+				await page
+					.getByRole('columnheader', {name: 'Modified'})
+					.getByRole('button', {name: 'Sortable Column'})
+					.click();
+
+				await expect(assetsPage.table.bodyRows.first()).toContainText(
+					firstTitle
+				);
+			});
+		}
+		finally {
+			if (firstEntry) {
+				await apiHelpers.objectEntry.deleteObjectEntry(
+					applicationName,
+					String(firstEntry.id)
+				);
+			}
+			if (secondEntry) {
+				await apiHelpers.objectEntry.deleteObjectEntry(
+					applicationName,
+					String(secondEntry.id)
+				);
+			}
+		}
+	}
+);
