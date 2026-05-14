@@ -2021,3 +2021,57 @@ test(
 		}
 	}
 );
+
+test(
+	'Card view shows title, status, modified date, structure icon, and a thumbnail',
+	{tag: ['@LPD-85551', '@LPD-87956']},
+	async ({apiHelpers, assetsPage, page}) => {
+		const applicationName = 'cms/basic-web-contents';
+		const fileTitle = `Card ${getRandomString()}`;
+		let objectEntry: ObjectEntry;
+
+		try {
+			await test.step('Create a content', async () => {
+				objectEntry = await apiHelpers.objectEntry.postObjectEntry(
+					{
+						objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+						title: fileTitle,
+					},
+					applicationName,
+					'Default'
+				);
+
+				await assetsPage.gotoAll();
+
+				await expect(
+					page.getByRole('cell', {exact: true, name: fileTitle})
+				).toBeVisible();
+			});
+
+			await test.step('Switch to Card view', async () => {
+				await assetsPage.changeVisualizationMode('Cards');
+			});
+
+			await test.step('Check the card shows title, status, modified date, structure icon, and a thumbnail', async () => {
+				const card = assetsPage.getCardItem(fileTitle);
+
+				await expect(card).toBeVisible();
+				await expect(
+					card.getByRole('link', {exact: true, name: fileTitle})
+				).toBeVisible();
+				await expect(card).toContainText('Approved');
+				await expect(card).toContainText(/\w{3} \d{1,2}, \d{4}/);
+				await expect(card.locator('.card-item-first')).toBeVisible();
+				await expect(card.locator('.sticker-overlay')).toBeVisible();
+			});
+		}
+		finally {
+			if (objectEntry) {
+				await apiHelpers.objectEntry.deleteObjectEntry(
+					applicationName,
+					String(objectEntry.id)
+				);
+			}
+		}
+	}
+);
