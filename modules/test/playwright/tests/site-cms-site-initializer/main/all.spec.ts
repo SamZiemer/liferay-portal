@@ -1695,3 +1695,181 @@ test(
 		}
 	}
 );
+
+test(
+	'Content can be searched from the All section',
+	{tag: ['@LPD-85551', '@LPD-87956']},
+	async ({apiHelpers, assetsPage, page}) => {
+		const applicationName = 'cms/basic-web-contents';
+		const uniqueToken = getRandomString();
+		const file1Title = `Findable ${uniqueToken}`;
+		const file2Title = `Other ${getRandomString()}`;
+		let objectEntry1: ObjectEntry;
+		let objectEntry2: ObjectEntry;
+
+		try {
+			await test.step('Create a findable and an unrelated content', async () => {
+				objectEntry1 = await apiHelpers.objectEntry.postObjectEntry(
+					{
+						objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+						title: file1Title,
+					},
+					applicationName,
+					'Default'
+				);
+
+				objectEntry2 = await apiHelpers.objectEntry.postObjectEntry(
+					{
+						objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+						title: file2Title,
+					},
+					applicationName,
+					'Default'
+				);
+
+				await assetsPage.gotoAll();
+
+				await expect(
+					page.getByRole('cell', {exact: true, name: file1Title})
+				).toBeVisible();
+				await expect(
+					page.getByRole('cell', {exact: true, name: file2Title})
+				).toBeVisible();
+			});
+
+			await test.step('Search for the unique token', async () => {
+				const searchInput = page.getByPlaceholder('Search');
+
+				await searchInput.fill(uniqueToken);
+				await searchInput.press('Enter');
+			});
+
+			await test.step('Check only the matching content is visible', async () => {
+				await expect(
+					page.getByRole('cell', {exact: true, name: file1Title})
+				).toBeVisible();
+				await expect(
+					page.getByRole('cell', {exact: true, name: file2Title})
+				).not.toBeVisible();
+			});
+		}
+		finally {
+			if (objectEntry1) {
+				await apiHelpers.objectEntry.deleteObjectEntry(
+					applicationName,
+					String(objectEntry1.id)
+				);
+			}
+			if (objectEntry2) {
+				await apiHelpers.objectEntry.deleteObjectEntry(
+					applicationName,
+					String(objectEntry2.id)
+				);
+			}
+		}
+	}
+);
+
+test(
+	'All section pagination caps row count at the selected items-per-page value',
+	{tag: ['@LPD-85551', '@LPD-87956']},
+	async ({apiHelpers, assetsPage, page}) => {
+		test.slow();
+
+		const applicationName = 'cms/basic-web-contents';
+		const initialSeedCount = 21;
+		const token = `Pagination${getRandomString()}`;
+		const objectEntries: ObjectEntry[] = [];
+		let deltas: number[] = [];
+
+		const seedContent = async (count: number) => {
+			for (let i = objectEntries.length; i < count; i++) {
+				objectEntries.push(
+					await apiHelpers.objectEntry.postObjectEntry(
+						{
+							objectEntryFolderExternalReferenceCode:
+								'L_CONTENTS',
+							title: `${token} ${i}`,
+						},
+						applicationName,
+						'Default'
+					)
+				);
+			}
+		};
+
+		const searchForToken = async () => {
+			const searchInput = page.getByPlaceholder('Search');
+
+			await searchInput.fill('');
+			await searchInput.fill(token);
+			await searchInput.press('Enter');
+		};
+
+		try {
+			await test.step(`Seed an initial ${initialSeedCount} contents so the pagination dropdown renders`, async () => {
+				await seedContent(initialSeedCount);
+			});
+
+			await test.step('Search to scope the listing and read the available items-per-page values', async () => {
+				await assetsPage.gotoAll();
+
+				await searchForToken();
+
+				await page.getByLabel('Items Per Page').click();
+
+				const optionLabels = await page
+					.getByRole('option')
+					.filter({hasText: 'Items'})
+					.allInnerTexts();
+
+				deltas = [
+					...new Set(
+						optionLabels
+							.map((label) => Number(label.match(/\d+/)?.[0]))
+							.filter((value) => Number.isFinite(value))
+					),
+				];
+
+				await page.keyboard.press('Escape');
+
+				expect(deltas.length).toBeGreaterThan(0);
+			});
+
+			const requiredCount = Math.max(...deltas) + 1;
+
+			if (objectEntries.length < requiredCount) {
+				await test.step(`Top up the seed count to ${requiredCount}`, async () => {
+					await seedContent(requiredCount);
+
+					await searchForToken();
+				});
+			}
+
+			for (const delta of deltas) {
+				await test.step(`Switch to ${delta} per page and verify the row count caps at ${delta}`, async () => {
+					const itemsPerPageToggle =
+						page.getByLabel('Items Per Page');
+
+					await itemsPerPageToggle.click();
+					await page
+						.getByRole('option', {name: `${delta} Items`})
+						.click();
+
+					await expect(itemsPerPageToggle).toHaveText(
+						new RegExp(`${delta} Items`)
+					);
+					await expect(assetsPage.table.bodyRows).toHaveCount(delta);
+				});
+			}
+		}
+		finally {
+			for (const entry of objectEntries) {
+				await apiHelpers.objectEntry.deleteObjectEntry(
+					applicationName,
+					String(entry.id)
+				);
+			}
+		}
+	}
+);
