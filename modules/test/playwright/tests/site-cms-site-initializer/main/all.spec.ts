@@ -1078,3 +1078,212 @@ test(
 		});
 	}
 );
+
+test(
+	'Content can be filtered by Category',
+	{tag: ['@LPD-85551', '@LPD-87956']},
+	async ({apiHelpers, assetsPage, page}) => {
+		const applicationName = 'cms/basic-web-contents';
+		const categoryName = `Category ${getRandomString()}`;
+		const file1Title = `Categorized ${getRandomString()}`;
+		const file2Title = `Uncategorized ${getRandomString()}`;
+		const vocabularyName = `Vocabulary ${getRandomString()}`;
+		let categoryId: number;
+		let objectEntry1: ObjectEntry;
+		let objectEntry2: ObjectEntry;
+		let vocabularyId: number;
+
+		try {
+			await test.step('Create a vocabulary, category, and contents', async () => {
+				const siteId = await apiHelpers.headlessAdminUser
+					.getSiteByFriendlyUrlPath('cms')
+					.then((response) => response.id);
+
+				vocabularyId = await apiHelpers.headlessAdminTaxonomy
+					.postSiteTaxonomyVocabulary({
+						assetLibraries: [{id: -1}],
+						assetTypes: [
+							{
+								required: false,
+								subtype: 'AllAssetSubtypes',
+								type: 'AllAssetTypes',
+							},
+						],
+						name: vocabularyName,
+						siteId,
+						visibilityType: 'PUBLIC',
+					})
+					.then((response) => response.id);
+
+				categoryId = await apiHelpers.headlessAdminTaxonomy
+					.postTaxonomyVocabularyTaxonomyCategory({
+						name: categoryName,
+						vocabularyId,
+					})
+					.then((response) => response.id);
+
+				objectEntry1 = await apiHelpers.objectEntry.postObjectEntry(
+					{
+						objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+						taxonomyCategoryIds: [categoryId],
+						title: file1Title,
+					},
+					applicationName,
+					'Default'
+				);
+
+				objectEntry2 = await apiHelpers.objectEntry.postObjectEntry(
+					{
+						objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+						title: file2Title,
+					},
+					applicationName,
+					'Default'
+				);
+
+				await assetsPage.gotoAll();
+
+				await expect(
+					page.getByRole('cell', {exact: true, name: file1Title})
+				).toBeVisible();
+				await expect(
+					page.getByRole('cell', {exact: true, name: file2Title})
+				).toBeVisible();
+			});
+
+			await test.step('Apply Category filter', async () => {
+				await page.getByRole('button', {name: 'Filter'}).click();
+
+				await page.getByRole('menuitem', {name: 'Category'}).click();
+
+				await page
+					.getByRole('textbox', {name: 'Search'})
+					.fill(categoryName);
+
+				await page.getByRole('checkbox', {name: categoryName}).check();
+
+				await page.getByRole('button', {name: 'Add Filter'}).click();
+			});
+
+			await test.step('Check only the categorized content is visible', async () => {
+				await expect(
+					page
+						.getByRole('button', {name: /Category:/})
+						.locator('.label-section')
+				).toBeVisible();
+
+				await expect(
+					page.getByRole('cell', {exact: true, name: file1Title})
+				).toBeVisible();
+				await expect(
+					page.getByRole('cell', {exact: true, name: file2Title})
+				).not.toBeVisible();
+			});
+		}
+		finally {
+			if (objectEntry1) {
+				await apiHelpers.objectEntry.deleteObjectEntry(
+					applicationName,
+					String(objectEntry1.id)
+				);
+			}
+			if (objectEntry2) {
+				await apiHelpers.objectEntry.deleteObjectEntry(
+					applicationName,
+					String(objectEntry2.id)
+				);
+			}
+			if (vocabularyId) {
+				await apiHelpers.headlessAdminTaxonomy.deleteTaxonomyVocabulary(
+					vocabularyId
+				);
+			}
+		}
+	}
+);
+
+test(
+	'Content can be filtered by Tag',
+	{tag: ['@LPD-85551', '@LPD-87956']},
+	async ({apiHelpers, assetsPage, page}) => {
+		const applicationName = 'cms/basic-web-contents';
+		const file1Title = `Tagged ${getRandomString()}`;
+		const file2Title = `Untagged ${getRandomString()}`;
+		const tagName = `Tag${getRandomString()}`;
+		let objectEntry1: ObjectEntry;
+		let objectEntry2: ObjectEntry;
+
+		try {
+			await test.step('Create tagged and untagged contents', async () => {
+				objectEntry1 = await apiHelpers.objectEntry.postObjectEntry(
+					{
+						keywords: [tagName],
+						objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+						title: file1Title,
+					},
+					applicationName,
+					'Default'
+				);
+
+				objectEntry2 = await apiHelpers.objectEntry.postObjectEntry(
+					{
+						objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+						title: file2Title,
+					},
+					applicationName,
+					'Default'
+				);
+
+				await assetsPage.gotoAll();
+
+				await expect(
+					page.getByRole('cell', {exact: true, name: file1Title})
+				).toBeVisible();
+				await expect(
+					page.getByRole('cell', {exact: true, name: file2Title})
+				).toBeVisible();
+			});
+
+			await test.step('Apply Tags filter', async () => {
+				await page.getByRole('button', {name: 'Filter'}).click();
+
+				await page.getByRole('menuitem', {name: 'Tags'}).click();
+
+				await page.getByRole('textbox', {name: 'Search'}).fill(tagName);
+
+				await page.getByRole('checkbox', {name: tagName}).check();
+
+				await page.getByRole('button', {name: 'Add Filter'}).click();
+			});
+
+			await test.step('Check only the tagged content is visible', async () => {
+				await expect(
+					page
+						.getByRole('button', {name: /Tags:/})
+						.locator('.label-section')
+				).toBeVisible();
+
+				await expect(
+					page.getByRole('cell', {exact: true, name: file1Title})
+				).toBeVisible();
+				await expect(
+					page.getByRole('cell', {exact: true, name: file2Title})
+				).not.toBeVisible();
+			});
+		}
+		finally {
+			if (objectEntry1) {
+				await apiHelpers.objectEntry.deleteObjectEntry(
+					applicationName,
+					String(objectEntry1.id)
+				);
+			}
+			if (objectEntry2) {
+				await apiHelpers.objectEntry.deleteObjectEntry(
+					applicationName,
+					String(objectEntry2.id)
+				);
+			}
+		}
+	}
+);
