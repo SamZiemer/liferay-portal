@@ -107,11 +107,14 @@ const ConnectableActions = ({
 				: Liferay.Language.get('make-searchable'),
 			onClick: changeSearchable,
 		},
-		{
+	];
+
+	if (site.stagingType !== 'LIVE') {
+		items.push({
 			label: Liferay.Language.get('disconnect'),
 			onClick: disconnect,
-		},
-	];
+		});
+	}
 
 	const isSearchableLabel = site.searchable
 		? Liferay.Language.get('yes')

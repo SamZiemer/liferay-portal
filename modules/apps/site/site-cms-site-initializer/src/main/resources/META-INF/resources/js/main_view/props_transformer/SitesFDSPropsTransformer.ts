@@ -52,7 +52,13 @@ export default function SitesFDSPropsTransformer({
 		},
 		hideManagementBarInEmptyState: true,
 		itemsActions: itemsActions.map((action) => {
-			if (action?.data?.id === 'make-searchable') {
+			if (action?.data?.id === 'delete') {
+				return {
+					...action,
+					isVisible: (item: any) => item?.stagingType !== 'LIVE',
+				};
+			}
+			else if (action?.data?.id === 'make-searchable') {
 				return {
 					...action,
 					isVisible: (item: any) => Boolean(!item?.searchable),
@@ -78,5 +84,6 @@ export default function SitesFDSPropsTransformer({
 				loadData();
 			}
 		},
+		uniformActionsDisplay: true,
 	};
 }

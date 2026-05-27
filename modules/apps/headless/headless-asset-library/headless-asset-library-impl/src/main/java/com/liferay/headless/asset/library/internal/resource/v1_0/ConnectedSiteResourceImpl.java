@@ -7,6 +7,7 @@ package com.liferay.headless.asset.library.internal.resource.v1_0;
 
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.model.DepotEntryGroupRel;
+import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.depot.service.DepotEntryGroupRelService;
 import com.liferay.depot.service.DepotEntryService;
 import com.liferay.headless.asset.library.dto.v1_0.ConnectedSite;
@@ -65,6 +66,23 @@ public class ConnectedSiteResourceImpl extends BaseConnectedSiteResourceImpl {
 
 		_depotEntryGroupRelService.deleteDepotEntryGroupRel(
 			depotEntryGroupRel.getDepotEntryGroupRelId());
+
+		Group stagingPairGroup = _getStagingPairGroup(connectedSiteGroup);
+
+		if (stagingPairGroup == null) {
+			return;
+		}
+
+		DepotEntryGroupRel stagingPairDepotEntryGroupRel =
+			_depotEntryGroupRelLocalService.
+				fetchDepotEntryGroupRelByDepotEntryIdToGroupId(
+					depotEntry.getDepotEntryId(),
+					stagingPairGroup.getGroupId());
+
+		if (stagingPairDepotEntryGroupRel != null) {
+			_depotEntryGroupRelService.deleteDepotEntryGroupRel(
+				stagingPairDepotEntryGroupRel.getDepotEntryGroupRelId());
+		}
 	}
 
 	@Override
@@ -157,7 +175,34 @@ public class ConnectedSiteResourceImpl extends BaseConnectedSiteResourceImpl {
 				connectedSite.getSearchable());
 		}
 
+		Group stagingPairGroup = _getStagingPairGroup(connectedSiteGroup);
+
+		if (stagingPairGroup != null) {
+			DepotEntryGroupRel stagingPairDepotEntryGroupRel =
+				_depotEntryGroupRelService.addDepotEntryGroupRel(
+					depotEntry.getDepotEntryId(),
+					stagingPairGroup.getGroupId());
+
+			if (connectedSite.getSearchable() != null) {
+				_depotEntryGroupRelService.updateSearchable(
+					stagingPairDepotEntryGroupRel.getDepotEntryGroupRelId(),
+					connectedSite.getSearchable());
+			}
+		}
+
 		return _toConnectedSite(depotEntry, depotEntryGroupRel);
+	}
+
+	private Group _getStagingPairGroup(Group group) {
+		if (!group.isStaged() || group.isStagedRemotely()) {
+			return null;
+		}
+
+		if (group.isStagingGroup()) {
+			return group.getLiveGroup();
+		}
+
+		return group.getStagingGroup();
 	}
 
 	private ConnectedSite _toConnectedSite(
@@ -194,6 +239,9 @@ public class ConnectedSiteResourceImpl extends BaseConnectedSiteResourceImpl {
 	)
 	private DTOConverter<DepotEntryGroupRel, ConnectedSite>
 		_connectedSiteDTOConverter;
+
+	@Reference
+	private DepotEntryGroupRelLocalService _depotEntryGroupRelLocalService;
 
 	@Reference
 	private DepotEntryGroupRelService _depotEntryGroupRelService;
