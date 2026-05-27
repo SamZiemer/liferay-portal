@@ -25,6 +25,7 @@ import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -83,6 +84,34 @@ public class DepotEntryGroupRelStagingTest {
 								_liveDepotEntry.getDepotEntryId(),
 								stagingGroup.getGroupId()));
 				}));
+	}
+
+	@Test
+	public void testDepotEntryGroupRelAfterDisablingStagingOnConnectedSite()
+		throws Exception {
+
+		_depotEntryGroupRelLocalService.addDepotEntryGroupRel(
+			_liveDepotEntry.getDepotEntryId(), _liveGroup.getGroupId());
+
+		AtomicLong stagingGroupIdAtomicLong = new AtomicLong();
+
+		DepotTestUtil.withLocalStagingEnabled(
+			_liveGroup,
+			stagingGroup -> {
+				stagingGroupIdAtomicLong.set(stagingGroup.getGroupId());
+
+				Assert.assertNotNull(
+					_depotEntryGroupRelLocalService.
+						fetchDepotEntryGroupRelByDepotEntryIdToGroupId(
+							_liveDepotEntry.getDepotEntryId(),
+							stagingGroup.getGroupId()));
+			});
+
+		Assert.assertNull(
+			_depotEntryGroupRelLocalService.
+				fetchDepotEntryGroupRelByDepotEntryIdToGroupId(
+					_liveDepotEntry.getDepotEntryId(),
+					stagingGroupIdAtomicLong.get()));
 	}
 
 	@Test
