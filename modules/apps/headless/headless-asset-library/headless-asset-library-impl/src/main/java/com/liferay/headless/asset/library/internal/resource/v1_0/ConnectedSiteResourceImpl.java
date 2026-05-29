@@ -183,6 +183,12 @@ public class ConnectedSiteResourceImpl extends BaseConnectedSiteResourceImpl {
 					depotEntry.getDepotEntryId(),
 					stagingPairGroup.getGroupId());
 
+			stagingPairDepotEntryGroupRel.setUuid(depotEntryGroupRel.getUuid());
+
+			stagingPairDepotEntryGroupRel =
+				_depotEntryGroupRelLocalService.updateDepotEntryGroupRel(
+					stagingPairDepotEntryGroupRel);
+
 			if (connectedSite.getSearchable() != null) {
 				_depotEntryGroupRelService.updateSearchable(
 					stagingPairDepotEntryGroupRel.getDepotEntryGroupRelId(),

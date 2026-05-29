@@ -6,7 +6,11 @@
 package com.liferay.headless.asset.library.resource.v1_0.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.depot.model.DepotEntryGroupRel;
+import com.liferay.depot.service.DepotEntryGroupRelLocalService;
+import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationParameterMapFactoryUtil;
 import com.liferay.exportimport.kernel.service.StagingLocalService;
+import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.headless.asset.library.client.dto.v1_0.ConnectedSite;
 import com.liferay.headless.asset.library.client.problem.Problem;
 import com.liferay.portal.kernel.model.Group;
@@ -25,6 +29,7 @@ import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import org.junit.Assert;
@@ -71,6 +76,7 @@ public class ConnectedSiteResourceTest
 
 		_testPutAssetLibraryConnectedSiteMirrorsSearchableToStagedSite();
 		_testPutAssetLibraryConnectedSiteMirrorsStagedSite();
+		_testPutAssetLibraryConnectedSitePublishesStagedSitePair();
 		_testPutAssetLibraryConnectedSiteReturnsStagingType();
 		_testPutAssetLibraryConnectedSiteReturnsTypeSite();
 		_testPutAssetLibraryConnectedSiteReturnsTypeSiteTemplate();
@@ -214,6 +220,18 @@ public class ConnectedSiteResourceTest
 		}
 	}
 
+	private void _publishLayouts(Group stagingGroup, Group liveGroup)
+		throws Exception {
+
+		Map<String, String[]> parameterMap =
+			ExportImportConfigurationParameterMapFactoryUtil.
+				buildFullPublishParameterMap();
+
+		StagingUtil.publishLayouts(
+			TestPropsValues.getUserId(), stagingGroup.getGroupId(),
+			liveGroup.getGroupId(), false, parameterMap);
+	}
+
 	private void _testDeleteAssetLibraryConnectedSiteRemovesPairForStagedSite()
 		throws Exception {
 
@@ -317,6 +335,52 @@ public class ConnectedSiteResourceTest
 				stagingGroup.getExternalReferenceCode()));
 	}
 
+	private void _testPutAssetLibraryConnectedSitePublishesStagedSitePair()
+		throws Exception {
+
+		Group assetLibraryGroup = testDepotEntry.getGroup();
+
+		String assetLibraryExternalReferenceCode =
+			assetLibraryGroup.getExternalReferenceCode();
+
+		Group liveGroup = GroupTestUtil.addGroup();
+
+		_enableLocalStaging(liveGroup);
+
+		Group stagingGroup = liveGroup.getStagingGroup();
+
+		connectedSiteResource.putAssetLibraryConnectedSite(
+			assetLibraryExternalReferenceCode,
+			liveGroup.getExternalReferenceCode(), new ConnectedSite());
+
+		DepotEntryGroupRel liveDepotEntryGroupRel =
+			_depotEntryGroupRelLocalService.
+				getDepotEntryGroupRelByDepotEntryIdToGroupId(
+					testDepotEntry.getDepotEntryId(), liveGroup.getGroupId());
+
+		DepotEntryGroupRel stagingDepotEntryGroupRel =
+			_depotEntryGroupRelLocalService.
+				getDepotEntryGroupRelByDepotEntryIdToGroupId(
+					testDepotEntry.getDepotEntryId(),
+					stagingGroup.getGroupId());
+
+		Assert.assertEquals(
+			liveDepotEntryGroupRel.getUuid(),
+			stagingDepotEntryGroupRel.getUuid());
+
+		_publishLayouts(stagingGroup, liveGroup);
+
+		Assert.assertTrue(
+			_isConnected(
+				assetLibraryExternalReferenceCode,
+				liveGroup.getExternalReferenceCode()));
+
+		Assert.assertTrue(
+			_isConnected(
+				assetLibraryExternalReferenceCode,
+				stagingGroup.getExternalReferenceCode()));
+	}
+
 	private void _testPutAssetLibraryConnectedSiteReturnsStagingType()
 		throws Exception {
 
@@ -396,6 +460,9 @@ public class ConnectedSiteResourceTest
 		Assert.assertEquals(
 			ConnectedSite.Type.SITE_TEMPLATE, connectedSite.getType());
 	}
+
+	@Inject
+	private DepotEntryGroupRelLocalService _depotEntryGroupRelLocalService;
 
 	@Inject
 	private LayoutSetPrototypeLocalService _layoutSetPrototypeLocalService;
